@@ -37,7 +37,7 @@ import {
   getTrackBitrates,
   getTrackIdToTrackBitrates,
 } from './bitrate';
-import { createTransceiverConfig } from './transciever';
+import { addTrackToConnection } from './transciever';
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -736,7 +736,11 @@ export class WebRTCEndpoint<
     this.localTrackIdToTrack.set(trackId, trackContext);
 
     if (this.connection) {
-      this.addTrackToConnection(trackContext);
+      addTrackToConnection(
+        trackContext,
+        this.disabledTrackEncodings,
+        this.connection,
+      );
 
       this.connection
         .getTransceivers()
@@ -757,17 +761,6 @@ export class WebRTCEndpoint<
     const mediaEvent = generateCustomEvent({ type: 'renegotiateTracks' });
     this.sendMediaEvent(mediaEvent);
   }
-
-  private addTrackToConnection = (
-    trackContext: TrackContext<EndpointMetadata, TrackMetadata>,
-  ) => {
-    const transceiverConfig = createTransceiverConfig(
-      trackContext,
-      this.disabledTrackEncodings,
-    );
-    const track = trackContext.track!;
-    this.connection!.addTransceiver(track, transceiverConfig);
-  };
 
   /**
    * Replaces a track that is being sent to the RTC Engine.
@@ -1432,7 +1425,11 @@ export class WebRTCEndpoint<
       this.connection.onsignalingstatechange = this.onSignalingStateChange;
 
       Array.from(this.localTrackIdToTrack.values()).forEach((trackContext) =>
-        this.addTrackToConnection(trackContext),
+        addTrackToConnection(
+          trackContext,
+          this.disabledTrackEncodings,
+          this.connection,
+        ),
       );
 
       this.connection

@@ -2,7 +2,20 @@ import { TrackContext, TrackEncoding } from './types';
 import { simulcastTransceiverConfig } from './const';
 import { applyBandwidthLimitation } from './bandwidth';
 
-export const createTransceiverConfig = <EndpointMetadata, TrackMetadata>(
+export const addTrackToConnection = <EndpointMetadata, TrackMetadata>(
+  trackContext: TrackContext<EndpointMetadata, TrackMetadata>,
+  disabledTrackEncodingsMap: Map<string, TrackEncoding[]>,
+  connection: RTCPeerConnection | undefined,
+) => {
+  const transceiverConfig = createTransceiverConfig(
+    trackContext,
+    disabledTrackEncodingsMap,
+  );
+  const track = trackContext.track!;
+  connection!.addTransceiver(track, transceiverConfig);
+};
+
+const createTransceiverConfig = <EndpointMetadata, TrackMetadata>(
   trackContext: TrackContext<EndpointMetadata, TrackMetadata>,
   disabledTrackEncodingsMap: Map<string, TrackEncoding[]>,
 ): RTCRtpTransceiverInit => {

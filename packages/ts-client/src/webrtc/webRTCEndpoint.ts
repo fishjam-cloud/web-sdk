@@ -37,6 +37,7 @@ import {
   getTrackBitrates,
   getTrackIdToTrackBitrates,
 } from './bitrate';
+import { createVideoTransceiverConfig } from './transciever';
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -549,7 +550,6 @@ export class WebRTCEndpoint<
   /**
    * Adds track that will be sent to the RTC Engine.
    * @param track - Audio or video track e.g. from your microphone or camera.
-   * @param stream  - Stream that this track belongs to.
    * @param trackMetadata - Any information about this track that other endpoints will
    * receive in {@link WebRTCEndpointEvents.endpointAdded}. E.g. this can source of the track - whether it's
    * screensharing, webcam or some other media device.
@@ -774,7 +774,10 @@ export class WebRTCEndpoint<
     if (trackContext.track!.kind === 'audio') {
       transceiverConfig = this.createAudioTransceiverConfig(trackContext);
     } else {
-      transceiverConfig = this.createVideoTransceiverConfig(trackContext);
+      transceiverConfig = createVideoTransceiverConfig(
+        trackContext,
+        this.disabledTrackEncodings,
+      );
     }
 
     return transceiverConfig;

@@ -2,6 +2,18 @@ import { TrackContext, TrackEncoding } from './types';
 import { simulcastTransceiverConfig } from './const';
 import { applyBandwidthLimitation } from './bandwidth';
 
+export const setTransceiverDirection = (connection: RTCPeerConnection) => {
+  connection
+    .getTransceivers()
+    .forEach(
+      (transceiver) =>
+        (transceiver.direction =
+          transceiver.direction === 'sendrecv'
+            ? 'sendonly'
+            : transceiver.direction),
+    );
+};
+
 export const addTrackToConnection = <EndpointMetadata, TrackMetadata>(
   trackContext: TrackContext<EndpointMetadata, TrackMetadata>,
   disabledTrackEncodingsMap: Map<string, TrackEncoding[]>,

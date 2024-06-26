@@ -37,7 +37,7 @@ import {
   getTrackBitrates,
   getTrackIdToTrackBitrates,
 } from './bitrate';
-import { addTrackToConnection } from './transciever';
+import { addTrackToConnection, setTransceiverDirection } from './transciever';
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -742,15 +742,7 @@ export class WebRTCEndpoint<
         this.connection,
       );
 
-      this.connection
-        .getTransceivers()
-        .forEach(
-          (transceiver) =>
-            (transceiver.direction =
-              transceiver.direction === 'sendrecv'
-                ? 'sendonly'
-                : transceiver.direction),
-        );
+      setTransceiverDirection(this.connection);
     }
 
     this.trackIdToSender.set(trackId, {

@@ -2,6 +2,33 @@ import { TrackContext, TrackEncoding } from './types';
 import { simulcastTransceiverConfig } from './const';
 import { applyBandwidthLimitation } from './bandwidth';
 
+export const addTransceiversIfNeeded = (
+  connection: RTCPeerConnection | undefined,
+  serverTracks: Map<string, number>,
+) => {
+  const recvTransceivers = connection!
+    .getTransceivers()
+    .filter((elem) => elem.direction === 'recvonly');
+  let toAdd: string[] = [];
+
+  const getNeededTransceiversTypes = (type: string): string[] => {
+    let typeNumber = serverTracks.get(type);
+    typeNumber = typeNumber !== undefined ? typeNumber : 0;
+    const typeTransceiversNumber = recvTransceivers.filter(
+      (elem) => elem.receiver.track.kind === type,
+    ).length;
+    return Array(typeNumber - typeTransceiversNumber).fill(type);
+  };
+
+  const audio = getNeededTransceiversTypes('audio');
+  const video = getNeededTransceiversTypes('video');
+  toAdd = toAdd.concat(audio);
+  toAdd = toAdd.concat(video);
+
+  for (const kind of toAdd)
+    connection?.addTransceiver(kind, { direction: 'recvonly' });
+};
+
 export const setTransceiverDirection = (connection: RTCPeerConnection) => {
   connection
     .getTransceivers()
@@ -43,7 +70,7 @@ const createTransceiverConfig = <EndpointMetadata, TrackMetadata>(
   }
 
   return transceiverConfig;
-}
+};
 
 const createAudioTransceiverConfig = <EndpointMetadata, TrackMetadata>(
   trackContext: TrackContext<EndpointMetadata, TrackMetadata>,

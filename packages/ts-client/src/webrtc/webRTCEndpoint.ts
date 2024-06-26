@@ -9,7 +9,6 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import EventEmitter from 'events';
 import TypedEmitter from 'typed-emitter';
-import { simulcastTransceiverConfig } from './const';
 import {
   AddTrackCommand,
   Command,
@@ -37,7 +36,11 @@ import {
   getTrackBitrates,
   getTrackIdToTrackBitrates,
 } from './bitrate';
-import { addTrackToConnection, setTransceiverDirection } from './transciever';
+import {
+  addTrackToConnection,
+  addTransceiversIfNeeded,
+  setTransceiverDirection,
+} from './transciever';
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -1313,30 +1316,6 @@ export class WebRTCEndpoint<
     }
   };
 
-  private addTransceiversIfNeeded = (serverTracks: Map<string, number>) => {
-    const recvTransceivers = this.connection!.getTransceivers().filter(
-      (elem) => elem.direction === 'recvonly',
-    );
-    let toAdd: string[] = [];
-
-    const getNeededTransceiversTypes = (type: string): string[] => {
-      let typeNumber = serverTracks.get(type);
-      typeNumber = typeNumber !== undefined ? typeNumber : 0;
-      const typeTransceiversNumber = recvTransceivers.filter(
-        (elem) => elem.receiver.track.kind === type,
-      ).length;
-      return Array(typeNumber - typeTransceiversNumber).fill(type);
-    };
-
-    const audio = getNeededTransceiversTypes('audio');
-    const video = getNeededTransceiversTypes('video');
-    toAdd = toAdd.concat(audio);
-    toAdd = toAdd.concat(video);
-
-    for (const kind of toAdd)
-      this.connection?.addTransceiver(kind, { direction: 'recvonly' });
-  };
-
   private async createAndSendOffer() {
     const connection = this.connection;
     if (!connection) return;
@@ -1441,7 +1420,7 @@ export class WebRTCEndpoint<
       Object.entries(offerData.data.tracksTypes),
     );
 
-    this.addTransceiversIfNeeded(tracks);
+    addTransceiversIfNeeded(this.connection, tracks);
 
     await this.createAndSendOffer();
   };

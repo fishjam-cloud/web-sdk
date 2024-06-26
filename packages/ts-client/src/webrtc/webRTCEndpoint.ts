@@ -786,47 +786,6 @@ export class WebRTCEndpoint<
     return transceiverConfig;
   }
 
-  private createVideoTransceiverConfig(
-    trackContext: TrackContext<EndpointMetadata, TrackMetadata>,
-  ): RTCRtpTransceiverInit {
-    let transceiverConfig: RTCRtpTransceiverInit;
-    if (trackContext.simulcastConfig!.enabled) {
-      transceiverConfig = simulcastTransceiverConfig;
-      const trackActiveEncodings =
-        trackContext.simulcastConfig!.activeEncodings;
-      const disabledTrackEncodings: TrackEncoding[] = [];
-      transceiverConfig.sendEncodings?.forEach((encoding) => {
-        if (trackActiveEncodings.includes(encoding.rid! as TrackEncoding)) {
-          encoding.active = true;
-        } else {
-          disabledTrackEncodings.push(encoding.rid! as TrackEncoding);
-        }
-      });
-      this.disabledTrackEncodings.set(
-        trackContext.trackId,
-        disabledTrackEncodings,
-      );
-    } else {
-      transceiverConfig = {
-        direction: 'sendonly',
-        sendEncodings: [
-          {
-            active: true,
-          },
-        ],
-        streams: trackContext.stream ? [trackContext.stream] : [],
-      };
-    }
-
-    if (trackContext.maxBandwidth && transceiverConfig.sendEncodings)
-      applyBandwidthLimitation(
-        transceiverConfig.sendEncodings,
-        trackContext.maxBandwidth,
-      );
-
-    return transceiverConfig;
-  }
-
   /**
    * Replaces a track that is being sent to the RTC Engine.
    * @param trackId - Audio or video track.

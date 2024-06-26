@@ -37,7 +37,10 @@ import {
   getTrackBitrates,
   getTrackIdToTrackBitrates,
 } from './bitrate';
-import { createVideoTransceiverConfig } from './transciever';
+import {
+  createAudioTransceiverConfig,
+  createVideoTransceiverConfig,
+} from './transciever';
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -772,7 +775,7 @@ export class WebRTCEndpoint<
     let transceiverConfig: RTCRtpTransceiverInit;
 
     if (trackContext.track!.kind === 'audio') {
-      transceiverConfig = this.createAudioTransceiverConfig(trackContext);
+      transceiverConfig = createAudioTransceiverConfig(trackContext);
     } else {
       transceiverConfig = createVideoTransceiverConfig(
         trackContext,
@@ -781,15 +784,6 @@ export class WebRTCEndpoint<
     }
 
     return transceiverConfig;
-  }
-
-  private createAudioTransceiverConfig(
-    trackContext: TrackContext<EndpointMetadata, TrackMetadata>,
-  ): RTCRtpTransceiverInit {
-    return {
-      direction: 'sendonly',
-      streams: trackContext.stream ? [trackContext.stream] : [],
-    };
   }
 
   private createVideoTransceiverConfig(

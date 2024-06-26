@@ -2,6 +2,15 @@ import { TrackContext, TrackEncoding } from './types';
 import { simulcastTransceiverConfig } from './const';
 import { applyBandwidthLimitation } from './bandwidth';
 
+export const createAudioTransceiverConfig = <EndpointMetadata, TrackMetadata>(
+  trackContext: TrackContext<EndpointMetadata, TrackMetadata>,
+): RTCRtpTransceiverInit => {
+  return {
+    direction: 'sendonly',
+    streams: trackContext.stream ? [trackContext.stream] : [],
+  };
+};
+
 export const createVideoTransceiverConfig = <EndpointMetadata, TrackMetadata>(
   trackContext: TrackContext<EndpointMetadata, TrackMetadata>,
   disabledTrackEncodingsMap: Map<string, TrackEncoding[]>,

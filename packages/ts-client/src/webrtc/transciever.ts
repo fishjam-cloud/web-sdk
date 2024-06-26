@@ -2,7 +2,25 @@ import { TrackContext, TrackEncoding } from './types';
 import { simulcastTransceiverConfig } from './const';
 import { applyBandwidthLimitation } from './bandwidth';
 
-export const createAudioTransceiverConfig = <EndpointMetadata, TrackMetadata>(
+export const createTransceiverConfig = <EndpointMetadata, TrackMetadata>(
+  trackContext: TrackContext<EndpointMetadata, TrackMetadata>,
+  disabledTrackEncodingsMap: Map<string, TrackEncoding[]>,
+): RTCRtpTransceiverInit => {
+  let transceiverConfig: RTCRtpTransceiverInit;
+
+  if (trackContext.track!.kind === 'audio') {
+    transceiverConfig = createAudioTransceiverConfig(trackContext);
+  } else {
+    transceiverConfig = createVideoTransceiverConfig(
+      trackContext,
+      disabledTrackEncodingsMap,
+    );
+  }
+
+  return transceiverConfig;
+}
+
+const createAudioTransceiverConfig = <EndpointMetadata, TrackMetadata>(
   trackContext: TrackContext<EndpointMetadata, TrackMetadata>,
 ): RTCRtpTransceiverInit => {
   return {
@@ -11,7 +29,7 @@ export const createAudioTransceiverConfig = <EndpointMetadata, TrackMetadata>(
   };
 };
 
-export const createVideoTransceiverConfig = <EndpointMetadata, TrackMetadata>(
+const createVideoTransceiverConfig = <EndpointMetadata, TrackMetadata>(
   trackContext: TrackContext<EndpointMetadata, TrackMetadata>,
   disabledTrackEncodingsMap: Map<string, TrackEncoding[]>,
 ): RTCRtpTransceiverInit => {

@@ -39,6 +39,7 @@ import {
 import {
   addTrackToConnection,
   addTransceiversIfNeeded,
+  getMidToTrackId,
   setTransceiverDirection,
   setTransceiversToReadOnly,
 } from './transciever';
@@ -1239,23 +1240,6 @@ export class WebRTCEndpoint<
     }
   };
 
-  private getMidToTrackId = (): Record<string, string> | null => {
-    const localTrackMidToTrackId: Record<string, string> = {};
-
-    if (!this.connection) return null;
-    this.connection.getTransceivers().forEach((transceiver) => {
-      const localTrackId = transceiver.sender.track?.id;
-      const mid = transceiver.mid;
-      if (localTrackId && mid) {
-        const trackContext = Array.from(this.localTrackIdToTrack.values()).find(
-          (trackContext) => trackContext!.track!.id === localTrackId,
-        )!;
-        localTrackMidToTrackId[mid] = trackContext.trackId;
-      }
-    });
-    return localTrackMidToTrackId;
-  };
-
   /**
    * Disconnects from the room. This function should be called when user disconnects from the room
    * in a clean way e.g. by clicking a dedicated, custom button `disconnect`.
@@ -1345,7 +1329,10 @@ export class WebRTCEndpoint<
             this.localTrackIdToTrack,
             this.localEndpoint.tracks,
           ),
-          midToTrackId: this.getMidToTrackId(),
+          midToTrackId: getMidToTrackId(
+            this.connection,
+            this.localTrackIdToTrack,
+          ),
         },
       });
       this.sendMediaEvent(mediaEvent);

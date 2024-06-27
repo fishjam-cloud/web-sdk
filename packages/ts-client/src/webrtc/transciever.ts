@@ -1,6 +1,7 @@
-import { TrackContext, TrackEncoding } from './types';
+import { RemoteTrackId, TrackContext, TrackEncoding } from './types';
 import { simulcastTransceiverConfig } from './const';
 import { applyBandwidthLimitation } from './bandwidth';
+import { TrackContextImpl } from './internal';
 
 export const addTransceiversIfNeeded = (
   connection: RTCPeerConnection | undefined,
@@ -123,4 +124,28 @@ export const setTransceiversToReadOnly = (connection: RTCPeerConnection) => {
   connection
     .getTransceivers()
     .forEach((transceiver) => (transceiver.direction = 'sendonly'));
+};
+
+export const getMidToTrackId = <EndpointMetadata, TrackMetadata>(
+  connection: RTCPeerConnection | undefined,
+  localTrackIdToTrack: Map<
+    RemoteTrackId,
+    TrackContextImpl<EndpointMetadata, TrackMetadata>
+  >,
+): Record<string, string> | null => {
+  const localTrackMidToTrackId: Record<string, string> = {};
+
+  if (!connection) return null;
+  connection.getTransceivers().forEach((transceiver) => {
+    const localTrackId = transceiver.sender.track?.id;
+    const mid = transceiver.mid;
+    if (localTrackId && mid) {
+      const trackContext = Array.from(localTrackIdToTrack.values()).find(
+        (trackContext) => trackContext!.track!.id === localTrackId,
+      )!;
+      localTrackMidToTrackId[mid] = trackContext.trackId;
+    }
+  });
+
+  return localTrackMidToTrackId;
 };

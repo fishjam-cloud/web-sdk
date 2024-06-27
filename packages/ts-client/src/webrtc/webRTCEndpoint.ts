@@ -43,6 +43,7 @@ import {
   setTransceiverDirection,
   setTransceiversToReadOnly,
 } from './transciever';
+import { findSender, findSenderByTrack } from "./RTCPeerConnectionUtils";
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -1141,9 +1142,9 @@ export class WebRTCEndpoint<
   public disableTrackEncoding(trackId: string, encoding: TrackEncoding) {
     const track = this.localTrackIdToTrack.get(trackId)?.track;
     this.disabledTrackEncodings.get(trackId)!.push(encoding);
-    const sender = this.connection
-      ?.getSenders()
-      .filter((sender) => sender.track === track)[0];
+
+    const sender = findSenderByTrack(this.connection, track)
+
     const params = sender?.getParameters();
     params!.encodings.filter((en) => en.rid == encoding)[0].active = false;
     sender?.setParameters(params!);

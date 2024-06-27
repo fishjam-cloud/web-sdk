@@ -118,3 +118,9 @@ const createVideoTransceiverConfig = <EndpointMetadata, TrackMetadata>(
 
   return transceiverConfig;
 };
+
+export const setTransceiversToReadOnly = (connection: RTCPeerConnection) => {
+  connection
+    .getTransceivers()
+    .forEach((transceiver) => (transceiver.direction = 'sendonly'));
+};

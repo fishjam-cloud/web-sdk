@@ -40,6 +40,7 @@ import {
   addTrackToConnection,
   addTransceiversIfNeeded,
   setTransceiverDirection,
+  setTransceiversToReadOnly,
 } from './transciever';
 
 /**
@@ -1403,9 +1404,7 @@ export class WebRTCEndpoint<
         ),
       );
 
-      this.connection
-        .getTransceivers()
-        .forEach((transceiver) => (transceiver.direction = 'sendonly'));
+      setTransceiversToReadOnly(this.connection);
     } else {
       this.connection.restartIce();
     }

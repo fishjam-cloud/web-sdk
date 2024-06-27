@@ -11,3 +11,8 @@ export const findSenderByTrack = (
   track: MediaStreamTrack | null | undefined,
 ): RTCRtpSender | undefined =>
   connection?.getSenders().filter((sender) => sender.track === track)[0];
+
+export const isTrackInUse = (
+  connection: RTCPeerConnection | undefined,
+  track: MediaStreamTrack,
+) => connection?.getSenders().some((val) => val.track === track);

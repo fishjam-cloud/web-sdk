@@ -1109,9 +1109,7 @@ export class WebRTCEndpoint<
       .get(trackId)
       ?.filter((en) => en !== encoding)!;
     this.disabledTrackEncodings.set(trackId, newDisabledTrackEncodings);
-    const sender = this.connection
-      ?.getSenders()
-      .filter((sender) => sender.track === track)[0];
+    const sender = findSenderByTrack(this.connection, track)
     const params = sender?.getParameters();
     params!.encodings.filter((en) => en.rid == encoding)[0].active = true;
     sender?.setParameters(params!);

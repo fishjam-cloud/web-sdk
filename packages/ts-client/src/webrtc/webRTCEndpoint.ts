@@ -43,7 +43,11 @@ import {
   setTransceiverDirection,
   setTransceiversToReadOnly,
 } from './transciever';
-import { findSenderByTrack, isTrackInUse } from './RTCPeerConnectionUtils';
+import {
+  findSender,
+  findSenderByTrack,
+  isTrackInUse,
+} from './RTCPeerConnectionUtils';
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -911,7 +915,7 @@ export class WebRTCEndpoint<
       return Promise.reject(`Track '${trackId}' doesn't exist`);
     }
 
-    const sender = this.findSender(trackContext.track!.id);
+    const sender = findSender(this.connection, trackContext.track!.id);
     const parameters = sender.getParameters();
 
     if (parameters.encodings.length === 0) {
@@ -958,7 +962,7 @@ export class WebRTCEndpoint<
       return Promise.reject(`Track '${trackId}' doesn't exist`);
     }
 
-    const sender = this.findSender(trackContext.track!.id);
+    const sender = findSender(this.connection, trackContext.track!.id);
     const parameters = sender.getParameters();
     const encoding = parameters.encodings.find(
       (encoding) => encoding.rid === rid,
@@ -1041,7 +1045,7 @@ export class WebRTCEndpoint<
   private removeTrackHandler(command: RemoveTrackCommand) {
     const { trackId } = command;
     const trackContext = this.localTrackIdToTrack.get(trackId)!;
-    const sender = this.findSender(trackContext.track!.id);
+    const sender = findSender(this.connection, trackContext.track!.id);
 
     this.ongoingRenegotiation = true;
 
@@ -1109,7 +1113,7 @@ export class WebRTCEndpoint<
       .get(trackId)
       ?.filter((en) => en !== encoding)!;
     this.disabledTrackEncodings.set(trackId, newDisabledTrackEncodings);
-    const sender = findSenderByTrack(this.connection, track)
+    const sender = findSenderByTrack(this.connection, track);
     const params = sender?.getParameters();
     params!.encodings.filter((en) => en.rid == encoding)[0].active = true;
     sender?.setParameters(params!);
@@ -1154,12 +1158,6 @@ export class WebRTCEndpoint<
       trackId,
       encoding,
     });
-  }
-
-  private findSender(trackId: string): RTCRtpSender {
-    return this.connection!.getSenders().find(
-      (sender) => sender.track && sender!.track!.id === trackId,
-    )!;
   }
 
   /**
@@ -1395,7 +1393,7 @@ export class WebRTCEndpoint<
 
     this.trackIdToSender.forEach((sth) => {
       if (sth.localTrackId) {
-        sth.sender = this.findSender(sth.localTrackId);
+        sth.sender = findSender(this.connection, sth.localTrackId);
       }
     });
 

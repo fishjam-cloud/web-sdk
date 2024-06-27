@@ -34,12 +34,10 @@ import { applyBandwidthLimitation } from './bandwidth';
 import {
   createTrackVariantBitratesEvent,
   getTrackBitrates,
-  getTrackIdToTrackBitrates,
 } from './bitrate';
 import {
   addTrackToConnection,
   addTransceiversIfNeeded,
-  getMidToTrackId,
   setTransceiverDirection,
   setTransceiversToReadOnly,
 } from './transciever';
@@ -48,6 +46,7 @@ import {
   findSenderByTrack,
   isTrackInUse,
 } from './RTCPeerConnectionUtils';
+import { createSdpOfferEvent } from './sdpEvents';
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -1314,22 +1313,12 @@ export class WebRTCEndpoint<
         return;
       }
 
-      const mediaEvent = generateCustomEvent({
-        type: 'sdpOffer',
-        data: {
-          sdpOffer: offer,
-          trackIdToTrackMetadata: this.getTrackIdToMetadata(),
-          trackIdToTrackBitrates: getTrackIdToTrackBitrates(
-            this.connection,
-            this.localTrackIdToTrack,
-            this.localEndpoint.tracks,
-          ),
-          midToTrackId: getMidToTrackId(
-            this.connection,
-            this.localTrackIdToTrack,
-          ),
-        },
-      });
+      const mediaEvent = createSdpOfferEvent(
+        offer,
+        this.connection,
+        this.localTrackIdToTrack,
+        this.localEndpoint.tracks,
+      );
       this.sendMediaEvent(mediaEvent);
 
       for (const track of this.localTrackIdToTrack.values()) {
@@ -1339,19 +1328,6 @@ export class WebRTCEndpoint<
       console.error(error);
     }
   }
-
-  private getTrackIdToMetadata = (): Record<
-    string,
-    TrackMetadata | undefined
-  > => {
-    const trackIdToMetadata: Record<string, TrackMetadata | undefined> = {};
-    Array.from(this.localEndpoint.tracks.entries()).forEach(
-      ([trackId, { metadata }]) => {
-        trackIdToMetadata[trackId] = metadata;
-      },
-    );
-    return trackIdToMetadata;
-  };
 
   private checkIfTrackBelongToEndpoint = (
     trackId: string,

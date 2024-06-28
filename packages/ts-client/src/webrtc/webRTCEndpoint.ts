@@ -10,12 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import EventEmitter from 'events';
 import TypedEmitter from 'typed-emitter';
 import { simulcastTransceiverConfig } from './const';
-import {
-  AddTrackCommand,
-  Command,
-  RemoveTrackCommand,
-  ReplaceTackCommand,
-} from './commands';
+import { AddTrackCommand, Command, RemoveTrackCommand, ReplaceTackCommand, } from './commands';
 import { Deferred } from './deferred';
 import {
   BandwidthLimit,
@@ -33,11 +28,8 @@ import {
 import { EndpointWithTrackContext, TrackContextImpl } from './internal';
 import { handleVoiceActivationDetectionNotification } from './voiceActivityDetection';
 import { applyBandwidthLimitation } from './bandwidth';
-import {
-  createTrackVariantBitratesEvent,
-  getTrackBitrates,
-  getTrackIdToTrackBitrates,
-} from './bitrate';
+import { createTrackVariantBitratesEvent, getTrackBitrates, getTrackIdToTrackBitrates, } from './bitrate';
+import { getMidToTrackId } from "./transceivers";
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -46,7 +38,7 @@ export class WebRTCEndpoint<
   EndpointMetadata = any,
   TrackMetadata = any,
 > extends (EventEmitter as {
-  new <EndpointMetadata, TrackMetadata>(): TypedEmitter<
+  new<EndpointMetadata, TrackMetadata>(): TypedEmitter<
     Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>
   >;
 })<EndpointMetadata, TrackMetadata> {
@@ -950,8 +942,6 @@ export class WebRTCEndpoint<
       this.emit('localTrackUnmuted', { trackId: trackId });
     }
 
-    // trackContext.track = newTrack;
-
     track.localTrackId = newTrack?.id ?? null;
 
     try {
@@ -1318,35 +1308,6 @@ export class WebRTCEndpoint<
     }
   };
 
-  private getMidToTrackId = (): Record<string, string> | null => {
-    const localTrackMidToTrackId: Record<string, string> = {};
-
-    if (!this.connection) return null;
-    this.connection.getTransceivers().forEach((transceiver) => {
-      const localTrackId = transceiver.sender.track?.id;
-
-      const mid = transceiver.mid;
-      if (localTrackId && mid) {
-        const trackContext = Array.from(this.localTrackIdToTrack.values()).find(
-          (trackContext) => trackContext?.track?.id === localTrackId,
-        )!;
-
-        localTrackMidToTrackId[mid] = trackContext.trackId;
-      }
-    });
-
-    this.midToTrackId.forEach((trackId, mid) => {
-      const track = this.localEndpoint.tracks.get(trackId);
-
-      if (track) {
-        // local track
-        localTrackMidToTrackId[mid] = trackId;
-      }
-    });
-
-    return localTrackMidToTrackId;
-  };
-
   /**
    * Disconnects from the room. This function should be called when user disconnects from the room
    * in a clean way e.g. by clicking a dedicated, custom button `disconnect`.
@@ -1450,8 +1411,6 @@ export class WebRTCEndpoint<
         return;
       }
 
-      const midToTrackResult = this.getMidToTrackId();
-
       const mediaEvent = generateCustomEvent({
         type: 'sdpOffer',
         data: {
@@ -1462,7 +1421,12 @@ export class WebRTCEndpoint<
             this.localTrackIdToTrack,
             this.localEndpoint.tracks,
           ),
-          midToTrackId: midToTrackResult,
+          midToTrackId: getMidToTrackId(
+            this.connection,
+            this.localTrackIdToTrack,
+            this.midToTrackId,
+            this.localEndpoint
+          ),
         },
       });
       this.sendMediaEvent(mediaEvent);

@@ -25,7 +25,7 @@ export class TrackContextImpl<EndpointMetadata, ParsedMetadata>
   endpoint: Endpoint<EndpointMetadata, ParsedMetadata>;
   trackId: string;
   track: MediaStreamTrack | null = null;
-  trackKind: TrackKind | null = null; //todo this could be null in onTrackAdded
+  trackKind: TrackKind | null = null;
   stream: MediaStream | null = null;
   metadata?: ParsedMetadata;
   rawMetadata: any;

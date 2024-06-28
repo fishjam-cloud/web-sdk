@@ -1,5 +1,5 @@
 import type {
-  AudioOrVideoType,
+  TrackKind,
   CurrentDevices,
   DeviceError,
   DeviceManagerConfig,
@@ -164,7 +164,7 @@ const handleNotAllowedError = async (constraints: MediaStreamConstraints): Promi
   return await getMedia({ video: false, audio: false }, { video: PERMISSION_DENIED, audio: PERMISSION_DENIED });
 };
 
-const getError = (result: GetMedia, type: AudioOrVideoType): DeviceError | null => {
+const getError = (result: GetMedia, type: TrackKind): DeviceError | null => {
   if (result.type === "OK") {
     return result.previousErrors[type] || null;
   }
@@ -477,7 +477,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     }
   }
 
-  private onTrackEnded = async (type: AudioOrVideoType, trackId: string) => {
+  private onTrackEnded = async (type: TrackKind, trackId: string) => {
     if (trackId === this?.[type].media?.track?.id) {
       await this.stop(type);
     }
@@ -637,14 +637,14 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     }
   }
 
-  public async stop(type: AudioOrVideoType) {
+  public async stop(type: TrackKind) {
     this[type].media?.track?.stop();
     this[type].media = null;
 
     this.emit("deviceStopped", { trackType: type }, { audio: this.audio, video: this.video });
   }
 
-  public setEnable(type: AudioOrVideoType, value: boolean) {
+  public setEnable(type: TrackKind, value: boolean) {
     if (!this[type].media || !this[type].media?.track) {
       return;
     }

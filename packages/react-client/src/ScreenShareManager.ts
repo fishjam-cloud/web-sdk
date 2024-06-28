@@ -1,6 +1,6 @@
 import EventEmitter from "events";
 import type TypedEmitter from "typed-emitter";
-import type { AudioOrVideoType, DeviceError, DevicesStatus } from "./types";
+import type { TrackKind, DeviceError, DevicesStatus } from "./types";
 import { parseError } from "./types";
 
 export type TrackType = "audio" | "video" | "audiovideo";
@@ -129,7 +129,7 @@ export class ScreenShareManager extends (EventEmitter as new () => TypedEmitter<
     }
   }
 
-  private onTrackEnded = async (type: AudioOrVideoType, trackId: string) => {
+  private onTrackEnded = async (type: TrackKind, trackId: string) => {
     const mediaType = type === "video" ? "videoMedia" : "audioMedia";
     if (trackId === this?.data[mediaType]?.track?.id) {
       await this.stop("audiovideo");

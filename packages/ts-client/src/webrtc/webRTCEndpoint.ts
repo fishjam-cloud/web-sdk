@@ -20,6 +20,7 @@ import { Deferred } from './deferred';
 import {
   BandwidthLimit,
   Config,
+  isTrackKind,
   LocalTrackId,
   MetadataParser,
   RemoteTrackId,
@@ -731,6 +732,10 @@ export class WebRTCEndpoint<
     trackContext.stream = stream;
     trackContext.maxBandwidth = maxBandwidth;
 
+    if (isTrackKind(track.kind)) {
+      trackContext.trackKind = track.kind;
+    }
+
     this.localEndpoint.tracks.set(trackId, trackContext);
 
     this.localTrackIdToTrack.set(trackId, trackContext);
@@ -913,6 +918,8 @@ export class WebRTCEndpoint<
   ) {
     const { trackId, newTrack, newTrackMetadata } = command;
 
+    // todo add validation to track.kind, you cannot replace video with audio
+
     const trackContext = this.localTrackIdToTrack.get(trackId)!;
 
     const track = this.trackIdToSender.get(trackId);
@@ -943,7 +950,7 @@ export class WebRTCEndpoint<
       this.emit('localTrackUnmuted', { trackId: trackId });
     }
 
-    trackContext.track = newTrack;
+    // trackContext.track = newTrack;
 
     track.localTrackId = newTrack?.id ?? null;
 
@@ -1317,14 +1324,26 @@ export class WebRTCEndpoint<
     if (!this.connection) return null;
     this.connection.getTransceivers().forEach((transceiver) => {
       const localTrackId = transceiver.sender.track?.id;
+
       const mid = transceiver.mid;
       if (localTrackId && mid) {
         const trackContext = Array.from(this.localTrackIdToTrack.values()).find(
-          (trackContext) => trackContext!.track!.id === localTrackId,
+          (trackContext) => trackContext?.track?.id === localTrackId,
         )!;
+
         localTrackMidToTrackId[mid] = trackContext.trackId;
       }
     });
+
+    this.midToTrackId.forEach((trackId, mid) => {
+      const track = this.localEndpoint.tracks.get(trackId);
+
+      if (track) {
+        // local track
+        localTrackMidToTrackId[mid] = trackId;
+      }
+    });
+
     return localTrackMidToTrackId;
   };
 
@@ -1431,6 +1450,8 @@ export class WebRTCEndpoint<
         return;
       }
 
+      const midToTrackResult = this.getMidToTrackId();
+
       const mediaEvent = generateCustomEvent({
         type: 'sdpOffer',
         data: {
@@ -1441,7 +1462,7 @@ export class WebRTCEndpoint<
             this.localTrackIdToTrack,
             this.localEndpoint.tracks,
           ),
-          midToTrackId: this.getMidToTrackId(),
+          midToTrackId: midToTrackResult,
         },
       });
       this.sendMediaEvent(mediaEvent);
@@ -1471,9 +1492,9 @@ export class WebRTCEndpoint<
     trackId: string,
     endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
   ) =>
-    Array.from(endpoint.tracks.keys()).some((track) =>
-      trackId.startsWith(track),
-    );
+    Array.from(endpoint.tracks.keys()).some((track) => {
+      return trackId.startsWith(track);
+    });
 
   private onOfferData = async (offerData: MediaEvent) => {
     if (!this.connection) {
@@ -1607,6 +1628,7 @@ export class WebRTCEndpoint<
       const mid = event.transceiver.mid!;
 
       const trackId = this.midToTrackId.get(mid)!;
+
       if (this.checkIfTrackBelongToEndpoint(trackId, this.localEndpoint))
         return;
 
@@ -1614,6 +1636,12 @@ export class WebRTCEndpoint<
 
       trackContext.stream = stream;
       trackContext.track = event.track;
+
+      if (isTrackKind(event.track.kind)) {
+        trackContext.trackKind = event.track.kind;
+      } else {
+        console.warn('track has no kind');
+      }
 
       this.idToEndpoint
         .get(trackContext.endpoint.id)

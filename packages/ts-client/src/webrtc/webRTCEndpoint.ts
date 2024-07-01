@@ -1454,9 +1454,7 @@ export class WebRTCEndpoint<
     trackId: string,
     endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
   ) =>
-    Array.from(endpoint.tracks.keys()).some((track) => {
-      return trackId.startsWith(track);
-    });
+    Array.from(endpoint.tracks.keys()).some((track) => trackId.startsWith(track));
 
   private onOfferData = async (offerData: MediaEvent) => {
     if (!this.connection) {

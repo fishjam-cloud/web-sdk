@@ -8,21 +8,16 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist/src"
+    "dist"
   ],
-  "bugs": {
-    "url": "https://github.com/fishjam-dev/react-client-sdk/issues"
-  },
-  "homepage": "https://github.com/fishjam-dev/react-client-sdk#readme",
+  "repository": "github:fishjam-cloud/web-client-sdk",
+  "homepage": "https://github.com/fishjam-cloud/web-client-sdk#readme",
+  "bugs": "https://github.com/fishjam-cloud/web-client-sdk/issues",
   "keywords": [
     "webrtc",
     "membrane",
     "fishjam"
   ],
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/fishjam-dev/react-client-sdk.git"
-  },
   "exports": {
     ".": "./dist/index.js"
   },

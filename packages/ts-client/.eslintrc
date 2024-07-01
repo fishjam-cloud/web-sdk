@@ -6,7 +6,7 @@
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
-    "prettier"
+    "prettier",
   ],
   "rules": {
     "@typescript-eslint/ban-ts-comment": "off",
@@ -16,9 +16,9 @@
       {
         "argsIgnorePattern": "^_",
         "varsIgnorePattern": "^_",
-        "caughtErrorsIgnorePattern": "^_"
-      }
+        "caughtErrorsIgnorePattern": "^_",
+      },
     ],
-    "no-console": ["error", { "allow": ["warn", "error"] }]
-  }
+    "no-console": ["error", { "allow": ["warn", "error"] }],
+  },
 }

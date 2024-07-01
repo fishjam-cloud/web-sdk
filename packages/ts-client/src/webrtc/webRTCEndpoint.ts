@@ -15,7 +15,6 @@ import { Deferred } from './deferred';
 import {
   BandwidthLimit,
   Config,
-  isTrackKind,
   LocalTrackId,
   MetadataParser,
   RemoteTrackId,
@@ -25,7 +24,7 @@ import {
   TrackEncoding,
   WebRTCEndpointEvents,
 } from './types';
-import { EndpointWithTrackContext, TrackContextImpl } from './internal';
+import { EndpointWithTrackContext, isTrackKind, TrackContextImpl } from './internal';
 import { handleVoiceActivationDetectionNotification } from './voiceActivityDetection';
 import { applyBandwidthLimitation } from './bandwidth';
 import { createTrackVariantBitratesEvent, getTrackBitrates, getTrackIdToTrackBitrates, } from './bitrate';
@@ -720,13 +719,12 @@ export class WebRTCEndpoint<
       this.trackMetadataParser,
     );
 
+    if (!isTrackKind(track.kind)) throw new Error("Track has no kind")
+
     trackContext.track = track;
     trackContext.stream = stream;
     trackContext.maxBandwidth = maxBandwidth;
-
-    if (isTrackKind(track.kind)) {
-      trackContext.trackKind = track.kind;
-    }
+    trackContext.trackKind = track.kind;
 
     this.localEndpoint.tracks.set(trackId, trackContext);
 
@@ -1595,17 +1593,13 @@ export class WebRTCEndpoint<
 
       if (this.checkIfTrackBelongToEndpoint(trackId, this.localEndpoint))
         return;
+      if (!isTrackKind(event.track.kind)) throw new Error("Track has no kind")
 
       const trackContext = this.trackIdToTrack.get(trackId)!;
 
       trackContext.stream = stream;
       trackContext.track = event.track;
-
-      if (isTrackKind(event.track.kind)) {
-        trackContext.trackKind = event.track.kind;
-      } else {
-        console.warn('track has no kind');
-      }
+      trackContext.trackKind = event.track.kind;
 
       this.idToEndpoint
         .get(trackContext.endpoint.id)

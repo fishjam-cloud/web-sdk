@@ -7,7 +7,6 @@ export const getMidToTrackId = <EndpointMetadata, TrackMetadata>(
   midToTrackId: Map<string, string> = new Map(),
   localEndpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
 ): Record<string, string> | null => {
-
   if (!connection) return null;
 
   const active = getActive(connection, localTrackIdToTrack)
@@ -19,24 +18,21 @@ export const getMidToTrackId = <EndpointMetadata, TrackMetadata>(
 export const getActive = <EndpointMetadata, TrackMetadata>(
   connection: RTCPeerConnection,
   localTrackIdToTrack: Map<RemoteTrackId, TrackContextImpl<EndpointMetadata, TrackMetadata>>,
-): Record<string, string> | null => {
-  const localTrackMidToTrackId: Record<string, string> = {};
+): Record<string, string> | null =>
+  connection.getTransceivers()
+    .filter((transceiver) => transceiver.sender.track?.id && transceiver.mid)
+    .reduce((acc, transceiver) => {
+      const localTrackId = transceiver.sender.track!.id;
+      const mid = transceiver!.mid!;
 
-  connection.getTransceivers().forEach((transceiver) => {
-    const localTrackId = transceiver.sender.track?.id;
-
-    const mid = transceiver.mid;
-    if (localTrackId && mid) {
       const trackContext = Array.from(localTrackIdToTrack.values()).find(
         (trackContext) => trackContext?.track?.id === localTrackId,
       )!;
 
-      localTrackMidToTrackId[mid] = trackContext.trackId;
-    }
-  });
+      acc[mid] = trackContext.trackId;
 
-  return localTrackMidToTrackId;
-};
+      return acc
+    }, {} as Record<string, string>);
 
 
 export const getMuted = <EndpointMetadata, TrackMetadata>(

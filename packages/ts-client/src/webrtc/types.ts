@@ -8,8 +8,6 @@ export type LocalTrackId = string;
 export type RemoteTrackId = string;
 
 export type TrackKind = 'audio' | 'video';
-export const isTrackKind = (kind: string): kind is TrackKind =>
-  kind === 'audio' || kind === 'video';
 
 /**
  * Type describing Voice Activity Detection statuses.

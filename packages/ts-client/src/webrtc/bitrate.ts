@@ -3,6 +3,7 @@ import {
   RemoteTrackId,
   TrackContext,
   TrackEncoding,
+  TrackKind,
 } from './types';
 import { TrackContextImpl } from './internal';
 import { findSender } from './RTCPeerConnectionUtils';
@@ -88,7 +89,7 @@ export const getTrackBitrates = <EndpointMetadata, TrackMetadata>(
   if (!trackContext)
     throw "Track with id ${trackId} not present in 'localTrackIdToTrack'";
 
-  const kind = trackContext.track?.kind as 'audio' | 'video' | undefined;
+  const kind = trackContext.track?.kind as TrackKind | undefined;
 
   if (!trackContext.track) {
     if (!trackContext.trackKind) {

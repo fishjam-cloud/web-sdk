@@ -32,14 +32,14 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "echo okej4 && yarn && yarn workspace @fishjam-dev/ts-client build && tsc",
     "e2e": "NODE_OPTIONS=--dns-result-order=ipv4first playwright test",
     "docs": "typedoc src src/experimental",
     "format:fix": "prettier --write . --ignore-path ./.eslintignore",
     "format:check": "prettier --check . --ignore-path ./.eslintignore",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "lint:check": "eslint . --ext .ts,.tsx",
-    "prepare": "tsc",
+    "prepare": "echo okej3 && yarn && yarn workspace @fishjam-dev/ts-client build && tsc",
     "prepack": "echo okej && yarn && yarn workspace @fishjam-dev/ts-client build && yarn build",
     "preinstall": "echo okej2 && yarn && yarn workspace @fishjam-dev/ts-client build && yarn build"
   },

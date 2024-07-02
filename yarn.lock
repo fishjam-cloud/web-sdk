@@ -501,7 +501,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@fishjam-dev/react-client@workspace:packages/react-client"
   dependencies:
-    "@fishjam-dev/ts-client": "workspace:*"
+    "@fishjam-dev/ts-client": ../ts-client
     "@playwright/test": "npm:^1.42.1"
     "@types/events": "npm:^3.0.3"
     "@types/lodash.isequal": "npm:^4.5.8"
@@ -525,7 +525,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fishjam-dev/ts-client@npm:*, @fishjam-dev/ts-client@workspace:*, @fishjam-dev/ts-client@workspace:packages/ts-client":
+"@fishjam-dev/ts-client@file:../ts-client::locator=%40fishjam-dev%2Freact-client%40workspace%3Apackages%2Freact-client":
+  version: 0.5.0
+  resolution: "@fishjam-dev/ts-client@file:../ts-client#../ts-client::hash=432e0f&locator=%40fishjam-dev%2Freact-client%40workspace%3Apackages%2Freact-client"
+  dependencies:
+    events: "npm:^3.3.0"
+    protobufjs: "npm:^7.3.0"
+    typed-emitter: "npm:^2.1.0"
+    uuid: "npm:^9.0.1"
+  checksum: 10c0/0a8daf2ce22792218f1f29946152e7505baa01e83249b3c1f5d4aa60d08a568d608aab4184aa7fdbe1559e0e7e2170a1c4cbed21af5798b904d305801120f9a1
+  languageName: node
+  linkType: hard
+
+"@fishjam-dev/ts-client@npm:*, @fishjam-dev/ts-client@workspace:packages/ts-client":
   version: 0.0.0-use.local
   resolution: "@fishjam-dev/ts-client@workspace:packages/ts-client"
   dependencies:

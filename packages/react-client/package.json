@@ -63,7 +63,7 @@
     "typescript": "^5.4.0"
   },
   "dependencies": {
-    "@fishjam-dev/ts-client": "file:../ts-client",
+    "@fishjam-dev/ts-client": "../ts-client",
     "events": "3.3.0",
     "lodash.isequal": "4.5.0"
   },

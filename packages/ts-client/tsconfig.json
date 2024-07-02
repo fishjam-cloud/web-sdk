@@ -18,7 +18,7 @@
     "outDir": "dist",
     "typeRoots": [
       "node_modules/@types",
-      "src/**/*",
+      "../../node_modules/@fishjam-dev/ts-client/**/*",
     ]
   },
   "include": ["src/**/*", "tests/**/*"]

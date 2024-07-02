@@ -38,7 +38,7 @@ Prerequisites:
   You can use Room Manager to create room and peer token.
 
 This snippet is based
-on [minimal-react](https://github.com/fishjam-dev/react-client-sdk/tree/main/examples/minimal-react) example.
+on [minimal-react](../../examples/react-client/minimal-react/) example.
 
 ```tsx
 // main.tsx

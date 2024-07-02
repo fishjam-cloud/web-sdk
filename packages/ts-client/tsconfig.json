@@ -16,6 +16,10 @@
     "noFallthroughCasesInSwitch": true,
 
     "outDir": "dist",
+    "typeRoots": [
+      "node_modules/@types",
+      "src/**/*",
+    ]
   },
   "include": ["src/**/*", "tests/**/*"]
 }

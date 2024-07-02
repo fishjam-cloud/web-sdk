@@ -29,14 +29,14 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "npm run build --workspace @fishjam-dev/ts-client && tsc",
     "e2e": "NODE_OPTIONS=--dns-result-order=ipv4first playwright test",
     "docs": "typedoc src src/experimental",
     "format:fix": "prettier --write . --ignore-path ./.eslintignore",
     "format:check": "prettier --check . --ignore-path ./.eslintignore",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "lint:check": "eslint . --ext .ts,.tsx",
-    "prepare": "tsc"
+    "prepare": "npm run build --workspace @fishjam-dev/ts-client && tsc"
   },
   "devDependencies": {
     "@playwright/test": "^1.42.1",

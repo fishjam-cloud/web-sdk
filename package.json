@@ -11,7 +11,7 @@
   ],
   "packageManager": "yarn@4.3.0",
   "scripts": {
-    "build": "yarn workspace @fishjam-dev/ts-client build && yarn workspace @fishjam-dev/react-client build",
+    "build": "npm run build --workspace @fishjam-dev/ts-client && npm run build --workspace @fishjam-dev/react-client",
     "tsc": "yarn workspaces foreach -A -p run tsc",
     "format": "yarn workspaces foreach -A -p run format",
     "format:check": "yarn workspaces foreach -A -p run format:check",

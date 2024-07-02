@@ -31,6 +31,13 @@
       "types": "./dist/src/webrtc/index.d.ts"
     }
   },
+  "typesVersions": {
+    "*": {
+      ".": [
+        "./dist/src/index.d.ts"
+      ]
+    }
+  },
   "scripts": {
     "build": "tsc",
     "build:check": "tsc --noEmit",

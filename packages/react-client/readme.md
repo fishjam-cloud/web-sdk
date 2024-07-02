@@ -1,4 +1,4 @@
-# Fishjam React client
+# Fishjam React Client
 
 React client library for [Fishjam Cloud](https://cloud.fishjam.stream).
 It is a wrapper around

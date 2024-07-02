@@ -40,7 +40,7 @@
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "lint:check": "eslint . --ext .ts,.tsx",
     "prepare": "tsc",
-    "prepack": "yarn build"
+    "prepack": "yarn workspace @fishjam-dev/ts-client build && yarn build"
   },
   "devDependencies": {
     "@playwright/test": "^1.42.1",

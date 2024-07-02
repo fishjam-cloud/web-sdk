@@ -85,5 +85,6 @@
     "*.(js|ts|tsx)": [
       "npm run lint:check"
     ]
-  }
+  },
+  "packageManager": "yarn@4.3.0"
 }

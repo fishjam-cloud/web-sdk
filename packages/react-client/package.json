@@ -69,5 +69,6 @@
   },
   "directories": {
     "example": "examples"
-  }
+  },
+  "packageManager": "yarn@4.3.0"
 }

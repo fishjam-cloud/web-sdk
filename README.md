@@ -73,6 +73,20 @@ yarn lint
 yarn format
 ```
 
+## Submitting a Pull Request
+
+> **Working on your first pull request?** Get started with this _free_ series:
+> [How to Contribute to an Open Source Project on GitHub](https://app.egghead.io/playlists/how-to-contribute-to-an-open-source-project-on-github).
+
+When you're sending a pull request:
+
+- Focus on one change and try to keep pull requests small.
+- Make sure that formatter, linter and test checks are passing.
+- Review the documentation to make sure it looks good.
+- Follow the pull request template when opening a pull request.
+- If your pull request changes the API or implementation, first discuss the changes with the maintainers by opening an
+  issue.
+
 ## Copyright and License
 
 Copyright 2024,

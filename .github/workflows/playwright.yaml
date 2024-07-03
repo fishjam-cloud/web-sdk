@@ -20,13 +20,16 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Install dependencies
+      - name: Install dependencies ⬇️
         run: yarn --frozen-lockfile
 
-      - name: Install Playwright Browsers
+      - name: Build 📦
+        run: yarn build
+
+      - name: Install Playwright Browsers 🧭
         run: npx playwright install --with-deps
 
-      - name: Run Playwright tests
+      - name: Run Playwright tests 🧪
         run: yarn test:e2e
 
       - uses: actions/upload-artifact@v4

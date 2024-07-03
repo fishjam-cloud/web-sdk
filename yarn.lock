@@ -504,6 +504,36 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fishjam-dev/minimal-example@workspace:examples/ts-client/minimal":
+  version: 0.0.0-use.local
+  resolution: "@fishjam-dev/minimal-example@workspace:examples/ts-client/minimal"
+  dependencies:
+    "@fishjam-dev/ts-client": "npm:*"
+    autoprefixer: "npm:^10.4.17"
+    typescript: "npm:^5.4.0"
+    vite: "npm:^5.1.2"
+    vite-plugin-checker: "npm:^0.6.4"
+  languageName: unknown
+  linkType: soft
+
+"@fishjam-dev/minimal-react-example@workspace:examples/react-client/minimal-react":
+  version: 0.0.0-use.local
+  resolution: "@fishjam-dev/minimal-react-example@workspace:examples/react-client/minimal-react"
+  dependencies:
+    "@fishjam-dev/react-client": "npm:*"
+    "@types/react": "npm:^18.2.55"
+    "@types/react-dom": "npm:^18.2.19"
+    "@vitejs/plugin-react-swc": "npm:^3.6.0"
+    autoprefixer: "npm:^10.4.17"
+    postcss: "npm:^8.4.35"
+    react: "npm:^18.2.0"
+    react-dom: "npm:^18.2.0"
+    typescript: "npm:^5.4.0"
+    vite: "npm:^5.1.2"
+    vite-plugin-checker: "npm:^0.6.4"
+  languageName: unknown
+  linkType: soft
+
 "@fishjam-dev/react-client-e2e@workspace:e2e-tests/react-client/app":
   version: 0.0.0-use.local
   resolution: "@fishjam-dev/react-client-e2e@workspace:e2e-tests/react-client/app"
@@ -543,6 +573,22 @@ __metadata:
     typedoc: "npm:^0.26.3"
     typedoc-plugin-mdn-links: "npm:^3.2.2"
     typescript: "npm:^5.4.0"
+  languageName: unknown
+  linkType: soft
+
+"@fishjam-dev/simple-app-example@workspace:examples/ts-client/simple-app":
+  version: 0.0.0-use.local
+  resolution: "@fishjam-dev/simple-app-example@workspace:examples/ts-client/simple-app"
+  dependencies:
+    "@fishjam-dev/browser-media-utils": "https://github.com/fishjam-dev/browser-media-utils#1.0.0"
+    "@fishjam-dev/ts-client": "npm:*"
+    autoprefixer: "npm:^10.4.17"
+    daisyui: "npm:^4.7.2"
+    postcss: "npm:^8.4.35"
+    tailwindcss: "npm:^3.4.1"
+    typescript: "npm:^5.4.0"
+    vite: "npm:^5.1.2"
+    vite-plugin-checker: "npm:^0.6.4"
   languageName: unknown
   linkType: soft
 
@@ -4066,36 +4112,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimal-example@workspace:examples/ts-client/minimal":
-  version: 0.0.0-use.local
-  resolution: "minimal-example@workspace:examples/ts-client/minimal"
-  dependencies:
-    "@fishjam-dev/ts-client": "npm:*"
-    autoprefixer: "npm:^10.4.17"
-    typescript: "npm:^5.4.0"
-    vite: "npm:^5.1.2"
-    vite-plugin-checker: "npm:^0.6.4"
-  languageName: unknown
-  linkType: soft
-
-"minimal-react-example@workspace:examples/react-client/minimal-react":
-  version: 0.0.0-use.local
-  resolution: "minimal-react-example@workspace:examples/react-client/minimal-react"
-  dependencies:
-    "@fishjam-dev/react-client": "npm:*"
-    "@types/react": "npm:^18.2.55"
-    "@types/react-dom": "npm:^18.2.19"
-    "@vitejs/plugin-react-swc": "npm:^3.6.0"
-    autoprefixer: "npm:^10.4.17"
-    postcss: "npm:^8.4.35"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
-    typescript: "npm:^5.4.0"
-    vite: "npm:^5.1.2"
-    vite-plugin-checker: "npm:^0.6.4"
-  languageName: unknown
-  linkType: soft
-
 "minimatch@npm:^3.0.4, minimatch@npm:^3.0.5, minimatch@npm:^3.1.1, minimatch@npm:^3.1.2":
   version: 3.1.2
   resolution: "minimatch@npm:3.1.2"
@@ -5266,22 +5282,6 @@ __metadata:
   checksum: 10c0/41602dce540e46d599edba9d9860193398d135f7ff72cab629db5171516cfae628d21e7bfccde1bbfdf11c48726bc2a6d1a8fb8701125852fbfda7cf19c6aa83
   languageName: node
   linkType: hard
-
-"simple-app-example@workspace:examples/ts-client/simple-app":
-  version: 0.0.0-use.local
-  resolution: "simple-app-example@workspace:examples/ts-client/simple-app"
-  dependencies:
-    "@fishjam-dev/browser-media-utils": "https://github.com/fishjam-dev/browser-media-utils#1.0.0"
-    "@fishjam-dev/ts-client": "npm:*"
-    autoprefixer: "npm:^10.4.17"
-    daisyui: "npm:^4.7.2"
-    postcss: "npm:^8.4.35"
-    tailwindcss: "npm:^3.4.1"
-    typescript: "npm:^5.4.0"
-    vite: "npm:^5.1.2"
-    vite-plugin-checker: "npm:^0.6.4"
-  languageName: unknown
-  linkType: soft
 
 "slash@npm:^3.0.0":
   version: 3.0.0

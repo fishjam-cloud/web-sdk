@@ -4,9 +4,9 @@
   "description": "Typescript client library for Fishjam",
   "license": "Apache-2.0",
   "author": "Software Mansion (https://swmansion.com)",
-  "repository": "github:fishjam-dev/ts-client-sdk",
-  "homepage": "https://github.com/fishjam-dev/ts-client-sdk#readme",
-  "bugs": "https://github.com/fishjam-dev/ts-client-sdk/issues",
+  "repository": "github:fishjam-cloud/web-client-sdk",
+  "homepage": "https://github.com/fishjam-cloud/web-client-sdk#readme",
+  "bugs": "https://github.com/fishjam-cloud/web-client-sdk/issues",
   "keywords": [
     "webrtc",
     "membrane",
@@ -15,10 +15,21 @@
   "main": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
   "files": [
-    "dist/src"
+    "dist/src/**"
   ],
   "exports": {
-    ".": "./dist/src/index.js"
+    ".": {
+      "import": "./dist/src/index.js",
+      "types": "./dist/src/index.d.ts"
+    },
+    "./protos": {
+      "import": "./dist/src/protos/index.js",
+      "types": "./dist/src/protos/index.d.ts"
+    },
+    "./webrtc": {
+      "import": "./dist/src/webrtc/index.js",
+      "types": "./dist/src/webrtc/index.d.ts"
+    }
   },
   "scripts": {
     "build": "tsc",
@@ -32,7 +43,8 @@
     "test": "vitest run tests/**",
     "test:e2e": "NODE_OPTIONS=--dns-result-order=ipv4first playwright test",
     "test:coverage": "vitest run tests/** --coverage",
-    "prepare": "tsc"
+    "prepare": "tsc",
+    "prepack": "yarn build"
   },
   "dependencies": {
     "events": "^3.3.0",
@@ -73,5 +85,6 @@
     "*.(js|ts|tsx)": [
       "npm run lint:check"
     ]
-  }
+  },
+  "packageManager": "yarn@4.3.0"
 }

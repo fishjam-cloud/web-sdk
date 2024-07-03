@@ -10,12 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import EventEmitter from 'events';
 import TypedEmitter from 'typed-emitter';
 import { simulcastTransceiverConfig } from './const';
-import {
-  AddTrackCommand,
-  Command,
-  RemoveTrackCommand,
-  ReplaceTackCommand,
-} from './commands';
+import { AddTrackCommand, Command, RemoveTrackCommand, ReplaceTackCommand, } from './commands';
 import { Deferred } from './deferred';
 import {
   BandwidthLimit,
@@ -29,14 +24,11 @@ import {
   TrackEncoding,
   WebRTCEndpointEvents,
 } from './types';
-import { EndpointWithTrackContext, TrackContextImpl } from './internal';
+import { EndpointWithTrackContext, isTrackKind, TrackContextImpl } from './internal';
 import { handleVoiceActivationDetectionNotification } from './voiceActivityDetection';
 import { applyBandwidthLimitation } from './bandwidth';
-import {
-  createTrackVariantBitratesEvent,
-  getTrackBitrates,
-  getTrackIdToTrackBitrates,
-} from './bitrate';
+import { createTrackVariantBitratesEvent, getTrackBitrates, getTrackIdToTrackBitrates, } from './bitrate';
+import { getMidToTrackId } from "./transceivers";
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -45,7 +37,7 @@ export class WebRTCEndpoint<
   EndpointMetadata = any,
   TrackMetadata = any,
 > extends (EventEmitter as {
-  new <EndpointMetadata, TrackMetadata>(): TypedEmitter<
+  new<EndpointMetadata, TrackMetadata>(): TypedEmitter<
     Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>
   >;
 })<EndpointMetadata, TrackMetadata> {
@@ -727,9 +719,12 @@ export class WebRTCEndpoint<
       this.trackMetadataParser,
     );
 
+    if (!isTrackKind(track.kind)) throw new Error("Track has no kind")
+
     trackContext.track = track;
     trackContext.stream = stream;
     trackContext.maxBandwidth = maxBandwidth;
+    trackContext.trackKind = track.kind;
 
     this.localEndpoint.tracks.set(trackId, trackContext);
 
@@ -913,6 +908,8 @@ export class WebRTCEndpoint<
   ) {
     const { trackId, newTrack, newTrackMetadata } = command;
 
+    // todo add validation to track.kind, you cannot replace video with audio
+
     const trackContext = this.localTrackIdToTrack.get(trackId)!;
 
     const track = this.trackIdToSender.get(trackId);
@@ -942,8 +939,6 @@ export class WebRTCEndpoint<
       this.sendMediaEvent(mediaEvent);
       this.emit('localTrackUnmuted', { trackId: trackId });
     }
-
-    trackContext.track = newTrack;
 
     track.localTrackId = newTrack?.id ?? null;
 
@@ -1311,23 +1306,6 @@ export class WebRTCEndpoint<
     }
   };
 
-  private getMidToTrackId = (): Record<string, string> | null => {
-    const localTrackMidToTrackId: Record<string, string> = {};
-
-    if (!this.connection) return null;
-    this.connection.getTransceivers().forEach((transceiver) => {
-      const localTrackId = transceiver.sender.track?.id;
-      const mid = transceiver.mid;
-      if (localTrackId && mid) {
-        const trackContext = Array.from(this.localTrackIdToTrack.values()).find(
-          (trackContext) => trackContext!.track!.id === localTrackId,
-        )!;
-        localTrackMidToTrackId[mid] = trackContext.trackId;
-      }
-    });
-    return localTrackMidToTrackId;
-  };
-
   /**
    * Disconnects from the room. This function should be called when user disconnects from the room
    * in a clean way e.g. by clicking a dedicated, custom button `disconnect`.
@@ -1441,7 +1419,12 @@ export class WebRTCEndpoint<
             this.localTrackIdToTrack,
             this.localEndpoint.tracks,
           ),
-          midToTrackId: this.getMidToTrackId(),
+          midToTrackId: getMidToTrackId(
+            this.connection,
+            this.localTrackIdToTrack,
+            this.midToTrackId,
+            this.localEndpoint
+          ),
         },
       });
       this.sendMediaEvent(mediaEvent);
@@ -1471,9 +1454,7 @@ export class WebRTCEndpoint<
     trackId: string,
     endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
   ) =>
-    Array.from(endpoint.tracks.keys()).some((track) =>
-      trackId.startsWith(track),
-    );
+    Array.from(endpoint.tracks.keys()).some((track) => trackId.startsWith(track));
 
   private onOfferData = async (offerData: MediaEvent) => {
     if (!this.connection) {
@@ -1607,13 +1588,16 @@ export class WebRTCEndpoint<
       const mid = event.transceiver.mid!;
 
       const trackId = this.midToTrackId.get(mid)!;
+
       if (this.checkIfTrackBelongToEndpoint(trackId, this.localEndpoint))
         return;
+      if (!isTrackKind(event.track.kind)) throw new Error("Track has no kind")
 
       const trackContext = this.trackIdToTrack.get(trackId)!;
 
       trackContext.stream = stream;
       trackContext.track = event.track;
+      trackContext.trackKind = event.track.kind;
 
       this.idToEndpoint
         .get(trackContext.endpoint.id)

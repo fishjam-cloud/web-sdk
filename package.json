@@ -13,8 +13,7 @@
   ],
   "packageManager": "yarn@4.3.0",
   "scripts": {
-    "build": "yarn workspace @fishjam-dev/ts-client build && yarn workspace @fishjam-dev/react-client build",
-    "build:e2e": "yarn workspace @fishjam-dev/ts-client-e2e build && yarn workspace @fishjam-dev/react-client-e2e build",
+    "build": "yarn workspaces foreach -A -p run build",
     "test:e2e": "yarn workspace @fishjam-dev/ts-client-e2e e2e && yarn workspace @fishjam-dev/react-client-e2e e2e",
     "tsc": "yarn workspaces foreach -A -p run tsc",
     "format": "yarn workspaces foreach -A -p run format",

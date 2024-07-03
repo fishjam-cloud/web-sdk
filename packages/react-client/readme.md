@@ -9,7 +9,7 @@ the [TS client](../ts-client/README.md).
 Documentation is available [here](https://fishjam-dev.github.io/react-client-sdk/) or you can generate it locally:
 
 ```bash
-npm run docs
+yarn run docs
 ```
 
 ## Installation

@@ -5,7 +5,7 @@ List of examples:
 - [minimal-react](./minimal-react/) - minimal example of usage of Fishjam React Client:
 
   - TypeScript with React Client
-  - connect to Fishjam server
+  - connect to Fishjam Cloud
   - join room
   - start broadcasting screen
   - receive media from other peers

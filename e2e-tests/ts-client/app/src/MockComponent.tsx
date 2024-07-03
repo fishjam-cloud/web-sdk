@@ -125,10 +125,10 @@ export const MockComponent = ({ webrtc }: Props) => {
         Update metadata on heart track
       </button>
       <div>
-        <VideoPlayer stream={heartMock.stream} />
+        <VideoPlayer stream={heartMock.stream}/>
         <button onClick={addHeart}>Add a heart</button>
         <button onClick={removeHeart}>Remove a heart</button>
-        <VideoPlayer stream={heart2Mock.stream} />
+        <VideoPlayer stream={heart2Mock.stream}/>
         <button onClick={replaceHeart}>Replace a heart</button>
         <div>
           <span>Replace status: </span>
@@ -136,10 +136,10 @@ export const MockComponent = ({ webrtc }: Props) => {
         </div>
       </div>
       <div>
-        <VideoPlayer stream={brainMock.stream} />
+        <VideoPlayer stream={brainMock.stream}/>
         <button onClick={addBrain}>Add a brain</button>
         <button onClick={removeBrain}>Remove a brain</button>
-        <VideoPlayer stream={brain2Mock.stream} />
+        <VideoPlayer stream={brain2Mock.stream}/>
         <button onClick={replaceBrain}>Replace a brain</button>
       </div>
 
@@ -147,7 +147,7 @@ export const MockComponent = ({ webrtc }: Props) => {
       <button onClick={addAndReplaceHeart}>Add and replace a heart</button>
       <button onClick={addAndRemoveHeart}>Add and remove a heart</button>
 
-      <MuteTrackTest webrtc={webrtc} />
+      <MuteTrackTest webrtc={webrtc}/>
     </div>
   );
 };

@@ -115,7 +115,7 @@ export const MuteTrackTest = ({ webrtc }: Props) => {
         </button>
       </div>
 
-      <div>{currentStream && <VideoPlayer stream={currentStream}/>}</div>
+      <div>{currentStream && <VideoPlayer stream={currentStream} />}</div>
     </div>
   );
 };

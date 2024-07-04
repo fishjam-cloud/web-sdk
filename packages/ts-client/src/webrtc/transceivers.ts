@@ -15,13 +15,13 @@ export const getMidToTrackId = <EndpointMetadata, TrackMetadata>(
 
   // - negotiated unmuted tracks: tracks added in previous negotiation, data is being transmitted
   // - not yet negotiated tracks: tracks added in this negotiation, data will be transmitted after successful negotiation
-  const transceiver = getTransceiverMapping(connection, localTrackIdToTrack)
+  const mappingFromTransceivers = getTransceiverMapping(connection, localTrackIdToTrack)
 
   // - negotiated unmuted tracks: tracks added in previous negotiation, data is being transmitted
   // - negotiated muted tracks: tracks added in previous negotiation, data is not being transmitted but can be transmitted in the future
-  const allNegotiated = getAllNegotiatedLocalTracksMapping(midToTrackId, localEndpoint)
+  const mappingFromLocalNegotiatedTracks = getAllNegotiatedLocalTracksMapping(midToTrackId, localEndpoint)
 
-  return { ...transceiver, ...allNegotiated };
+  return { ...mappingFromTransceivers, ...mappingFromLocalNegotiatedTracks };
 };
 
 const getTrackContext = <EndpointMetadata, TrackMetadata>(localTrackIdToTrack: Map<RemoteTrackId, TrackContextImpl<EndpointMetadata, TrackMetadata>>, localTrackId: string) => Array.from(localTrackIdToTrack.values()).find(

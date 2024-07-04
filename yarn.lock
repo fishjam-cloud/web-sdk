@@ -500,16 +500,8 @@ __metadata:
     "@types/lodash.isequal": "npm:^4.5.8"
     "@types/node": "npm:^20.11.27"
     "@types/react": "npm:^18.2.55"
-    "@typescript-eslint/eslint-plugin": "npm:^7.14.1"
-    "@typescript-eslint/parser": "npm:^7.8.0"
-    eslint: "npm:^8.57.0"
-    eslint-config-prettier: "npm:^9.1.0"
-    eslint-plugin-react-hooks: "npm:^4.6.0"
-    eslint-plugin-react-refresh: "npm:^0.4.6"
     events: "npm:3.3.0"
     lodash.isequal: "npm:4.5.0"
-    prettier: "npm:^3.3.0"
-    prettier-plugin-tailwindcss: "npm:^0.6.5"
     react: "npm:^18.2.0"
     typed-emitter: "npm:^2.1.0"
     typedoc: "npm:^0.26.3"
@@ -526,18 +518,11 @@ __metadata:
     "@types/events": "npm:^3.0.3"
     "@types/node": "npm:^20.10.3"
     "@types/uuid": "npm:^9.0.8"
-    "@typescript-eslint/eslint-plugin": "npm:^7.14.1"
-    "@typescript-eslint/parser": "npm:^7.8.0"
     "@vitest/coverage-v8": "npm:^1.6.0"
-    eslint: "npm:^8.55.0"
-    eslint-config-prettier: "npm:^9.1.0"
-    eslint-plugin-react-hooks: "npm:^4.6.0"
     events: "npm:^3.3.0"
     fake-mediastreamtrack: "npm:^1.2.0"
     husky: "npm:^9.0.11"
     lint-staged: "npm:^15.2.5"
-    prettier: "npm:^3.3.0"
-    prettier-plugin-tailwindcss: "npm:^0.6.5"
     protobufjs: "npm:^7.3.0"
     react: "npm:^18.2.0"
     ts-proto: "npm:^1.176.0"
@@ -2287,7 +2272,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^8.55.0, eslint@npm:^8.57.0":
+"eslint@npm:^8.55.0":
   version: 8.57.0
   resolution: "eslint@npm:8.57.0"
   dependencies:
@@ -2523,6 +2508,15 @@ __metadata:
 "fishjam-web-sdk@workspace:.":
   version: 0.0.0-use.local
   resolution: "fishjam-web-sdk@workspace:."
+  dependencies:
+    "@typescript-eslint/eslint-plugin": "npm:^7.14.1"
+    "@typescript-eslint/parser": "npm:^7.8.0"
+    eslint: "npm:^8.55.0"
+    eslint-config-prettier: "npm:^9.1.0"
+    eslint-plugin-react-hooks: "npm:^4.6.0"
+    eslint-plugin-react-refresh: "npm:^0.4.6"
+    prettier: "npm:^3.3.0"
+    prettier-plugin-tailwindcss: "npm:^0.6.5"
   languageName: unknown
   linkType: soft
 
@@ -3485,7 +3479,7 @@ __metadata:
     "@types/react-dom": "npm:^18.2.19"
     "@vitejs/plugin-react-swc": "npm:^3.6.0"
     autoprefixer: "npm:^10.4.17"
-    postcss: "npm:^8.4.35"
+    postcss: "npm:^8.4.39"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     typescript: "npm:^5.4.0"
@@ -4062,7 +4056,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.4.23, postcss@npm:^8.4.35, postcss@npm:^8.4.38":
+"postcss@npm:^8.4.23, postcss@npm:^8.4.38":
   version: 8.4.38
   resolution: "postcss@npm:8.4.38"
   dependencies:
@@ -4070,6 +4064,17 @@ __metadata:
     picocolors: "npm:^1.0.0"
     source-map-js: "npm:^1.2.0"
   checksum: 10c0/955407b8f70cf0c14acf35dab3615899a2a60a26718a63c848cf3c29f2467b0533991b985a2b994430d890bd7ec2b1963e36352b0774a19143b5f591540f7c06
+  languageName: node
+  linkType: hard
+
+"postcss@npm:^8.4.39":
+  version: 8.4.39
+  resolution: "postcss@npm:8.4.39"
+  dependencies:
+    nanoid: "npm:^3.3.7"
+    picocolors: "npm:^1.0.1"
+    source-map-js: "npm:^1.2.0"
+  checksum: 10c0/16f5ac3c4e32ee76d1582b3c0dcf1a1fdb91334a45ad755eeb881ccc50318fb8d64047de4f1601ac96e30061df203f0f2e2edbdc0bfc49b9c57bc9fb9bedaea3
   languageName: node
   linkType: hard
 
@@ -4516,7 +4521,7 @@ __metadata:
     "@fishjam-dev/ts-client": "npm:*"
     autoprefixer: "npm:^10.4.17"
     daisyui: "npm:^4.7.2"
-    postcss: "npm:^8.4.35"
+    postcss: "npm:^8.4.39"
     tailwindcss: "npm:^3.4.1"
     typescript: "npm:^5.4.0"
     vite: "npm:^5.1.2"
@@ -5102,7 +5107,7 @@ __metadata:
     autoprefixer: "npm:^10.4.17"
     daisyui: "npm:^4.7.2"
     jotai: "npm:^2.8.4"
-    postcss: "npm:^8.4.35"
+    postcss: "npm:^8.4.39"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     tailwindcss: "npm:^3.4.1"

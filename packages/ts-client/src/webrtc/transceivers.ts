@@ -1,5 +1,5 @@
-import { EndpointWithTrackContext, TrackContextImpl } from "./internal";
-import { RemoteTrackId } from "./types";
+import type { EndpointWithTrackContext, TrackContextImpl } from "./internal";
+import type { RemoteTrackId } from "./types";
 
 type Mid = string
 type TrackId = string;

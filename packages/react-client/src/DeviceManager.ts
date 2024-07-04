@@ -24,7 +24,7 @@ import {
 import EventEmitter from "events";
 import type TypedEmitter from "typed-emitter";
 import type { TrackType } from "./ScreenShareManager";
-import { TrackKind } from "@fishjam-dev/ts-client";
+import type { TrackKind } from "@fishjam-dev/ts-client";
 
 const removeExact = (
   trackConstraints: boolean | MediaTrackConstraints | undefined,

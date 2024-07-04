@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import { getPixel, Pixel } from './mocks';
-import { WebRTCEndpoint } from '@fishjam-dev/ts-client';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { Pixel } from './mocks';
+import { getPixel } from './mocks';
+import type { WebRTCEndpoint } from '@fishjam-dev/ts-client';
 
 type Props = {
   stream?: MediaStream;
@@ -21,8 +22,8 @@ const rgbToText = (pixel: Pixel): string => {
 
 const getTrackIdentifierToInboundRtp = (
   stats: RTCStatsReport,
-): Record<string, any> => {
-  const result: Record<string, any> = {};
+): Record<string, any> => { /* eslint-disable-line @typescript-eslint/no-explicit-any */
+  const result: Record<string, object> = {};
 
   stats.forEach((report) => {
     if (report.type === 'inbound-rtp') {
@@ -43,7 +44,7 @@ export const VideoPlayerWithDetector = ({ stream, id, webrtc }: Props) => {
     videoElementRef.current.srcObject = stream || null;
   }, [stream]);
 
-  const getDecodedFrames = async () => {
+  const getDecodedFrames = useCallback(async () => {
     const connection = webrtc['connection'];
     if (!connection) return 0;
 
@@ -52,7 +53,7 @@ export const VideoPlayerWithDetector = ({ stream, id, webrtc }: Props) => {
     const trackId = stream?.getVideoTracks()?.[0]?.id ?? '';
 
     return inbound[trackId]?.framesDecoded ?? 0;
-  };
+  }, [stream, webrtc]);
 
   useEffect(() => {
     const id = setInterval(async () => {
@@ -62,7 +63,7 @@ export const VideoPlayerWithDetector = ({ stream, id, webrtc }: Props) => {
     return () => {
       clearInterval(id);
     };
-  }, [stream]);
+  }, [getDecodedFrames, stream]);
 
   useEffect(() => {
     const id = setInterval(() => {

@@ -1,17 +1,24 @@
 import { createStream } from './mocks';
 import { VideoPlayer } from './VideoPlayer';
 import { useRef, useState } from 'react';
-import { EndpointMetadata, TrackMetadata } from './App';
-import {
+import type { EndpointMetadata, TrackMetadata } from './App';
+import type {
   BandwidthLimit,
   SimulcastConfig,
   WebRTCEndpoint,
 } from '@fishjam-dev/ts-client';
 import { MuteTrackTest } from './MuteTrackTest';
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const brainMock = createStream('🧠', 'white', 'low', 24);
+
+// eslint-disable-next-line react-refresh/only-export-components
 export const brain2Mock = createStream('🤯', '#00ff00', 'low', 24);
+
+// eslint-disable-next-line react-refresh/only-export-components
 export const heartMock = createStream('🫀', 'white', 'low', 24);
+
+// eslint-disable-next-line react-refresh/only-export-components
 export const heart2Mock = createStream('💝', '#FF0000', 'low', 24);
 
 type Props = {

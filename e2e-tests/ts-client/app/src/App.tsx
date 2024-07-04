@@ -1,13 +1,15 @@
-import {
+import type {
   Endpoint,
   SerializedMediaEvent,
   TrackContext,
   TrackEncoding,
-  WebRTCEndpoint,
   WebRTCEndpointEvents,
   TrackContextEvents,
   BandwidthLimit,
-  SimulcastConfig,
+  SimulcastConfig
+} from '@fishjam-dev/ts-client';
+import {
+  WebRTCEndpoint
 } from '@fishjam-dev/ts-client';
 import { PeerMessage } from '@fishjam-dev/ts-client/protos';
 import { useEffect, useState, useSyncExternalStore } from 'react';
@@ -24,7 +26,7 @@ export type TrackMetadata = {
   goodTrack: string;
 };
 
-function endpointMetadataParser(a: any): EndpointMetadata {
+function endpointMetadataParser(a: unknown): EndpointMetadata {
   if (
     typeof a !== 'object' ||
     a === null ||
@@ -35,7 +37,7 @@ function endpointMetadataParser(a: any): EndpointMetadata {
   return { goodStuff: a.goodStuff };
 }
 
-function trackMetadataParser(a: any): TrackMetadata {
+function trackMetadataParser(a: unknown): TrackMetadata {
   if (
     typeof a !== 'object' ||
     a === null ||
@@ -58,7 +60,8 @@ class RemoteStore {
 
   constructor(
     private webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
-  ) {}
+  ) {
+  }
 
   subscribe(callback: () => void) {
     const cb = () => {
@@ -154,7 +157,7 @@ function connect(token: string, metadata: EndpointMetadata) {
     websocket.send(message);
   });
 
-  const messageHandler = (event: MessageEvent<any>) => {
+  const messageHandler = (event: MessageEvent<any>) => { /* eslint-disable-line @typescript-eslint/no-explicit-any */
     const uint8Array = new Uint8Array(event.data);
     try {
       const data = PeerMessage.decode(uint8Array);
@@ -186,19 +189,19 @@ function connect(token: string, metadata: EndpointMetadata) {
 
   websocket.addEventListener('message', messageHandler);
 
-  const closeHandler = (event: any) => {
+  const closeHandler = (event: unknown) => {
     console.log({ name: 'Close handler!', event });
   };
 
   websocket.addEventListener('close', closeHandler);
 
-  const errorHandler = (event: any) => {
+  const errorHandler = (event: unknown) => {
     console.log({ name: 'Error handler!', event });
   };
 
   websocket.addEventListener('error', errorHandler);
 
-  const trackReady = (event: any) => {
+  const trackReady = (event: unknown) => {
     console.log({ name: 'trackReady', event });
   };
 
@@ -289,13 +292,13 @@ export function App() {
         <div style={{ width: '100%' }}>
           {Object.values(remoteTracks).map(
             ({
-              stream,
-              trackId,
-              endpoint,
-              metadata,
-              rawMetadata,
-              metadataParsingError,
-            }) => (
+               stream,
+               trackId,
+               endpoint,
+               metadata,
+               rawMetadata,
+               metadataParsingError,
+             }) => (
               <div
                 key={trackId}
                 data-endpoint-id={endpoint.id}

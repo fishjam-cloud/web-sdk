@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import type { Pixel } from './mocks';
-import { getPixel } from './mocks';
-import type { WebRTCEndpoint } from '@fishjam-dev/ts-client';
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { Pixel } from "./mocks";
+import { getPixel } from "./mocks";
+import type { WebRTCEndpoint } from "@fishjam-dev/ts-client";
 
 type Props = {
   stream?: MediaStream;
@@ -11,22 +11,23 @@ type Props = {
 
 const rgbToText = (pixel: Pixel): string => {
   const { red, green, blue } = pixel;
-  if (red > 200 && green > 200 && blue > 200) return 'white';
-  if (red < 55 && green < 55 && blue < 55) return 'black';
-  if (red > 200 && green < 55 && blue < 55) return 'red';
-  if (red < 55 && green > 200 && blue < 55) return 'green';
-  if (red < 55 && green < 55 && blue > 200) return 'blue';
+  if (red > 200 && green > 200 && blue > 200) return "white";
+  if (red < 55 && green < 55 && blue < 55) return "black";
+  if (red > 200 && green < 55 && blue < 55) return "red";
+  if (red < 55 && green > 200 && blue < 55) return "green";
+  if (red < 55 && green < 55 && blue > 200) return "blue";
 
-  return 'unknown';
+  return "unknown";
 };
 
 const getTrackIdentifierToInboundRtp = (
   stats: RTCStatsReport,
-): Record<string, any> => { /* eslint-disable-line @typescript-eslint/no-explicit-any */
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+): Record<string, any> => {
   const result: Record<string, object> = {};
 
   stats.forEach((report) => {
-    if (report.type === 'inbound-rtp') {
+    if (report.type === "inbound-rtp") {
       result[report.trackIdentifier] = report;
     }
   });
@@ -36,8 +37,8 @@ const getTrackIdentifierToInboundRtp = (
 
 export const VideoPlayerWithDetector = ({ stream, id, webrtc }: Props) => {
   const videoElementRef = useRef<HTMLVideoElement>(null);
-  const [color, setColor] = useState<string>('');
-  const [decodedFrames, setDecodedFrames] = useState<string>('');
+  const [color, setColor] = useState<string>("");
+  const [decodedFrames, setDecodedFrames] = useState<string>("");
 
   useEffect(() => {
     if (!videoElementRef.current) return;
@@ -45,12 +46,12 @@ export const VideoPlayerWithDetector = ({ stream, id, webrtc }: Props) => {
   }, [stream]);
 
   const getDecodedFrames = useCallback(async () => {
-    const connection = webrtc['connection'];
+    const connection = webrtc["connection"];
     if (!connection) return 0;
 
     const inbound = getTrackIdentifierToInboundRtp(await connection.getStats());
 
-    const trackId = stream?.getVideoTracks()?.[0]?.id ?? '';
+    const trackId = stream?.getVideoTracks()?.[0]?.id ?? "";
 
     return inbound[trackId]?.framesDecoded ?? 0;
   }, [stream, webrtc]);
@@ -70,8 +71,8 @@ export const VideoPlayerWithDetector = ({ stream, id, webrtc }: Props) => {
       const videoElement = videoElementRef.current;
       if (!videoElement || videoElement.videoWidth === 0) return;
 
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d')!;
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d")!;
 
       canvas.width = videoElement.videoWidth;
       canvas.height = videoElement.videoHeight;
@@ -96,7 +97,7 @@ export const VideoPlayerWithDetector = ({ stream, id, webrtc }: Props) => {
       </div>
       <video
         id={id}
-        style={{ maxHeight: '90px' }}
+        style={{ maxHeight: "90px" }}
         autoPlay
         playsInline
         controls={false}

@@ -12,7 +12,7 @@ export type {
   EncodingReason,
   Config,
   MetadataParser,
-  TrackKind
+  TrackKind,
 } from './types';
 
 export { WebRTCEndpoint } from './webRTCEndpoint';

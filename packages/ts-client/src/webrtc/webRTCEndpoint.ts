@@ -32,8 +32,12 @@ import type { EndpointWithTrackContext } from './internal';
 import { TrackContextImpl, isTrackKind } from './internal';
 import { handleVoiceActivationDetectionNotification } from './voiceActivityDetection';
 import { applyBandwidthLimitation } from './bandwidth';
-import { createTrackVariantBitratesEvent, getTrackBitrates, getTrackIdToTrackBitrates, } from './bitrate';
-import { getMidToTrackId } from "./transceivers";
+import {
+  createTrackVariantBitratesEvent,
+  getTrackBitrates,
+  getTrackIdToTrackBitrates,
+} from './bitrate';
+import { getMidToTrackId } from './transceivers';
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -42,7 +46,7 @@ export class WebRTCEndpoint<
   EndpointMetadata = any,
   TrackMetadata = any,
 > extends (EventEmitter as {
-  new<EndpointMetadata, TrackMetadata>(): TypedEmitter<
+  new <EndpointMetadata, TrackMetadata>(): TypedEmitter<
     Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>
   >;
 })<EndpointMetadata, TrackMetadata> {
@@ -724,7 +728,7 @@ export class WebRTCEndpoint<
       this.trackMetadataParser,
     );
 
-    if (!isTrackKind(track.kind)) throw new Error("Track has no kind")
+    if (!isTrackKind(track.kind)) throw new Error('Track has no kind');
 
     trackContext.track = track;
     trackContext.stream = stream;
@@ -1428,7 +1432,7 @@ export class WebRTCEndpoint<
             this.connection,
             this.localTrackIdToTrack,
             this.midToTrackId,
-            this.localEndpoint
+            this.localEndpoint,
           ),
         },
       });
@@ -1459,7 +1463,9 @@ export class WebRTCEndpoint<
     trackId: string,
     endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
   ) =>
-    Array.from(endpoint.tracks.keys()).some((track) => trackId.startsWith(track));
+    Array.from(endpoint.tracks.keys()).some((track) =>
+      trackId.startsWith(track),
+    );
 
   private onOfferData = async (offerData: MediaEvent) => {
     if (!this.connection) {
@@ -1596,7 +1602,7 @@ export class WebRTCEndpoint<
 
       if (this.checkIfTrackBelongToEndpoint(trackId, this.localEndpoint))
         return;
-      if (!isTrackKind(event.track.kind)) throw new Error("Track has no kind")
+      if (!isTrackKind(event.track.kind)) throw new Error('Track has no kind');
 
       const trackContext = this.trackIdToTrack.get(trackId)!;
 

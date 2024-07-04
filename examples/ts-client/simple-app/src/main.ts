@@ -12,7 +12,6 @@ const SCREEN_SHARING_MEDIA_CONSTRAINTS = {
   },
 };
 
-
 /* eslint-disable no-console */
 
 const peerTokenInput =
@@ -209,8 +208,7 @@ client.on("peerJoined", (peer: Peer<PeerMetadata, TrackMetadata>) => {
   toastInfo(`New peer joined`);
 });
 
-client.on("peerUpdated", (_peer) => {
-});
+client.on("peerUpdated", (_peer) => {});
 
 client.on("peerLeft", (peer) => {
   const peerComponent = document.querySelector(
@@ -339,8 +337,7 @@ client.on("trackAdded", (ctx) => {
     )!;
     activeEncodingElement.innerHTML = ctx.encoding ?? "";
   });
-  ctx.on("voiceActivityChanged", () => {
-  });
+  ctx.on("voiceActivityChanged", () => {});
 });
 
 client.on("trackRemoved", (ctx) => {
@@ -350,14 +347,11 @@ client.on("trackRemoved", (ctx) => {
   tracksContainer?.remove();
 });
 
-client.on("trackUpdated", (_ctx) => {
-});
+client.on("trackUpdated", (_ctx) => {});
 
-client.on("bandwidthEstimationChanged", (_estimation) => {
-});
+client.on("bandwidthEstimationChanged", (_estimation) => {});
 
-client.on("tracksPriorityChanged", (_enabledTracks, _disabledTracks) => {
-});
+client.on("tracksPriorityChanged", (_enabledTracks, _disabledTracks) => {});
 
 connectButton.addEventListener("click", () => {
   console.log("Connect");
@@ -440,11 +434,13 @@ enumerateDevicesButton.addEventListener("click", async () => {
         .querySelector(".start-template-btn")
         .addEventListener("click", () => {
           console.log("Start");
-          navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
-            console.log("Connecting stream");
-            videoPlayer.srcObject = stream;
-            videoPlayer.play();
-          });
+          navigator.mediaDevices
+            .getUserMedia({ video: true })
+            .then((stream) => {
+              console.log("Connecting stream");
+              videoPlayer.srcObject = stream;
+              videoPlayer.play();
+            });
         });
       clone
         .querySelector(".stop-template-btn")

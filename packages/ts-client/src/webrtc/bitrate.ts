@@ -1,4 +1,9 @@
-import type { RemoteTrackId, TrackContext, TrackEncoding, TrackKind } from './types';
+import type {
+  RemoteTrackId,
+  TrackContext,
+  TrackEncoding,
+  TrackKind,
+} from './types';
 import { type BandwidthLimit } from './types';
 import type { TrackContextImpl } from './internal';
 import { findSender } from './RTCPeerConnectionUtils';

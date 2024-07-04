@@ -164,9 +164,9 @@ const handleNotAllowedError = async (constraints: MediaStreamConstraints): Promi
   return await getMedia({ video: false, audio: false }, { video: PERMISSION_DENIED, audio: PERMISSION_DENIED });
 };
 
-const getError = (result: GetMedia, type: TrackKind): DeviceError | null => {
+const getError = (result: GetMedia, kind: TrackKind): DeviceError | null => {
   if (result.type === "OK") {
-    return result.previousErrors[type] || null;
+    return result.previousErrors[kind] || null;
   }
 
   console.warn({ name: "Unhandled DeviceManager error", result });
@@ -477,9 +477,9 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     }
   }
 
-  private onTrackEnded = async (type: TrackKind, trackId: string) => {
-    if (trackId === this?.[type].media?.track?.id) {
-      await this.stop(type);
+  private onTrackEnded = async (kind: TrackKind, trackId: string) => {
+    if (trackId === this?.[kind].media?.track?.id) {
+      await this.stop(kind);
     }
   };
 
@@ -637,11 +637,11 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     }
   }
 
-  public async stop(type: TrackKind) {
-    this[type].media?.track?.stop();
-    this[type].media = null;
+  public async stop(kind: TrackKind) {
+    this[kind].media?.track?.stop();
+    this[kind].media = null;
 
-    this.emit("deviceStopped", { trackType: type }, { audio: this.audio, video: this.video });
+    this.emit("deviceStopped", { trackType: kind }, { audio: this.audio, video: this.video });
   }
 
   public setEnable(type: TrackKind, value: boolean) {

@@ -130,8 +130,8 @@ export class ScreenShareManager extends (EventEmitter as new () => TypedEmitter<
     }
   }
 
-  private onTrackEnded = async (type: TrackKind, trackId: string) => {
-    const mediaType = type === "video" ? "videoMedia" : "audioMedia";
+  private onTrackEnded = async (kind: TrackKind, trackId: string) => {
+    const mediaType = kind === "video" ? "videoMedia" : "audioMedia";
     if (trackId === this?.data[mediaType]?.track?.id) {
       await this.stop("audiovideo");
     }

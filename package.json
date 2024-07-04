@@ -14,7 +14,7 @@
   "packageManager": "yarn@4.3.0",
   "scripts": {
     "build": "yarn workspaces foreach -Ap --topological-dev run build",
-    "test:e2e": "yarn workspace @fishjam-dev/ts-client-e2e e2e && yarn workspace @fishjam-dev/react-client-e2e e2e",
+    "test:e2e": "yarn workspace @fishjam-e2e/ts-client-e2e e2e && yarn workspace @fishjam-e2e/react-client-e2e e2e",
     "tsc": "yarn workspaces foreach -A -p run tsc",
     "format": "yarn workspaces foreach -A -p run format",
     "format:check": "yarn workspaces foreach -A -p run format:check",

@@ -35,7 +35,6 @@
     "eslint-plugin-react-refresh": "^0.4.5",
     "testcontainers": "^10.3.2",
     "ts-proto": "^1.176.0",
-    "typescript": "^5.4.5",
     "vite": "^5.1.2",
     "vitest": "^1.6.0"
   }

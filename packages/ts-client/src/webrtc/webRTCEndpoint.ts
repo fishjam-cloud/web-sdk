@@ -8,7 +8,6 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import EventEmitter from 'events';
 import type TypedEmitter from 'typed-emitter';
-import { simulcastTransceiverConfig } from './const';
 import type {
   AddTrackCommand,
   Command,
@@ -35,9 +34,7 @@ import { applyBandwidthLimitation } from './bandwidth';
 import {
   createTrackVariantBitratesEvent,
   getTrackBitrates,
-  getTrackIdToTrackBitrates,
 } from './bitrate';
-import { getMidToTrackId } from './transceivers';
 import { findSender, findSenderByTrack, isTrackInUse } from "./RTCPeerConnectionUtils";
 import {
   addTrackToConnection,
@@ -54,7 +51,7 @@ export class WebRTCEndpoint<
   EndpointMetadata = any,
   TrackMetadata = any,
 > extends (EventEmitter as {
-  new <EndpointMetadata, TrackMetadata>(): TypedEmitter<
+  new<EndpointMetadata, TrackMetadata>(): TypedEmitter<
     Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>
   >;
 })<EndpointMetadata, TrackMetadata> {

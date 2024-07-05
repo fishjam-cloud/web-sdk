@@ -53,9 +53,9 @@
     "uuid": "^10.0.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.40.1",
+    "@playwright/test": "^1.41.2",
     "@types/events": "^3.0.3",
-    "@types/node": "^20.10.3",
+    "@types/node": "^20.11.27",
     "@types/uuid": "^10.0.0",
     "@vitest/coverage-v8": "^1.6.0",
     "fake-mediastreamtrack": "^1.2.0",

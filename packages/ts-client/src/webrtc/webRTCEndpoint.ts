@@ -8,6 +8,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import EventEmitter from 'events';
 import type TypedEmitter from 'typed-emitter';
+import { simulcastTransceiverConfig } from './const';
 import type {
   AddTrackCommand,
   Command,
@@ -32,18 +33,19 @@ import { TrackContextImpl, isTrackKind } from './internal';
 import { handleVoiceActivationDetectionNotification } from './voiceActivityDetection';
 import { applyBandwidthLimitation } from './bandwidth';
 import {
-  findSender,
-  findSenderByTrack,
-  isTrackInUse,
-} from './RTCPeerConnectionUtils';
-import { createTrackVariantBitratesEvent, getTrackBitrates } from './bitrate';
+  createTrackVariantBitratesEvent,
+  getTrackBitrates,
+  getTrackIdToTrackBitrates,
+} from './bitrate';
+import { getMidToTrackId } from './transceivers';
+import { findSender, findSenderByTrack, isTrackInUse } from "./RTCPeerConnectionUtils";
 import {
   addTrackToConnection,
   addTransceiversIfNeeded,
   setTransceiverDirection,
-  setTransceiversToReadOnly,
-} from './transciever';
-import { createSdpOfferEvent } from './sdpEvents';
+  setTransceiversToReadOnly
+} from "./transciever";
+import { createSdpOfferEvent } from "./sdpEvents";
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.

@@ -505,7 +505,7 @@ __metadata:
     "@playwright/test": "npm:^1.42.1"
     "@types/events": "npm:^3.0.3"
     "@types/lodash.isequal": "npm:^4.5.8"
-    "@types/node": "npm:^20.11.27"
+    "@types/node": "npm:^20.14.9"
     "@types/react": "npm:^18.2.55"
     events: "npm:3.3.0"
     lodash.isequal: "npm:4.5.0"
@@ -522,7 +522,7 @@ __metadata:
   dependencies:
     "@playwright/test": "npm:^1.40.1"
     "@types/events": "npm:^3.0.3"
-    "@types/node": "npm:^20.10.3"
+    "@types/node": "npm:^20.14.9"
     "@types/uuid": "npm:^10.0.0"
     "@vitest/coverage-v8": "npm:^1.6.0"
     events: "npm:^3.3.0"
@@ -547,7 +547,7 @@ __metadata:
   resolution: "@fishjam-e2e/react-client-e2e@workspace:e2e-tests/react-client/app"
   dependencies:
     "@playwright/test": "npm:^1.41.2"
-    "@types/node": "npm:^20.11.18"
+    "@types/node": "npm:^20.14.9"
     "@vitest/coverage-v8": "npm:^1.6.0"
     testcontainers: "npm:^10.3.2"
     vite: "npm:^5.1.2"
@@ -561,7 +561,7 @@ __metadata:
   dependencies:
     "@fishjam-dev/ts-client": "npm:*"
     "@playwright/test": "npm:^1.41.2"
-    "@types/node": "npm:^20.11.18"
+    "@types/node": "npm:^20.14.9"
     "@types/react": "npm:^18.2.55"
     "@types/react-dom": "npm:^18.2.19"
     "@typescript-eslint/eslint-plugin": "npm:^7.15.0"
@@ -1235,7 +1235,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^20.11.18":
+"@types/node@npm:*, @types/node@npm:^20.14.9":
   version: 20.14.9
   resolution: "@types/node@npm:20.14.9"
   dependencies:
@@ -1244,7 +1244,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:>=13.7.0, @types/node@npm:^20.10.3, @types/node@npm:^20.11.27":
+"@types/node@npm:>=13.7.0":
   version: 20.14.5
   resolution: "@types/node@npm:20.14.5"
   dependencies:

@@ -1,5 +1,5 @@
 {
-  "name": "minimal-react-example",
+  "name": "@fishjam-example/minimal-react-example",
   "private": true,
   "version": "0.0.1",
   "type": "module",
@@ -8,7 +8,12 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "watch": "tsc --noEmit --watch",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "format": "prettier --write . --ignore-path ./.eslintignore",
+    "format:check": "prettier --check . --ignore-path ./.eslintignore",
+    "lint": "eslint . --ext .ts,.tsx --fix",
+    "lint:check": "eslint . --ext .ts,.tsx",
+    "typecheck": "tsc"
   },
   "dependencies": {
     "@fishjam-dev/react-client": "*",
@@ -20,8 +25,7 @@
     "@types/react-dom": "^18.2.19",
     "@vitejs/plugin-react-swc": "^3.6.0",
     "autoprefixer": "^10.4.17",
-    "postcss": "^8.4.35",
-    "typescript": "^5.4.0",
+    "postcss": "^8.4.39",
     "vite": "^5.1.2",
     "vite-plugin-checker": "^0.6.4"
   }

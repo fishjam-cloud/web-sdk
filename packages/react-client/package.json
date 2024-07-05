@@ -3,28 +3,25 @@
   "version": "0.4.0",
   "description": "React client library for Fishjam.",
   "license": "Apache-2.0",
-  "author": "Membrane Team",
+  "author": "Fishjam Cloud Team",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist/src"
+    "dist/**"
   ],
-  "bugs": {
-    "url": "https://github.com/fishjam-dev/react-client-sdk/issues"
-  },
-  "homepage": "https://github.com/fishjam-dev/react-client-sdk#readme",
+  "repository": "github:fishjam-cloud/web-client-sdk",
+  "homepage": "https://github.com/fishjam-cloud/web-client-sdk#readme",
+  "bugs": "https://github.com/fishjam-cloud/web-client-sdk/issues",
   "keywords": [
     "webrtc",
-    "membrane",
     "fishjam"
   ],
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/fishjam-dev/react-client-sdk.git"
-  },
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
   },
   "typesVersions": {
     "*": {
@@ -37,38 +34,31 @@
     "build": "tsc",
     "e2e": "NODE_OPTIONS=--dns-result-order=ipv4first playwright test",
     "docs": "typedoc src src/experimental",
-    "format:fix": "prettier --write . --ignore-path ./.eslintignore",
+    "format": "prettier --write . --ignore-path ./.eslintignore",
     "format:check": "prettier --check . --ignore-path ./.eslintignore",
-    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "lint": "eslint . --ext .ts,.tsx --fix",
     "lint:check": "eslint . --ext .ts,.tsx",
-    "prepare": "tsc"
+    "prepack": "yarn workspace @fishjam-dev/ts-client build && yarn build",
+    "typecheck": "tsc"
   },
   "devDependencies": {
-    "@playwright/test": "^1.42.1",
+    "@playwright/test": "^1.45.1",
     "@types/events": "^3.0.3",
     "@types/lodash.isequal": "^4.5.8",
     "@types/node": "^20.11.27",
     "@types/react": "^18.2.55",
-    "@typescript-eslint/eslint-plugin": "^7.2.0",
-    "@typescript-eslint/parser": "^7.8.0",
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.6",
-    "prettier": "^3.3.0",
-    "prettier-plugin-tailwindcss": "^0.5.12",
     "react": "^18.2.0",
     "typed-emitter": "^2.1.0",
-    "typedoc": "^0.25.12",
-    "typedoc-plugin-mdn-links": "^3.1.18",
-    "typescript": "^5.4.0"
+    "typedoc": "^0.26.3",
+    "typedoc-plugin-mdn-links": "^3.2.2"
   },
   "dependencies": {
-    "@fishjam-dev/ts-client": "*",
+    "@fishjam-dev/ts-client": "workspace:*",
     "events": "3.3.0",
     "lodash.isequal": "4.5.0"
   },
   "directories": {
     "example": "examples"
-  }
+  },
+  "packageManager": "yarn@4.3.0"
 }

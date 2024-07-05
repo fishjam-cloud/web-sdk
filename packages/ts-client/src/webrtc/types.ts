@@ -1,11 +1,13 @@
-import TypedEmitter from 'typed-emitter';
-import { SerializedMediaEvent } from './mediaEvent';
+import type TypedEmitter from 'typed-emitter';
+import type { SerializedMediaEvent } from './mediaEvent';
 
 export type MetadataParser<ParsedMetadata> = (
   rawMetadata: unknown,
 ) => ParsedMetadata;
 export type LocalTrackId = string;
 export type RemoteTrackId = string;
+
+export type TrackKind = 'audio' | 'video';
 
 /**
  * Type describing Voice Activity Detection statuses.

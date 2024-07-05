@@ -1,22 +1,21 @@
+import type { MediaEvent, SerializedMediaEvent } from './mediaEvent';
 import {
   deserializeMediaEvent,
   generateCustomEvent,
   generateMediaEvent,
-  MediaEvent,
-  SerializedMediaEvent,
   serializeMediaEvent,
 } from './mediaEvent';
 import { v4 as uuidv4 } from 'uuid';
 import EventEmitter from 'events';
-import TypedEmitter from 'typed-emitter';
-import {
+import type TypedEmitter from 'typed-emitter';
+import type {
   AddTrackCommand,
   Command,
   RemoveTrackCommand,
   ReplaceTackCommand,
 } from './commands';
 import { Deferred } from './deferred';
-import {
+import type {
   BandwidthLimit,
   Config,
   LocalTrackId,
@@ -28,24 +27,22 @@ import {
   TrackEncoding,
   WebRTCEndpointEvents,
 } from './types';
-import { EndpointWithTrackContext, TrackContextImpl } from './internal';
+import type { EndpointWithTrackContext } from './internal';
+import { TrackContextImpl, isTrackKind } from './internal';
 import { handleVoiceActivationDetectionNotification } from './voiceActivityDetection';
 import { applyBandwidthLimitation } from './bandwidth';
+import { createTrackVariantBitratesEvent, getTrackBitrates } from './bitrate';
 import {
-  createTrackVariantBitratesEvent,
-  getTrackBitrates,
-} from './bitrate';
+  findSender,
+  findSenderByTrack,
+  isTrackInUse,
+} from './RTCPeerConnectionUtils';
 import {
   addTrackToConnection,
   addTransceiversIfNeeded,
   setTransceiverDirection,
   setTransceiversToReadOnly,
 } from './transciever';
-import {
-  findSender,
-  findSenderByTrack,
-  isTrackInUse,
-} from './RTCPeerConnectionUtils';
 import { createSdpOfferEvent } from './sdpEvents';
 
 /**
@@ -734,9 +731,12 @@ export class WebRTCEndpoint<
       this.trackMetadataParser,
     );
 
+    if (!isTrackKind(track.kind)) throw new Error('Track has no kind');
+
     trackContext.track = track;
     trackContext.stream = stream;
     trackContext.maxBandwidth = maxBandwidth;
+    trackContext.trackKind = track.kind;
 
     this.localEndpoint.tracks.set(trackId, trackContext);
 
@@ -844,6 +844,8 @@ export class WebRTCEndpoint<
   ) {
     const { trackId, newTrack, newTrackMetadata } = command;
 
+    // todo add validation to track.kind, you cannot replace video with audio
+
     const trackContext = this.localTrackIdToTrack.get(trackId)!;
 
     const track = this.trackIdToSender.get(trackId);
@@ -873,8 +875,6 @@ export class WebRTCEndpoint<
       this.sendMediaEvent(mediaEvent);
       this.emit('localTrackUnmuted', { trackId: trackId });
     }
-
-    trackContext.track = newTrack;
 
     track.localTrackId = newTrack?.id ?? null;
 
@@ -1131,7 +1131,7 @@ export class WebRTCEndpoint<
   /**
    * Disables track encoding so that it will be no longer sent to the server.
    * @param {string} trackId - id of track
-   * @param {rackEncoding} encoding - encoding that will be disabled
+   * @param {TrackEncoding} encoding - encoding that will be disabled
    * @example
    * ```ts
    * const trackId = webrtc.addTrack(track, stream, {}, {enabled: true, activeEncodings: ["l", "m", "h"]});
@@ -1317,7 +1317,8 @@ export class WebRTCEndpoint<
         offer,
         this.connection,
         this.localTrackIdToTrack,
-        this.localEndpoint.tracks,
+        this.localEndpoint,
+        this.midToTrackId,
       );
       this.sendMediaEvent(mediaEvent);
 
@@ -1471,13 +1472,16 @@ export class WebRTCEndpoint<
       const mid = event.transceiver.mid!;
 
       const trackId = this.midToTrackId.get(mid)!;
+
       if (this.checkIfTrackBelongToEndpoint(trackId, this.localEndpoint))
         return;
+      if (!isTrackKind(event.track.kind)) throw new Error('Track has no kind');
 
       const trackContext = this.trackIdToTrack.get(trackId)!;
 
       trackContext.stream = stream;
       trackContext.track = event.track;
+      trackContext.trackKind = event.track.kind;
 
       this.idToEndpoint
         .get(trackContext.endpoint.id)

@@ -1,8 +1,8 @@
 import { generateCustomEvent } from './mediaEvent';
 import { getTrackIdToTrackBitrates } from './bitrate';
 import { getMidToTrackId } from './transciever';
-import { RemoteTrackId, TrackContext } from './types';
-import { TrackContextImpl } from './internal';
+import type { RemoteTrackId, TrackContext } from './types';
+import type { EndpointWithTrackContext, TrackContextImpl } from './internal';
 
 export const createSdpOfferEvent = <EndpointMetadata, TrackMetadata>(
   offer: RTCSessionDescriptionInit,
@@ -11,19 +11,25 @@ export const createSdpOfferEvent = <EndpointMetadata, TrackMetadata>(
     RemoteTrackId,
     TrackContextImpl<EndpointMetadata, TrackMetadata>
   >,
-  tracks: Map<string, TrackContext<EndpointMetadata, TrackMetadata>>,
+  localEndpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
+  midToTrackId: Map<string, string>,
 ) =>
   generateCustomEvent({
     type: 'sdpOffer',
     data: {
       sdpOffer: offer,
-      trackIdToTrackMetadata: getTrackIdToMetadata(tracks),
+      trackIdToTrackMetadata: getTrackIdToMetadata(localEndpoint.tracks),
       trackIdToTrackBitrates: getTrackIdToTrackBitrates(
         connection,
         localTrackIdToTrack,
-        tracks,
+        localEndpoint.tracks,
       ),
-      midToTrackId: getMidToTrackId(connection, localTrackIdToTrack),
+      midToTrackId: getMidToTrackId(
+        connection,
+        localTrackIdToTrack,
+        midToTrackId,
+        localEndpoint,
+      ),
     },
   });
 

@@ -31,18 +31,19 @@ import type { EndpointWithTrackContext } from './internal';
 import { TrackContextImpl, isTrackKind } from './internal';
 import { handleVoiceActivationDetectionNotification } from './voiceActivityDetection';
 import { applyBandwidthLimitation } from './bandwidth';
+import { createTrackVariantBitratesEvent, getTrackBitrates } from './bitrate';
 import {
-  createTrackVariantBitratesEvent,
-  getTrackBitrates,
-} from './bitrate';
-import { findSender, findSenderByTrack, isTrackInUse } from "./RTCPeerConnectionUtils";
+  findSender,
+  findSenderByTrack,
+  isTrackInUse,
+} from './RTCPeerConnectionUtils';
 import {
   addTrackToConnection,
   addTransceiversIfNeeded,
   setTransceiverDirection,
-  setTransceiversToReadOnly
-} from "./transciever";
-import { createSdpOfferEvent } from "./sdpEvents";
+  setTransceiversToReadOnly,
+} from './transciever';
+import { createSdpOfferEvent } from './sdpEvents';
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -51,7 +52,7 @@ export class WebRTCEndpoint<
   EndpointMetadata = any,
   TrackMetadata = any,
 > extends (EventEmitter as {
-  new<EndpointMetadata, TrackMetadata>(): TypedEmitter<
+  new <EndpointMetadata, TrackMetadata>(): TypedEmitter<
     Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>
   >;
 })<EndpointMetadata, TrackMetadata> {

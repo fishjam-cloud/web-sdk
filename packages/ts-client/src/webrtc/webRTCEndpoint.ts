@@ -31,12 +31,12 @@ import type { EndpointWithTrackContext } from './internal';
 import { TrackContextImpl, isTrackKind } from './internal';
 import { handleVoiceActivationDetectionNotification } from './voiceActivityDetection';
 import { applyBandwidthLimitation } from './bandwidth';
-import { createTrackVariantBitratesEvent, getTrackBitrates } from './bitrate';
 import {
   findSender,
   findSenderByTrack,
   isTrackInUse,
 } from './RTCPeerConnectionUtils';
+import { createTrackVariantBitratesEvent, getTrackBitrates } from './bitrate';
 import {
   addTrackToConnection,
   addTransceiversIfNeeded,

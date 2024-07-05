@@ -546,7 +546,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@fishjam-e2e/react-client-e2e@workspace:e2e-tests/react-client/app"
   dependencies:
-    "@playwright/test": "npm:^1.45.1"
     "@types/node": "npm:^20.11.18"
     "@vitest/coverage-v8": "npm:^1.6.0"
     testcontainers: "npm:^10.3.2"

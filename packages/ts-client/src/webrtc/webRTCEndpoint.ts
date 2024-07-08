@@ -277,19 +277,7 @@ export class WebRTCEndpoint<
         break;
 
       case 'endpointAdded':
-        endpoint = deserializedMediaEvent.data;
-        if (endpoint.id === this.getEndpointId()) return;
-        endpoint.rawMetadata = endpoint.metadata;
-        try {
-          endpoint.metadataParsingError = undefined;
-          endpoint.metadata = this.endpointMetadataParser(endpoint.rawMetadata);
-        } catch (error) {
-          endpoint.metadataParsingError = error;
-          endpoint.metadata = undefined;
-        }
-        this.addEndpoint(endpoint);
-
-        this.emit('endpointAdded', endpoint);
+        this.stateManager.onEndpointAdded(deserializedMediaEvent.data)
         break;
 
       case 'endpointRemoved':
@@ -319,23 +307,7 @@ export class WebRTCEndpoint<
         break;
 
       case 'endpointUpdated':
-        if (this.getEndpointId() === deserializedMediaEvent.data.id) return;
-        endpoint = this.stateManager.idToEndpoint.get(
-          deserializedMediaEvent.data.id,
-        )!;
-        try {
-          endpoint.metadata = this.endpointMetadataParser(
-            deserializedMediaEvent.data.metadata,
-          );
-          endpoint.metadataParsingError = undefined;
-        } catch (error) {
-          endpoint.metadata = undefined;
-          endpoint.metadataParsingError = error;
-        }
-        endpoint.rawMetadata = deserializedMediaEvent.data.metadata;
-        this.addEndpoint(endpoint);
-
-        this.emit('endpointUpdated', endpoint);
+        this.stateManager.onEndpointUpdated(deserializedMediaEvent.data)
         break;
 
       case 'trackUpdated': {
@@ -1370,17 +1342,6 @@ export class WebRTCEndpoint<
         this.processNextCommand();
         break;
     }
-  };
-
-  private addEndpoint = (
-    endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
-  ): void => {
-    // #TODO remove this line after fixing deserialization
-    if (Object.prototype.hasOwnProperty.call(endpoint, 'trackIdToMetadata'))
-      endpoint.tracks = new Map(Object.entries(endpoint.tracks));
-    else endpoint.tracks = new Map();
-
-    this.stateManager.idToEndpoint.set(endpoint.id, endpoint);
   };
 
   private eraseEndpoint = (

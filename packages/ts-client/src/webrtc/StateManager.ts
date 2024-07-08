@@ -212,6 +212,51 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     this.onAnswer(data);
   }
 
+  public onEndpointAdded(endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>) {
+    if (endpoint.id === this.getEndpointId()) return;
+    endpoint.rawMetadata = endpoint.metadata;
+    try {
+      endpoint.metadataParsingError = undefined;
+      endpoint.metadata = this.endpointMetadataParser(endpoint.rawMetadata);
+    } catch (error) {
+      endpoint.metadataParsingError = error;
+      endpoint.metadata = undefined;
+    }
+    this.addEndpoint(endpoint);
+
+    this.webrtc.emit('endpointAdded', endpoint);
+  }
+
+  public onEndpointUpdated(data: any) {
+    if (this.getEndpointId() === data.id) return;
+    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> = this.idToEndpoint.get(data.id)!;
+
+    try {
+      endpoint.metadata = this.endpointMetadataParser(
+        data.metadata,
+      );
+      endpoint.metadataParsingError = undefined;
+    } catch (error) {
+      endpoint.metadata = undefined;
+      endpoint.metadataParsingError = error;
+    }
+    endpoint.rawMetadata = data.metadata;
+    this.addEndpoint(endpoint);
+
+    this.webrtc.emit('endpointUpdated', endpoint);
+  }
+
+  private addEndpoint = (
+    endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
+  ): void => {
+    // #TODO remove this line after fixing deserialization
+    if (Object.prototype.hasOwnProperty.call(endpoint, 'trackIdToMetadata'))
+      endpoint.tracks = new Map(Object.entries(endpoint.tracks));
+    else endpoint.tracks = new Map();
+
+    this.idToEndpoint.set(endpoint.id, endpoint);
+  };
+
   private eraseTrack = (trackId: string, endpointId: string) => {
     this.trackIdToTrack.delete(trackId);
     const midToTrackId = Array.from(this.midToTrackId.entries());

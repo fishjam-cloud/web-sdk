@@ -4,6 +4,7 @@ import type { TrackContextImpl, EndpointWithTrackContext } from './internal';
 import { findSenderByTrack } from "./RTCPeerConnectionUtils";
 import { generateMediaEvent } from "./mediaEvent";
 import type { WebRTCEndpoint } from "./webRTCEndpoint";
+import { isVadStatus } from "./voiceActivityDetection";
 
 export class StateManager<EndpointMetadata, TrackMetadata> {
   public trackIdToTrack: Map<
@@ -339,6 +340,18 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
 
     trackContext.emit('encodingChanged', trackContext);
   }
+
+  public onVadNotification(data: any) {
+    const trackId = data.trackId;
+    const ctx = this.trackIdToTrack.get(trackId)!;
+    const vadStatus = data.status;
+    if (isVadStatus(vadStatus)) {
+      ctx.vadStatus = vadStatus;
+      ctx.emit('voiceActivityChanged', ctx);
+    } else {
+      console.warn('Received unknown vad status: ', vadStatus);
+    }
+  };
 
   private addEndpoint = (
     endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,

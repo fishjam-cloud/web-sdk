@@ -28,7 +28,6 @@ import type {
 import type { EndpointWithTrackContext } from './internal';
 import { mapMediaEventTracksToTrackContextImpl } from './internal';
 import { TrackContextImpl, isTrackKind } from './internal';
-import { handleVoiceActivationDetectionNotification } from './voiceActivityDetection';
 import { applyBandwidthLimitation } from './bandwidth';
 import { createTrackVariantBitratesEvent, getTrackBitrates } from './bitrate';
 import {
@@ -53,7 +52,7 @@ export class WebRTCEndpoint<
   EndpointMetadata = any,
   TrackMetadata = any,
 > extends (EventEmitter as {
-  new <EndpointMetadata, TrackMetadata>(): TypedEmitter<
+  new<EndpointMetadata, TrackMetadata>(): TypedEmitter<
     Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>
   >;
 })<EndpointMetadata, TrackMetadata> {
@@ -246,7 +245,6 @@ export class WebRTCEndpoint<
   }
 
   private handleMediaEvent = (deserializedMediaEvent: MediaEvent) => {
-    let endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>;
     switch (deserializedMediaEvent.type) {
       case 'offerData': {
         this.onOfferData(deserializedMediaEvent);
@@ -340,10 +338,7 @@ export class WebRTCEndpoint<
         break;
 
       case 'vadNotification': {
-        handleVoiceActivationDetectionNotification(
-          deserializedMediaEvent,
-          this.stateManager.trackIdToTrack,
-        );
+        this.stateManager.onVadNotification(deserializedMediaEvent.data);
         break;
       }
 

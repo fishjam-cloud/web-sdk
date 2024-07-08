@@ -300,21 +300,7 @@ export class WebRTCEndpoint<
       }
 
       case 'trackEncodingDisabled': {
-        if (this.getEndpointId() === deserializedMediaEvent.data.endpointId)
-          return;
-
-        endpoint = this.stateManager.idToEndpoint.get(
-          deserializedMediaEvent.data.endpointId,
-        )!;
-        if (endpoint == null)
-          throw `Endpoint with id: ${deserializedMediaEvent.data.endpointId} doesn't exist`;
-
-        const trackId = deserializedMediaEvent.data.trackId;
-        const encoding = deserializedMediaEvent.data.encoding;
-
-        const trackContext = endpoint.tracks.get(trackId)!;
-
-        this.emit('trackEncodingDisabled', trackContext, encoding);
+        this.stateManager.onTrackEncodingDisabled(deserializedMediaEvent.data)
         break;
       }
 

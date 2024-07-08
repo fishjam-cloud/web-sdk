@@ -353,6 +353,12 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     }
   };
 
+  public onBandwidthEstimation(data: any) {
+    this.bandwidthEstimation = data.estimation;
+
+    this.webrtc.emit('bandwidthEstimationChanged', this.bandwidthEstimation);
+  }
+
   private addEndpoint = (
     endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
   ): void => {

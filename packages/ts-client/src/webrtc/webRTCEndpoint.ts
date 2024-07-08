@@ -343,13 +343,7 @@ export class WebRTCEndpoint<
       }
 
       case 'bandwidthEstimation': {
-        this.stateManager.bandwidthEstimation =
-          deserializedMediaEvent.data.estimation;
-
-        this.emit(
-          'bandwidthEstimationChanged',
-          this.stateManager.bandwidthEstimation,
-        );
+        this.stateManager.onBandwidthEstimation(deserializedMediaEvent.data);
         break;
       }
 

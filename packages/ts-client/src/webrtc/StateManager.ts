@@ -65,7 +65,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     this.trackMetadataParser = trackMetadataParser;
   }
 
-  public onAnswer = async (answer: RTCSessionDescriptionInit) => {
+  private onAnswer = async (answer: RTCSessionDescriptionInit) => {
     this.connection!.ontrack = this.onTrack();
     try {
       await this.connection!.setRemoteDescription(answer);
@@ -185,6 +185,31 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
 
       this.webrtc.emit('trackRemoved', trackContext);
     });
+  }
+
+  public onSdpAnswer(data: any) {
+    this.midToTrackId = new Map(Object.entries(data.midToTrackId),);
+
+    for (const trackId of Object.values(data.midToTrackId,)) {
+      const track = this.localTrackIdToTrack.get(trackId as string);
+
+      // if is local track
+      if (track) {
+        track.negotiationStatus = 'done';
+
+        if (track.pendingMetadataUpdate) {
+          const mediaEvent = generateMediaEvent('updateTrackMetadata', {
+            trackId,
+            trackMetadata: track.metadata,
+          });
+          this.webrtc.sendMediaEvent(mediaEvent);
+        }
+
+        track.pendingMetadataUpdate = false;
+      }
+    }
+
+    this.onAnswer(data);
   }
 
   private eraseTrack = (trackId: string, endpointId: string) => {

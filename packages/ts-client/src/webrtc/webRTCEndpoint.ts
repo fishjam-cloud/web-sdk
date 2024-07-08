@@ -266,33 +266,7 @@ export class WebRTCEndpoint<
       }
 
       case 'sdpAnswer':
-        this.stateManager.midToTrackId = new Map(
-          Object.entries(deserializedMediaEvent.data.midToTrackId),
-        );
-
-        for (const trackId of Object.values(
-          deserializedMediaEvent.data.midToTrackId,
-        )) {
-          const track = this.stateManager.localTrackIdToTrack.get(
-            trackId as string,
-          );
-          // if is local track
-          if (track) {
-            track.negotiationStatus = 'done';
-
-            if (track.pendingMetadataUpdate) {
-              const mediaEvent = generateMediaEvent('updateTrackMetadata', {
-                trackId,
-                trackMetadata: track.metadata,
-              });
-              this.sendMediaEvent(mediaEvent);
-            }
-
-            track.pendingMetadataUpdate = false;
-          }
-        }
-
-        this.stateManager.onAnswer(deserializedMediaEvent.data);
+        this.stateManager.onSdpAnswer(deserializedMediaEvent.data)
 
         this.stateManager.ongoingRenegotiation = false;
         this.processNextCommand();

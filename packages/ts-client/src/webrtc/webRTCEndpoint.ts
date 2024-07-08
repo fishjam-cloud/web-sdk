@@ -3,7 +3,6 @@ import {
   deserializeMediaEvent,
   generateCustomEvent,
   generateMediaEvent,
-  serializeMediaEvent,
 } from './mediaEvent';
 import { v4 as uuidv4 } from 'uuid';
 import EventEmitter from 'events';
@@ -44,6 +43,7 @@ import {
 import { createSdpOfferEvent } from './sdpEvents';
 import { setTurns } from './turn';
 import { StateManager } from './StateManager';
+import { LocalEventEmitter } from "./LocalEventEmitter";
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -63,6 +63,7 @@ export class WebRTCEndpoint<
   private readonly trackMetadataParser: MetadataParser<TrackMetadata>;
 
   private stateManager: StateManager<EndpointMetadata, TrackMetadata>;
+  private localEventEmitter: LocalEventEmitter<EndpointMetadata, TrackMetadata>
 
   constructor(config?: Config<EndpointMetadata, TrackMetadata>) {
     super();
@@ -71,7 +72,8 @@ export class WebRTCEndpoint<
     this.trackMetadataParser =
       config?.trackMetadataParser ?? ((x) => x as TrackMetadata);
 
-    this.stateManager = new StateManager(this, this.endpointMetadataParser, this.trackMetadataParser);
+    this.localEventEmitter = new LocalEventEmitter<EndpointMetadata, TrackMetadata>()
+    this.stateManager = new StateManager(this.localEventEmitter, this.endpointMetadataParser, this.trackMetadataParser);
   }
 
   /**
@@ -101,8 +103,13 @@ export class WebRTCEndpoint<
     const mediaEvent = generateMediaEvent('connect', {
       metadata: this.stateManager.localEndpoint.metadata,
     });
-    this.sendMediaEvent(mediaEvent);
+    this.localEventEmitter.sendMediaEvent(mediaEvent);
   };
+
+  public on<E extends keyof WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>(event: E, listener: Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>[E]) {
+    this.localEventEmitter.on(event, listener)
+    return this
+  }
 
   /**
    * Feeds media event received from RTC Engine to {@link WebRTCEndpoint}.
@@ -170,7 +177,7 @@ export class WebRTCEndpoint<
           }
         });
 
-        this.emit('connected', deserializedMediaEvent.data.id, otherEndpoints);
+        this.localEventEmitter.emit('connected', deserializedMediaEvent.data.id, otherEndpoints);
 
         otherEndpoints.forEach((endpoint) =>
           this.stateManager.idToEndpoint.set(endpoint.id, endpoint),
@@ -180,7 +187,7 @@ export class WebRTCEndpoint<
           endpoint.tracks.forEach((ctx, trackId) => {
             this.stateManager.trackIdToTrack.set(trackId, ctx);
 
-            this.emit('trackAdded', ctx);
+            this.localEventEmitter.emit('trackAdded', ctx);
           });
         });
         break;
@@ -281,7 +288,7 @@ export class WebRTCEndpoint<
       case 'endpointRemoved':
         if (deserializedMediaEvent.data.id === this.stateManager.localEndpoint.id) {
           this.cleanUp();
-          this.emit('disconnected');
+          this.localEventEmitter.emit('disconnected');
           return;
         }
 
@@ -317,7 +324,7 @@ export class WebRTCEndpoint<
           this.stateManager.trackIdToTrack.values(),
         ).filter((track) => !enabledTracks.includes(track));
 
-        this.emit('tracksPriorityChanged', enabledTracks, disabledTracks);
+        this.localEventEmitter.emit('tracksPriorityChanged', enabledTracks, disabledTracks);
         break;
       }
 
@@ -330,7 +337,7 @@ export class WebRTCEndpoint<
         break;
 
       case 'error':
-        this.emit('signalingError', {
+        this.localEventEmitter.emit('signalingError', {
           message: deserializedMediaEvent.data.message,
         });
 
@@ -435,7 +442,7 @@ export class WebRTCEndpoint<
     }
 
     return resolutionNotifier.promise.then(() => {
-      this.emit('localTrackAdded', {
+      this.localEventEmitter.emit('localTrackAdded', {
         trackId,
         track,
         stream,
@@ -565,7 +572,7 @@ export class WebRTCEndpoint<
       sender: null,
     });
     const mediaEvent = generateCustomEvent({ type: 'renegotiateTracks' });
-    this.sendMediaEvent(mediaEvent);
+    this.localEventEmitter.sendMediaEvent(mediaEvent);
   }
 
   /**
@@ -638,7 +645,7 @@ export class WebRTCEndpoint<
       resolutionNotifier.reject(error);
     }
     return resolutionNotifier.promise.then(() => {
-      this.emit('localTrackReplaced', {
+      this.localEventEmitter.emit('localTrackReplaced', {
         trackId,
         track: newTrack,
         metadata: newTrackMetadata,
@@ -673,14 +680,14 @@ export class WebRTCEndpoint<
 
     if (trackContext.track && !newTrack) {
       const mediaEvent = generateMediaEvent('muteTrack', { trackId: trackId });
-      this.sendMediaEvent(mediaEvent);
-      this.emit('localTrackMuted', { trackId: trackId });
+      this.localEventEmitter.sendMediaEvent(mediaEvent);
+      this.localEventEmitter.emit('localTrackMuted', { trackId: trackId });
     } else if (!trackContext.track && newTrack) {
       const mediaEvent = generateMediaEvent('unmuteTrack', {
         trackId: trackId,
       });
-      this.sendMediaEvent(mediaEvent);
-      this.emit('localTrackUnmuted', { trackId: trackId });
+      this.localEventEmitter.sendMediaEvent(mediaEvent);
+      this.localEventEmitter.emit('localTrackUnmuted', { trackId: trackId });
     }
 
     track.localTrackId = newTrack?.id ?? null;
@@ -741,9 +748,9 @@ export class WebRTCEndpoint<
           this.stateManager.connection,
           this.stateManager.localTrackIdToTrack,
         );
-        this.sendMediaEvent(mediaEvent);
+        this.localEventEmitter.sendMediaEvent(mediaEvent);
 
-        this.emit('localTrackBandwidthSet', {
+        this.localEventEmitter.emit('localTrackBandwidthSet', {
           trackId,
           bandwidth,
         });
@@ -802,8 +809,8 @@ export class WebRTCEndpoint<
             ),
           },
         });
-        this.sendMediaEvent(mediaEvent);
-        this.emit('localTrackEncodingBandwidthSet', {
+        this.localEventEmitter.sendMediaEvent(mediaEvent);
+        this.localEventEmitter.emit('localTrackEncodingBandwidthSet', {
           trackId,
           rid,
           bandwidth,
@@ -848,7 +855,7 @@ export class WebRTCEndpoint<
       resolutionNotifier,
     });
     return resolutionNotifier.promise.then(() => {
-      this.emit('localTrackRemoved', {
+      this.localEventEmitter.emit('localTrackRemoved', {
         trackId,
       });
     });
@@ -866,7 +873,7 @@ export class WebRTCEndpoint<
 
     this.stateManager.connection!.removeTrack(sender);
     const mediaEvent = generateCustomEvent({ type: 'renegotiateTracks' });
-    this.sendMediaEvent(mediaEvent);
+    this.localEventEmitter.sendMediaEvent(mediaEvent);
     this.stateManager.localTrackIdToTrack.delete(trackId);
     this.stateManager.localEndpoint.tracks.delete(trackId);
   }
@@ -902,8 +909,8 @@ export class WebRTCEndpoint<
       },
     });
 
-    this.sendMediaEvent(mediaEvent);
-    this.emit('targetTrackEncodingRequested', {
+    this.localEventEmitter.sendMediaEvent(mediaEvent);
+    this.localEventEmitter.emit('targetTrackEncodingRequested', {
       trackId,
       variant,
     });
@@ -940,8 +947,8 @@ export class WebRTCEndpoint<
       trackId: trackId,
       encoding: encoding,
     });
-    this.sendMediaEvent(mediaEvent);
-    this.emit('localTrackEncodingEnabled', {
+    this.localEventEmitter.sendMediaEvent(mediaEvent);
+    this.localEventEmitter.emit('localTrackEncodingEnabled', {
       trackId,
       encoding,
     });
@@ -977,8 +984,8 @@ export class WebRTCEndpoint<
     const mediaEvent = generateMediaEvent('updateEndpointMetadata', {
       metadata: this.stateManager.localEndpoint.metadata,
     });
-    this.sendMediaEvent(mediaEvent);
-    this.emit('localEndpointMetadataChanged', {
+    this.localEventEmitter.sendMediaEvent(mediaEvent);
+    this.localEventEmitter.emit('localEndpointMetadataChanged', {
       metadata,
     });
   };
@@ -1020,9 +1027,9 @@ export class WebRTCEndpoint<
 
     switch (trackContext.negotiationStatus) {
       case 'done':
-        this.sendMediaEvent(mediaEvent);
+        this.localEventEmitter.sendMediaEvent(mediaEvent);
 
-        this.emit('localTrackMetadataChanged', {
+        this.localEventEmitter.emit('localTrackMetadataChanged', {
           trackId,
           metadata: trackMetadata,
         });
@@ -1047,8 +1054,8 @@ export class WebRTCEndpoint<
    */
   public disconnect = () => {
     const mediaEvent = generateMediaEvent('disconnect');
-    this.sendMediaEvent(mediaEvent);
-    this.emit('disconnectRequested', {});
+    this.localEventEmitter.sendMediaEvent(mediaEvent);
+    this.localEventEmitter.emit('disconnectRequested', {});
     this.cleanUp();
   };
 
@@ -1078,12 +1085,6 @@ export class WebRTCEndpoint<
     return `${this.getEndpointId()}:${uuid}`;
   }
 
-  // todo change to private
-  public sendMediaEvent = (mediaEvent: MediaEvent) => {
-    const serializedMediaEvent = serializeMediaEvent(mediaEvent);
-    this.emit('sendMediaEvent', serializedMediaEvent);
-  };
-
   private async createAndSendOffer() {
     const connection = this.stateManager.connection;
     if (!connection) return;
@@ -1109,7 +1110,7 @@ export class WebRTCEndpoint<
         this.stateManager.localEndpoint,
         this.stateManager.midToTrackId,
       );
-      this.sendMediaEvent(mediaEvent);
+      this.localEventEmitter.sendMediaEvent(mediaEvent);
 
       for (const track of this.stateManager.localTrackIdToTrack.values()) {
         track.negotiationStatus = 'offered';
@@ -1192,7 +1193,7 @@ export class WebRTCEndpoint<
             sdpMLineIndex: event.candidate.sdpMLineIndex,
           },
         });
-        this.sendMediaEvent(mediaEvent);
+        this.localEventEmitter.sendMediaEvent(mediaEvent);
       }
     };
   };
@@ -1207,7 +1208,7 @@ export class WebRTCEndpoint<
         this.processNextCommand();
         break;
       case 'failed':
-        this.emit('connectionError', {
+        this.localEventEmitter.emit('connectionError', {
           message: 'RTCPeerConnection failed',
           event,
         });
@@ -1221,10 +1222,10 @@ export class WebRTCEndpoint<
         console.warn('ICE connection: disconnected');
         // Requesting renegotiation on ICE connection state failed fixes RTCPeerConnection
         // when the user changes their WiFi network.
-        this.sendMediaEvent(generateCustomEvent({ type: 'renegotiateTracks' }));
+        this.localEventEmitter.sendMediaEvent(generateCustomEvent({ type: 'renegotiateTracks' }));
         break;
       case 'failed':
-        this.emit('connectionError', {
+        this.localEventEmitter.emit('connectionError', {
           message: 'ICE connection failed',
           event,
         });

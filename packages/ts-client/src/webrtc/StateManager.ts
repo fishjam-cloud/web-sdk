@@ -3,8 +3,8 @@ import { isTrackKind, mapMediaEventTracksToTrackContextImpl } from './internal';
 import type { TrackContextImpl, EndpointWithTrackContext } from './internal';
 import { findSenderByTrack } from "./RTCPeerConnectionUtils";
 import { generateMediaEvent } from "./mediaEvent";
-import type { WebRTCEndpoint } from "./webRTCEndpoint";
 import { isVadStatus } from "./voiceActivityDetection";
+import type { LocalEventEmitter } from "./LocalEventEmitter";
 
 export class StateManager<EndpointMetadata, TrackMetadata> {
   public trackIdToTrack: Map<
@@ -21,7 +21,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     TrackMetadata
   > = {
     id: '',
-    type: 'webrtc',
+    type: 'localEventEmitter',
     metadata: undefined,
     rawMetadata: undefined,
     tracks: new Map(),
@@ -54,14 +54,16 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   public ongoingRenegotiation: boolean = false;
   public ongoingTrackReplacement: boolean = false;
 
-  // temporary for webrtc.emit and webrtc.sendMediaEvent
-  private readonly webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>
+  private readonly localEventEmitter: LocalEventEmitter<EndpointMetadata, TrackMetadata>
   private readonly endpointMetadataParser: MetadataParser<EndpointMetadata>;
   private readonly trackMetadataParser: MetadataParser<TrackMetadata>;
 
   constructor(
-    webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>, endpointMetadataParser: MetadataParser<EndpointMetadata>, trackMetadataParser: MetadataParser<TrackMetadata>) {
-    this.webrtc = webrtc
+    localEventEmitter: LocalEventEmitter<EndpointMetadata, TrackMetadata>,
+    endpointMetadataParser: MetadataParser<EndpointMetadata>,
+    trackMetadataParser: MetadataParser<TrackMetadata>
+  ) {
+    this.localEventEmitter = localEventEmitter
     this.endpointMetadataParser = endpointMetadataParser;
     this.trackMetadataParser = trackMetadataParser;
   }
@@ -88,8 +90,8 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
    * @param {TrackEncoding} encoding - encoding that will be disabled
    * @example
    * ```ts
-   * const trackId = webrtc.addTrack(track, stream, {}, {enabled: true, activeEncodings: ["l", "m", "h"]});
-   * webrtc.disableTrackEncoding(trackId, "l");
+   * const trackId = localEventEmitter.addTrack(track, stream, {}, {enabled: true, activeEncodings: ["l", "m", "h"]});
+   * localEventEmitter.disableTrackEncoding(trackId, "l");
    * ```
    */
   public disableTrackEncoding(trackId: string, encoding: TrackEncoding) {
@@ -106,8 +108,8 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
       trackId: trackId,
       encoding: encoding,
     });
-    this.webrtc.sendMediaEvent(mediaEvent);
-    this.webrtc.emit('localTrackEncodingDisabled', {
+    this.localEventEmitter.sendMediaEvent(mediaEvent);
+    this.localEventEmitter.emit('localTrackEncodingDisabled', {
       trackId,
       encoding,
     });
@@ -139,7 +141,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
         .get(trackContext.endpoint.id)
         ?.tracks.set(trackId, trackContext);
 
-      this.webrtc.emit('trackReady', trackContext);
+      this.localEventEmitter.emit('trackReady', trackContext);
     };
   };
 
@@ -170,7 +172,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
       if (!oldTracks.has(trackId)) {
         this.trackIdToTrack.set(trackId, ctx);
 
-        this.webrtc.emit('trackAdded', ctx);
+        this.localEventEmitter.emit('trackAdded', ctx);
       }
     });
   }
@@ -184,7 +186,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
 
       this.eraseTrack(trackId, endpointId);
 
-      this.webrtc.emit('trackRemoved', trackContext);
+      this.localEventEmitter.emit('trackRemoved', trackContext);
     });
   }
 
@@ -203,7 +205,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
             trackId,
             trackMetadata: track.metadata,
           });
-          this.webrtc.sendMediaEvent(mediaEvent);
+          this.localEventEmitter.sendMediaEvent(mediaEvent);
         }
 
         track.pendingMetadataUpdate = false;
@@ -225,7 +227,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     }
     this.addEndpoint(endpoint);
 
-    this.webrtc.emit('endpointAdded', endpoint);
+    this.localEventEmitter.emit('endpointAdded', endpoint);
   }
 
   public onEndpointUpdated(data: any) {
@@ -244,7 +246,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     endpoint.rawMetadata = data.metadata;
     this.addEndpoint(endpoint);
 
-    this.webrtc.emit('endpointUpdated', endpoint);
+    this.localEventEmitter.emit('endpointUpdated', endpoint);
   }
 
   public onEndpointRemoved(data: any) {
@@ -252,7 +254,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     if (endpoint === undefined) return;
 
     Array.from(endpoint.tracks.keys()).forEach((trackId) => {
-      this.webrtc.emit(
+      this.localEventEmitter.emit(
         'trackRemoved',
         this.trackIdToTrack.get(trackId)!,
       );
@@ -260,7 +262,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
 
     this.eraseEndpoint(endpoint);
 
-    this.webrtc.emit('endpointRemoved', endpoint);
+    this.localEventEmitter.emit('endpointRemoved', endpoint);
   }
 
   public onTrackUpdated(data: any) {
@@ -299,7 +301,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     trackContext.rawMetadata = trackMetadata;
     endpoint.tracks.set(trackId, newTrack);
 
-    this.webrtc.emit('trackUpdated', trackContext);
+    this.localEventEmitter.emit('trackUpdated', trackContext);
   }
 
   public onTrackEncodingDisabled(data: any) {
@@ -314,7 +316,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
 
     const trackContext = endpoint.tracks.get(trackId)!;
 
-    this.webrtc.emit('trackEncodingDisabled', trackContext, encoding);
+    this.localEventEmitter.emit('trackEncodingDisabled', trackContext, encoding);
   }
 
   public onTrackEncodingEnabled(data: any) {
@@ -329,7 +331,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
 
     const trackContext = endpoint.tracks.get(trackId)!;
 
-    this.webrtc.emit('trackEncodingEnabled', trackContext, encoding);
+    this.localEventEmitter.emit('trackEncodingEnabled', trackContext, encoding);
   }
 
   public onEncodingSwitched(data: any) {
@@ -356,7 +358,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   public onBandwidthEstimation(data: any) {
     this.bandwidthEstimation = data.estimation;
 
-    this.webrtc.emit('bandwidthEstimationChanged', this.bandwidthEstimation);
+    this.localEventEmitter.emit('bandwidthEstimationChanged', this.bandwidthEstimation);
   }
 
   private addEndpoint = (

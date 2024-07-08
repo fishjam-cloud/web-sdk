@@ -1,4 +1,4 @@
 {
-  "extends": ["../../.eslintrc.js"],
+  "extends": ["../../eslint.config.js"],
   "ignorePatterns": ["lib"],
 }

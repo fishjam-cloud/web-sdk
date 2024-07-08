@@ -52,9 +52,6 @@
     "typedoc": "^0.26.3",
     "typedoc-plugin-mdn-links": "^3.2.2"
   },
-  "peerDependencies": {
-    "typescript": "*"
-  },
   "dependencies": {
     "@fishjam-dev/ts-client": "workspace:*",
     "events": "3.3.0",

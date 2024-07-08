@@ -70,9 +70,6 @@
     "vitest": "^1.6.0",
     "zod": "^3.23.6"
   },
-  "peerDependencies": {
-    "typescript": "*"
-  },
   "lint-staged": {
     "*": [
       "yarn format:check"

@@ -331,6 +331,15 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     this.webrtc.emit('trackEncodingEnabled', trackContext, encoding);
   }
 
+  public onEncodingSwitched(data: any) {
+    const trackId = data.trackId;
+    const trackContext = this.trackIdToTrack.get(trackId)!;
+    trackContext.encoding = data.encoding;
+    trackContext.encodingReason = data.reason;
+
+    trackContext.emit('encodingChanged', trackContext);
+  }
+
   private addEndpoint = (
     endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
   ): void => {

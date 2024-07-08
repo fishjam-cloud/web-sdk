@@ -324,12 +324,7 @@ export class WebRTCEndpoint<
       }
 
       case 'encodingSwitched': {
-        const trackId = deserializedMediaEvent.data.trackId;
-        const trackContext = this.stateManager.trackIdToTrack.get(trackId)!;
-        trackContext.encoding = deserializedMediaEvent.data.encoding;
-        trackContext.encodingReason = deserializedMediaEvent.data.reason;
-
-        trackContext.emit('encodingChanged', trackContext);
+        this.stateManager.onEncodingSwitched(deserializedMediaEvent.data)
         break;
       }
       case 'custom':

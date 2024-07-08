@@ -316,6 +316,21 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     this.webrtc.emit('trackEncodingDisabled', trackContext, encoding);
   }
 
+  public onTrackEncodingEnabled(data: any) {
+    if (this.getEndpointId() === data.endpointId) return;
+
+    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> = this.idToEndpoint.get(data.endpointId)!;
+
+    if (endpoint == null) throw `Endpoint with id: ${data.endpointId} doesn't exist`;
+
+    const trackId = data.trackId;
+    const encoding = data.encoding;
+
+    const trackContext = endpoint.tracks.get(trackId)!;
+
+    this.webrtc.emit('trackEncodingEnabled', trackContext, encoding);
+  }
+
   private addEndpoint = (
     endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
   ): void => {

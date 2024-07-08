@@ -174,5 +174,29 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     });
   }
 
+  public onTracksRemoved(data: any) {
+    const endpointId = data.endpointId;
+    if (this.getEndpointId() === endpointId) return;
+    const trackIds = data.trackIds as string[];
+    trackIds.forEach((trackId) => {
+      const trackContext = this.trackIdToTrack.get(trackId)!;
+
+      this.eraseTrack(trackId, endpointId);
+
+      this.webrtc.emit('trackRemoved', trackContext);
+    });
+  }
+
+  private eraseTrack = (trackId: string, endpointId: string) => {
+    this.trackIdToTrack.delete(trackId);
+    const midToTrackId = Array.from(this.midToTrackId.entries());
+    const [mid, _trackId] = midToTrackId.find(
+      ([_mid, mapTrackId]) => mapTrackId === trackId,
+    )!;
+    this.midToTrackId.delete(mid);
+    this.idToEndpoint.get(endpointId)!.tracks.delete(trackId);
+    this.disabledTrackEncodings.delete(trackId);
+  };
+
   private getEndpointId = () => this.localEndpoint.id;
 }

@@ -247,7 +247,6 @@ export class WebRTCEndpoint<
 
   private handleMediaEvent = (deserializedMediaEvent: MediaEvent) => {
     let endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>;
-    let data;
     switch (deserializedMediaEvent.type) {
       case 'offerData': {
         this.onOfferData(deserializedMediaEvent);
@@ -262,17 +261,7 @@ export class WebRTCEndpoint<
       case 'tracksRemoved': {
         this.stateManager.ongoingRenegotiation = true;
 
-        data = deserializedMediaEvent.data;
-        const endpointId = data.endpointId;
-        if (this.getEndpointId() === endpointId) return;
-        const trackIds = data.trackIds as string[];
-        trackIds.forEach((trackId) => {
-          const trackContext = this.stateManager.trackIdToTrack.get(trackId)!;
-
-          this.eraseTrack(trackId, endpointId);
-
-          this.emit('trackRemoved', trackContext);
-        });
+        this.stateManager.onTracksRemoved(deserializedMediaEvent.data)
         break;
       }
 
@@ -1434,17 +1423,6 @@ export class WebRTCEndpoint<
       },
     );
     this.stateManager.idToEndpoint.delete(endpoint.id);
-  };
-
-  private eraseTrack = (trackId: string, endpointId: string) => {
-    this.stateManager.trackIdToTrack.delete(trackId);
-    const midToTrackId = Array.from(this.stateManager.midToTrackId.entries());
-    const [mid, _trackId] = midToTrackId.find(
-      ([_mid, mapTrackId]) => mapTrackId === trackId,
-    )!;
-    this.stateManager.midToTrackId.delete(mid);
-    this.stateManager.idToEndpoint.get(endpointId)!.tracks.delete(trackId);
-    this.stateManager.disabledTrackEncodings.delete(trackId);
   };
 
   private getEndpointId = () => this.stateManager.localEndpoint.id;

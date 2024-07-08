@@ -138,11 +138,13 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
       case 'ADD-TRACK':
         this.addTrackHandler(command);
         break;
-      case 'REPLACE-TRACK':
-        this.replaceTrackHandler(command);
-        break;
       case "COMMAND-WITH-HANDLER":
         command.handler()
+        if(command.resolve === "immediately") {
+          this.resolvePreviousCommand();
+          this.processNextCommand();
+        }
+
         break;
     }
   }
@@ -215,61 +217,6 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
     });
     const mediaEvent = generateCustomEvent({ type: 'renegotiateTracks' });
     this.webrtc.sendMediaEvent(mediaEvent);
-  }
-
-  private async replaceTrackHandler(
-    command: ReplaceTackCommand<TrackMetadata>,
-  ) {
-    const { trackId, newTrack, newTrackMetadata } = command;
-
-    // todo add validation to track.kind, you cannot replace video with audio
-
-    const trackContext = this.stateManager.localTrackIdToTrack.get(trackId)!;
-
-    const track = this.stateManager.trackIdToSender.get(trackId);
-    const sender = track?.sender ?? null;
-
-    if (!track) throw Error(`There is no track with id: ${trackId}`);
-    if (!sender) throw Error('There is no RTCRtpSender for this track id!');
-
-    this.stateManager.ongoingTrackReplacement = true;
-
-    trackContext.stream?.getTracks().forEach((track) => {
-      trackContext.stream?.removeTrack(track);
-    });
-
-    if (newTrack) {
-      trackContext.stream?.addTrack(newTrack);
-    }
-
-    if (trackContext.track && !newTrack) {
-      const mediaEvent = generateMediaEvent('muteTrack', { trackId: trackId });
-      this.webrtc.sendMediaEvent(mediaEvent);
-      this.webrtc.emit('localTrackMuted', { trackId: trackId });
-    } else if (!trackContext.track && newTrack) {
-      const mediaEvent = generateMediaEvent('unmuteTrack', {
-        trackId: trackId,
-      });
-      this.webrtc.sendMediaEvent(mediaEvent);
-      this.webrtc.emit('localTrackUnmuted', { trackId: trackId });
-    }
-
-    track.localTrackId = newTrack?.id ?? null;
-
-    try {
-      await sender.replaceTrack(newTrack);
-      trackContext.track = newTrack;
-
-      if (newTrackMetadata) {
-        this.webrtc.updateTrackMetadata(trackId, newTrackMetadata);
-      }
-    } catch (error) {
-      // ignore
-    } finally {
-      this.resolvePreviousCommand();
-      this.stateManager.ongoingTrackReplacement = false;
-      this.processNextCommand();
-    }
   }
 
   private resolvePreviousCommand() {

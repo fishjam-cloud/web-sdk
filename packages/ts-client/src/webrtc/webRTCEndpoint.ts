@@ -42,7 +42,7 @@ export class WebRTCEndpoint<
   EndpointMetadata = any,
   TrackMetadata = any,
 > extends (EventEmitter as {
-  new <EndpointMetadata, TrackMetadata>(): TypedEmitter<
+  new<EndpointMetadata, TrackMetadata>(): TypedEmitter<
     Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>
   >;
 })<EndpointMetadata, TrackMetadata> {
@@ -508,6 +508,7 @@ export class WebRTCEndpoint<
     newTrackMetadata?: any,
   ): Promise<void> {
     const resolutionNotifier = new Deferred<void>();
+
     try {
       const newMetadata =
         newTrackMetadata !== undefined
@@ -515,15 +516,21 @@ export class WebRTCEndpoint<
           : undefined;
 
       this.commandsQueue.pushCommand({
-        commandType: 'REPLACE-TRACK',
-        trackId,
-        newTrack,
-        newTrackMetadata: newMetadata,
+        commandType: 'COMMAND-WITH-HANDLER',
+        handler: () => {
+          this.stateManager.replaceTrackHandler(
+            trackId,
+            newTrack,
+            newMetadata,
+          )
+        },
         resolutionNotifier,
+        resolve: "immediately"
       });
     } catch (error) {
       resolutionNotifier.reject(error);
     }
+
     return resolutionNotifier.promise.then(() => {
       this.emit('localTrackReplaced', {
         trackId,
@@ -681,6 +688,7 @@ export class WebRTCEndpoint<
         this.stateManager.removeTrackHandler(trackId)
       },
       resolutionNotifier,
+      resolve: "after-renegotiation"
     });
 
     return resolutionNotifier.promise.then(() => {

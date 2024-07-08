@@ -30,6 +30,7 @@ export type CommandWithHandler = {
   commandType: 'COMMAND-WITH-HANDLER';
   handler: () => void;
   resolutionNotifier: Deferred<void>;
+  resolve: "after-renegotiation" | "immediately";
 };
 
 export type Command<TrackMetadata> =

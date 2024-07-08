@@ -11,6 +11,7 @@ import { generateCustomEvent, generateMediaEvent } from './mediaEvent';
 import type { WebRTCEndpoint } from './webRTCEndpoint';
 import { isVadStatus } from './voiceActivityDetection';
 import { NegotiationManager } from "./NegotiationManager";
+import type { ReplaceTackCommand } from "./commands";
 
 export class StateManager<EndpointMetadata, TrackMetadata> {
   public trackIdToTrack: Map<
@@ -377,6 +378,62 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     this.localTrackIdToTrack.delete(trackId);
     this.localEndpoint.tracks.delete(trackId);
   }
+
+  public async replaceTrackHandler(
+    trackId: string,
+    newTrack: MediaStreamTrack | null,
+    newTrackMetadata?: TrackMetadata,
+  ) {
+    // todo add validation to track.kind, you cannot replace video with audio
+
+    const trackContext = this.localTrackIdToTrack.get(trackId)!;
+
+    const track = this.trackIdToSender.get(trackId);
+    const sender = track?.sender ?? null;
+
+    if (!track) throw Error(`There is no track with id: ${trackId}`);
+    if (!sender) throw Error('There is no RTCRtpSender for this track id!');
+
+    this.ongoingTrackReplacement = true;
+
+    trackContext.stream?.getTracks().forEach((track) => {
+      trackContext.stream?.removeTrack(track);
+    });
+
+    if (newTrack) {
+      trackContext.stream?.addTrack(newTrack);
+    }
+
+    if (trackContext.track && !newTrack) {
+      const mediaEvent = generateMediaEvent('muteTrack', { trackId: trackId });
+      this.webrtc.sendMediaEvent(mediaEvent);
+      this.webrtc.emit('localTrackMuted', { trackId: trackId });
+    } else if (!trackContext.track && newTrack) {
+      const mediaEvent = generateMediaEvent('unmuteTrack', {
+        trackId: trackId,
+      });
+      this.webrtc.sendMediaEvent(mediaEvent);
+      this.webrtc.emit('localTrackUnmuted', { trackId: trackId });
+    }
+
+    track.localTrackId = newTrack?.id ?? null;
+
+    try {
+      await sender.replaceTrack(newTrack);
+      trackContext.track = newTrack;
+
+      if (newTrackMetadata) {
+        this.webrtc.updateTrackMetadata(trackId, newTrackMetadata);
+      }
+    } catch (error) {
+      // ignore
+    } finally {
+      // this.resolvePreviousCommand();
+      this.ongoingTrackReplacement = false;
+      // this.processNextCommand();
+    }
+  }
+
 
   private addEndpoint = (
     endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,

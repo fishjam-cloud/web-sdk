@@ -12,7 +12,7 @@
     "@playwright/test": "^1.41.2",
     "@types/node": "^20.14.10",
     "@vitest/coverage-v8": "^1.6.0",
-    "testcontainers": "^10.3.2",
+    "testcontainers": "^10.10.1",
     "vite": "^5.1.2",
     "vitest": "^1.6.0"
   }

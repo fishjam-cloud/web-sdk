@@ -56,6 +56,8 @@ export class WebRTCEndpoint<
   private readonly negotiationManager: NegotiationManager;
   private readonly commandsQueue: CommandsQueue<EndpointMetadata, TrackMetadata>;
 
+  private clearConnectionCallbacks: (() => void) | null = null
+
   constructor(config?: Config<EndpointMetadata, TrackMetadata>) {
     super();
     this.endpointMetadataParser =
@@ -858,11 +860,7 @@ export class WebRTCEndpoint<
    */
   public cleanUp = () => {
     if (this.stateManager.connection) {
-      this.stateManager.connection.onicecandidate = null;
-      this.stateManager.connection.ontrack = null;
-      this.stateManager.connection.onconnectionstatechange = null;
-      this.stateManager.connection.onicecandidateerror = null;
-      this.stateManager.connection.oniceconnectionstatechange = null;
+      this.clearConnectionCallbacks?.()
       this.stateManager.connection.close();
 
       this.commandsQueue.clenUp()
@@ -924,20 +922,26 @@ export class WebRTCEndpoint<
       const turnServers = offerData.data.integratedTurnServers;
       setTurns(turnServers, this.stateManager.rtcConfig);
 
-      this.stateManager.connection = new RTCPeerConnection(
-        this.stateManager.rtcConfig,
-      );
-      this.stateManager.connection.onicecandidate = this.onLocalCandidate();
-      this.stateManager.connection.onicecandidateerror = this
-        .onIceCandidateError as (event: Event) => void;
-      this.stateManager.connection.onconnectionstatechange =
-        this.onConnectionStateChange;
-      this.stateManager.connection.oniceconnectionstatechange =
-        this.onIceConnectionStateChange;
-      this.stateManager.connection.onicegatheringstatechange =
-        this.onIceGatheringStateChange;
-      this.stateManager.connection.onsignalingstatechange =
-        this.onSignalingStateChange;
+      this.stateManager.connection = new RTCPeerConnection(this.stateManager.rtcConfig);
+
+      const onIceCandidate = (event: RTCPeerConnectionIceEvent) => this.onLocalCandidate(event)
+      const onIceCandidateError = (event: RTCPeerConnectionIceErrorEvent) => this.onIceCandidateError(event)
+      const onConnectionStateChange = (event: Event) => this.onConnectionStateChange(event)
+      const onIceConnectionStateChange = (event: Event) => this.onIceConnectionStateChange(event)
+
+      this.clearConnectionCallbacks = () => {
+        this.stateManager.connection?.removeEventListener("icecandidate", onIceCandidate)
+        this.stateManager.connection?.removeEventListener("icecandidateerror", onIceCandidateError)
+        this.stateManager.connection?.removeEventListener("connectionstatechange", onConnectionStateChange)
+        this.stateManager.connection?.removeEventListener("iceconnectionstatechange", onIceConnectionStateChange)
+      }
+
+      this.stateManager.connection.addEventListener("icecandidate", onIceCandidate)
+      this.stateManager.connection.addEventListener("icecandidateerror", onIceCandidateError)
+      this.stateManager.connection.addEventListener("connectionstatechange", onConnectionStateChange)
+      this.stateManager.connection.addEventListener("iceconnectionstatechange", onIceConnectionStateChange)
+
+      this.commandsQueue.setupEventListeners(this.stateManager.connection)
 
       Array.from(this.stateManager.localTrackIdToTrack.values()).forEach(
         (trackContext) =>
@@ -982,20 +986,19 @@ export class WebRTCEndpoint<
     }
   };
 
-  private onLocalCandidate = () => {
-    return (event: RTCPeerConnectionIceEvent) => {
-      if (event.candidate) {
-        const mediaEvent = generateCustomEvent({
-          type: 'candidate',
-          data: {
-            candidate: event.candidate.candidate,
-            sdpMLineIndex: event.candidate.sdpMLineIndex,
-          },
-        });
-        this.sendMediaEvent(mediaEvent);
-      }
-    };
+  private onLocalCandidate = (event: RTCPeerConnectionIceEvent) => {
+    if (event.candidate) {
+      const mediaEvent = generateCustomEvent({
+        type: 'candidate',
+        data: {
+          candidate: event.candidate.candidate,
+          sdpMLineIndex: event.candidate.sdpMLineIndex,
+        },
+      });
+      this.sendMediaEvent(mediaEvent);
+    }
   };
+
 
   private onIceCandidateError = (event: RTCPeerConnectionIceErrorEvent) => {
     console.warn(event);
@@ -1003,9 +1006,6 @@ export class WebRTCEndpoint<
 
   private onConnectionStateChange = (event: Event) => {
     switch (this.stateManager.connection?.connectionState) {
-      case 'connected':
-        this.commandsQueue.processNextCommand();
-        break;
       case 'failed':
         this.emit('connectionError', {
           message: 'RTCPeerConnection failed',
@@ -1028,25 +1028,6 @@ export class WebRTCEndpoint<
           message: 'ICE connection failed',
           event,
         });
-        break;
-      case 'connected':
-        this.commandsQueue.processNextCommand();
-        break;
-    }
-  };
-
-  private onIceGatheringStateChange = (_event: any) => {
-    switch (this.stateManager.connection?.iceGatheringState) {
-      case 'complete':
-        this.commandsQueue.processNextCommand();
-        break;
-    }
-  };
-
-  private onSignalingStateChange = (_event: any) => {
-    switch (this.stateManager.connection?.signalingState) {
-      case 'stable':
-        this.commandsQueue.processNextCommand();
         break;
     }
   };

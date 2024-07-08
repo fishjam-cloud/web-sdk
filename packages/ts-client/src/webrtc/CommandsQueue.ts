@@ -15,6 +15,8 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
   private webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>;
   private readonly trackMetadataParser: MetadataParser<TrackMetadata>;
 
+  private clearConnectionCallbacks: (() => void) | null = null
+
   constructor(
     webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
     stateManager: StateManager<EndpointMetadata, TrackMetadata>,
@@ -25,6 +27,51 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
     this.stateManager = stateManager;
     this.negotiationManager = negotiationManager;
     this.trackMetadataParser = trackMetadataParser;
+  }
+
+  public setupEventListeners(connection: RTCPeerConnection) {
+    const onSignalingStateChange = () => {
+      switch (this.stateManager.connection?.signalingState) {
+        case 'stable':
+          this.processNextCommand();
+          break;
+      }
+    }
+
+    const onIceGatheringStateChange = () => {
+      switch (this.stateManager.connection?.iceGatheringState) {
+        case 'complete':
+          this.processNextCommand();
+          break;
+      }
+    }
+
+    const onConnectionStateChange = () => {
+      switch (connection.connectionState) {
+        case 'connected':
+          this.processNextCommand();
+          break;
+      }
+    }
+    const onIceConnectionStateChange = () => {
+      switch (this.stateManager.connection?.iceConnectionState) {
+        case 'connected':
+          this.processNextCommand();
+          break;
+      }
+    }
+
+    this.clearConnectionCallbacks = () => {
+      connection.removeEventListener("signalingstatechange", onSignalingStateChange)
+      connection.removeEventListener("icegatheringstatechange", onIceGatheringStateChange)
+      connection.removeEventListener("connectionstatechange", onConnectionStateChange)
+      connection.removeEventListener("iceconnectionstatechange", onIceConnectionStateChange)
+    }
+
+    connection.addEventListener("icegatheringstatechange", onIceConnectionStateChange)
+    connection.addEventListener("connectionstatechange", onConnectionStateChange);
+    connection.addEventListener("iceconnectionstatechange", onIceConnectionStateChange)
+    connection.addEventListener("signalingstatechange", onSignalingStateChange )
   }
 
   private commandsQueue: Command<TrackMetadata>[] = [];
@@ -225,5 +272,6 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
     this.commandResolutionNotifier?.reject('Disconnected');
     this.commandResolutionNotifier = null;
     this.commandsQueue = [];
+    this.clearConnectionCallbacks?.()
   }
 }

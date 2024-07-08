@@ -502,10 +502,10 @@ __metadata:
   resolution: "@fishjam-dev/react-client@workspace:packages/react-client"
   dependencies:
     "@fishjam-dev/ts-client": "workspace:*"
-    "@playwright/test": "npm:^1.42.1"
+    "@playwright/test": "npm:^1.45.1"
     "@types/events": "npm:^3.0.3"
     "@types/lodash.isequal": "npm:^4.5.8"
-    "@types/node": "npm:^20.11.27"
+    "@types/node": "npm:^20.14.10"
     "@types/react": "npm:^18.2.55"
     events: "npm:3.3.0"
     lodash.isequal: "npm:4.5.0"
@@ -520,9 +520,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@fishjam-dev/ts-client@workspace:packages/ts-client"
   dependencies:
-    "@playwright/test": "npm:^1.40.1"
+    "@playwright/test": "npm:^1.45.1"
     "@types/events": "npm:^3.0.3"
-    "@types/node": "npm:^20.10.3"
+    "@types/node": "npm:^20.14.10"
     "@types/uuid": "npm:^10.0.0"
     "@vitest/coverage-v8": "npm:^1.6.0"
     events: "npm:^3.3.0"
@@ -547,7 +547,7 @@ __metadata:
   resolution: "@fishjam-e2e/react-client-e2e@workspace:e2e-tests/react-client/app"
   dependencies:
     "@playwright/test": "npm:^1.41.2"
-    "@types/node": "npm:^20.11.18"
+    "@types/node": "npm:^20.14.10"
     "@vitest/coverage-v8": "npm:^1.6.0"
     testcontainers: "npm:^10.3.2"
     vite: "npm:^5.1.2"
@@ -561,7 +561,7 @@ __metadata:
   dependencies:
     "@fishjam-dev/ts-client": "npm:*"
     "@playwright/test": "npm:^1.41.2"
-    "@types/node": "npm:^20.11.18"
+    "@types/node": "npm:^20.14.10"
     "@types/react": "npm:^18.2.55"
     "@types/react-dom": "npm:^18.2.19"
     "@typescript-eslint/eslint-plugin": "npm:^7.15.0"
@@ -588,7 +588,7 @@ __metadata:
     "@fishjam-dev/ts-client": "npm:*"
     autoprefixer: "npm:^10.4.17"
     vite: "npm:^5.1.2"
-    vite-plugin-checker: "npm:^0.6.4"
+    vite-plugin-checker: "npm:^0.7.1"
   languageName: unknown
   linkType: soft
 
@@ -605,7 +605,7 @@ __metadata:
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     vite: "npm:^5.1.2"
-    vite-plugin-checker: "npm:^0.6.4"
+    vite-plugin-checker: "npm:^0.7.1"
   languageName: unknown
   linkType: soft
 
@@ -619,7 +619,7 @@ __metadata:
     postcss: "npm:^8.4.39"
     tailwindcss: "npm:^3.4.1"
     vite: "npm:^5.1.2"
-    vite-plugin-checker: "npm:^0.6.4"
+    vite-plugin-checker: "npm:^0.7.1"
   languageName: unknown
   linkType: soft
 
@@ -776,18 +776,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@playwright/test@npm:^1.40.1, @playwright/test@npm:^1.42.1":
-  version: 1.44.1
-  resolution: "@playwright/test@npm:1.44.1"
-  dependencies:
-    playwright: "npm:1.44.1"
-  bin:
-    playwright: cli.js
-  checksum: 10c0/f72669db3dfa83dc12d43ddbce8fbb27a69a80347b515fa00d8467ca640f8c7b7f5f5ff6d6cdfc5a1bce2c7d4b6ee62b988d682ef265f567302998de4f2a64ab
-  languageName: node
-  linkType: hard
-
-"@playwright/test@npm:^1.41.2":
+"@playwright/test@npm:^1.41.2, @playwright/test@npm:^1.45.1":
   version: 1.45.1
   resolution: "@playwright/test@npm:1.45.1"
   dependencies:
@@ -1235,7 +1224,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^20.11.18":
+"@types/node@npm:*":
   version: 20.14.9
   resolution: "@types/node@npm:20.14.9"
   dependencies:
@@ -1244,7 +1233,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:>=13.7.0, @types/node@npm:^20.10.3, @types/node@npm:^20.11.27":
+"@types/node@npm:>=13.7.0":
   version: 20.14.5
   resolution: "@types/node@npm:20.14.5"
   dependencies:
@@ -1259,6 +1248,15 @@ __metadata:
   dependencies:
     undici-types: "npm:~5.26.4"
   checksum: 10c0/a9eb33bc093beba6bd5d4e839de7d1d1f496cd7e741c2f6c7161318dba0f37227bb25d8306907194992488d6c59a7363a419d72298549483d33402227a2d435b
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^20.14.10":
+  version: 20.14.10
+  resolution: "@types/node@npm:20.14.10"
+  dependencies:
+    undici-types: "npm:~5.26.4"
+  checksum: 10c0/0b06cff14365c2d0085dc16cc8cbea5c40ec09cfc1fea966be9eeecf35562760bfde8f88e86de6edfaf394501236e229d9c1084fad04fb4dec472ae245d8ae69
   languageName: node
   linkType: hard
 
@@ -4431,36 +4429,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.44.1":
-  version: 1.44.1
-  resolution: "playwright-core@npm:1.44.1"
-  bin:
-    playwright-core: cli.js
-  checksum: 10c0/6ffa3a04822b3df86d7f47a97e4f20318c0c50868ba4311820e6626ecadaab1424fbd0a3d01f0b4228adc0c781115e44b801742a4970b88739f804d82f142d68
-  languageName: node
-  linkType: hard
-
 "playwright-core@npm:1.45.1":
   version: 1.45.1
   resolution: "playwright-core@npm:1.45.1"
   bin:
     playwright-core: cli.js
   checksum: 10c0/607ad31ce1e85e2042107954eeed2cb7de5f387b42d9c8c19baa5c1ea4c2ea621bf233094ed86be45de625eeece33b280847ff641ff1bb9acaddee040e17bea1
-  languageName: node
-  linkType: hard
-
-"playwright@npm:1.44.1":
-  version: 1.44.1
-  resolution: "playwright@npm:1.44.1"
-  dependencies:
-    fsevents: "npm:2.3.2"
-    playwright-core: "npm:1.44.1"
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  bin:
-    playwright: cli.js
-  checksum: 10c0/de827d17746b18ae2ec67d510a640d8ceebf8ee8e3d8399bccffa83b76a967498ca377777e4e6a1daaef4b3c86cb2c44c7468de53d2d915acc61b3b89c032738
   languageName: node
   linkType: hard
 
@@ -5055,7 +5029,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.5.0, semver@npm:^7.5.3, semver@npm:^7.6.0":
+"semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.5.3, semver@npm:^7.6.0":
   version: 7.6.2
   resolution: "semver@npm:7.6.2"
   bin:
@@ -5910,9 +5884,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite-plugin-checker@npm:^0.6.4":
-  version: 0.6.4
-  resolution: "vite-plugin-checker@npm:0.6.4"
+"vite-plugin-checker@npm:^0.7.1":
+  version: 0.7.1
+  resolution: "vite-plugin-checker@npm:0.7.1"
   dependencies:
     "@babel/code-frame": "npm:^7.12.13"
     ansi-escapes: "npm:^4.3.0"
@@ -5922,7 +5896,6 @@ __metadata:
     fast-glob: "npm:^3.2.7"
     fs-extra: "npm:^11.1.0"
     npm-run-path: "npm:^4.0.1"
-    semver: "npm:^7.5.0"
     strip-ansi: "npm:^6.0.0"
     tiny-invariant: "npm:^1.1.0"
     vscode-languageclient: "npm:^7.0.0"
@@ -5938,7 +5911,7 @@ __metadata:
     vite: ">=2.0.0"
     vls: "*"
     vti: "*"
-    vue-tsc: ">=1.3.9"
+    vue-tsc: ">=2.0.0"
   peerDependenciesMeta:
     eslint:
       optional: true
@@ -5956,7 +5929,7 @@ __metadata:
       optional: true
     vue-tsc:
       optional: true
-  checksum: 10c0/ae61f01b620c458e355ad05ff632e3143312e75c67acdaaa1fe5160d679283364867a4a8d6c6a3f85838f0251033275af96a1aa9b52eed227151cdbca0c996cf
+  checksum: 10c0/99508fde2085296a2246df53eb42ffe108993af2361eda9422249cb88f61e5b86ff7a6a6fe5461d05d4a6ee0d6dc7d72a7a983288a0f9c992513296385bb64cf
   languageName: node
   linkType: hard
 

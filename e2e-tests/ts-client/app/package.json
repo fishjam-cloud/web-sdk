@@ -14,7 +14,6 @@
     "typecheck": "tsc",
     "e2e": "NODE_OPTIONS=--dns-result-order=ipv4first playwright test",
     "e2e:ui": "NODE_OPTIONS=--dns-result-order=ipv4first playwright test --ui",
-    "e2e:one": "NODE_OPTIONS=--dns-result-order=ipv4first playwright test -g \"Client properly sees 3 other peers\"",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -24,8 +23,8 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.45.1",
-    "@types/node": "^20.11.18",
+    "@playwright/test": "^1.41.2",
+    "@types/node": "^20.14.10",
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",
     "@typescript-eslint/eslint-plugin": "^7.15.0",

@@ -26,7 +26,14 @@ export type ReplaceTackCommand<TrackMetadata> = {
   resolutionNotifier: Deferred<void>;
 };
 
+export type CommandWithHandler = {
+  commandType: 'COMMAND-WITH-HANDLER';
+  handler: () => void;
+  resolutionNotifier: Deferred<void>;
+};
+
 export type Command<TrackMetadata> =
+  | CommandWithHandler
   | AddTrackCommand<TrackMetadata>
   | RemoveTrackCommand
   | ReplaceTackCommand<TrackMetadata>;

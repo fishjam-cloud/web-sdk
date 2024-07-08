@@ -65,12 +65,13 @@ export class WebRTCEndpoint<
     this.trackMetadataParser =
       config?.trackMetadataParser ?? ((x) => x as TrackMetadata);
 
+    this.negotiationManager = new NegotiationManager();
     this.stateManager = new StateManager(
       this,
+      this.negotiationManager,
       this.endpointMetadataParser,
       this.trackMetadataParser,
     );
-    this.negotiationManager = new NegotiationManager();
     this.commandsQueue = new CommandsQueue(
       this,
       this.stateManager,
@@ -673,11 +674,15 @@ export class WebRTCEndpoint<
    */
   public removeTrack(trackId: string): Promise<void> {
     const resolutionNotifier = new Deferred<void>();
+
     this.commandsQueue.pushCommand({
-      commandType: 'REMOVE-TRACK',
-      trackId,
+      commandType: 'COMMAND-WITH-HANDLER',
+      handler: () => {
+        this.stateManager.removeTrackHandler(trackId)
+      },
       resolutionNotifier,
     });
+
     return resolutionNotifier.promise.then(() => {
       this.emit('localTrackRemoved', {
         trackId,

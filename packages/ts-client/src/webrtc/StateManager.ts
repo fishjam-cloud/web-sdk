@@ -6,10 +6,11 @@ import type {
 } from './types';
 import { isTrackKind, mapMediaEventTracksToTrackContextImpl } from './internal';
 import type { TrackContextImpl, EndpointWithTrackContext } from './internal';
-import { findSenderByTrack } from './RTCPeerConnectionUtils';
-import { generateMediaEvent } from './mediaEvent';
+import { findSender, findSenderByTrack } from './RTCPeerConnectionUtils';
+import { generateCustomEvent, generateMediaEvent } from './mediaEvent';
 import type { WebRTCEndpoint } from './webRTCEndpoint';
 import { isVadStatus } from './voiceActivityDetection';
+import { NegotiationManager } from "./NegotiationManager";
 
 export class StateManager<EndpointMetadata, TrackMetadata> {
   public trackIdToTrack: Map<
@@ -56,15 +57,18 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
 
   // temporary for webrtc.emit and webrtc.sendMediaEvent
   private readonly webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>;
+  private readonly negotiationManager: NegotiationManager;
   private readonly endpointMetadataParser: MetadataParser<EndpointMetadata>;
   private readonly trackMetadataParser: MetadataParser<TrackMetadata>;
 
   constructor(
     webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
+    negotiationManager: NegotiationManager,
     endpointMetadataParser: MetadataParser<EndpointMetadata>,
     trackMetadataParser: MetadataParser<TrackMetadata>,
   ) {
     this.webrtc = webrtc;
+    this.negotiationManager = negotiationManager;
     this.endpointMetadataParser = endpointMetadataParser;
     this.trackMetadataParser = trackMetadataParser;
   }
@@ -359,6 +363,19 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     this.bandwidthEstimation = data.estimation;
 
     this.webrtc.emit('bandwidthEstimationChanged', this.bandwidthEstimation);
+  }
+
+  public removeTrackHandler(trackId: string) {
+    const trackContext = this.localTrackIdToTrack.get(trackId)!;
+    const sender = findSender(this.connection, trackContext.track!.id,);
+
+    this.negotiationManager.ongoingRenegotiation = true;
+
+    this.connection!.removeTrack(sender);
+    const mediaEvent = generateCustomEvent({ type: 'renegotiateTracks' });
+    this.webrtc.sendMediaEvent(mediaEvent);
+    this.localTrackIdToTrack.delete(trackId);
+    this.localEndpoint.tracks.delete(trackId);
   }
 
   private addEndpoint = (

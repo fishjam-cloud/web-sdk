@@ -138,11 +138,11 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
       case 'ADD-TRACK':
         this.addTrackHandler(command);
         break;
-      case 'REMOVE-TRACK':
-        this.removeTrackHandler(command);
-        break;
       case 'REPLACE-TRACK':
         this.replaceTrackHandler(command);
+        break;
+      case "COMMAND-WITH-HANDLER":
+        command.handler()
         break;
     }
   }
@@ -215,23 +215,6 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
     });
     const mediaEvent = generateCustomEvent({ type: 'renegotiateTracks' });
     this.webrtc.sendMediaEvent(mediaEvent);
-  }
-
-  private removeTrackHandler(command: RemoveTrackCommand) {
-    const { trackId } = command;
-    const trackContext = this.stateManager.localTrackIdToTrack.get(trackId)!;
-    const sender = findSender(
-      this.stateManager.connection,
-      trackContext.track!.id,
-    );
-
-    this.negotiationManager.ongoingRenegotiation = true;
-
-    this.stateManager.connection!.removeTrack(sender);
-    const mediaEvent = generateCustomEvent({ type: 'renegotiateTracks' });
-    this.webrtc.sendMediaEvent(mediaEvent);
-    this.stateManager.localTrackIdToTrack.delete(trackId);
-    this.stateManager.localEndpoint.tracks.delete(trackId);
   }
 
   private async replaceTrackHandler(

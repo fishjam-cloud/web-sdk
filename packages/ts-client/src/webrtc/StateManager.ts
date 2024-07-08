@@ -1,5 +1,5 @@
-import type { LocalTrackId, RemoteTrackId, TrackEncoding } from './types';
-import { isTrackKind } from './internal';
+import type { LocalTrackId, MetadataParser, RemoteTrackId, TrackEncoding } from './types';
+import { isTrackKind, mapMediaEventTracksToTrackContextImpl } from './internal';
 import type { TrackContextImpl, EndpointWithTrackContext } from './internal';
 import { findSenderByTrack } from "./RTCPeerConnectionUtils";
 import { generateMediaEvent } from "./mediaEvent";
@@ -53,12 +53,16 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   public ongoingRenegotiation: boolean = false;
   public ongoingTrackReplacement: boolean = false;
 
+  // temporary for webrtc.emit and webrtc.sendMediaEvent
   private readonly webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>
+  private readonly endpointMetadataParser: MetadataParser<EndpointMetadata>;
+  private readonly trackMetadataParser: MetadataParser<TrackMetadata>;
 
   constructor(
-    webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>
-  ) {
+    webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>, endpointMetadataParser: MetadataParser<EndpointMetadata>, trackMetadataParser: MetadataParser<TrackMetadata>) {
     this.webrtc = webrtc
+    this.endpointMetadataParser = endpointMetadataParser;
+    this.trackMetadataParser = trackMetadataParser;
   }
 
   public onAnswer = async (answer: RTCSessionDescriptionInit) => {
@@ -145,4 +149,30 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     Array.from(endpoint.tracks.keys()).some((track) =>
       trackId.startsWith(track),
     );
+
+  public onTracksAdded(data: any) {
+    if (this.getEndpointId() === data.endpointId) return;
+    data.tracks = new Map<string, any>(Object.entries(data.tracks));
+    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> = this.idToEndpoint.get(data.endpointId)!;
+    const oldTracks = endpoint.tracks;
+
+    data.tracks = mapMediaEventTracksToTrackContextImpl(
+      data.tracks,
+      endpoint,
+      this.trackMetadataParser,
+    );
+
+    endpoint.tracks = new Map([...endpoint.tracks, ...data.tracks]);
+
+    this.idToEndpoint.set(endpoint.id, endpoint);
+    Array.from(endpoint.tracks.entries()).forEach(([trackId, ctx]) => {
+      if (!oldTracks.has(trackId)) {
+        this.trackIdToTrack.set(trackId, ctx);
+
+        this.webrtc.emit('trackAdded', ctx);
+      }
+    });
+  }
+
+  private getEndpointId = () => this.localEndpoint.id;
 }

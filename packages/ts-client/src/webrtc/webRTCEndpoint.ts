@@ -72,7 +72,7 @@ export class WebRTCEndpoint<
     this.trackMetadataParser =
       config?.trackMetadataParser ?? ((x) => x as TrackMetadata);
 
-    this.stateManager = new StateManager(this);
+    this.stateManager = new StateManager(this, this.endpointMetadataParser, this.trackMetadataParser);
   }
 
   /**
@@ -256,28 +256,7 @@ export class WebRTCEndpoint<
       case 'tracksAdded': {
         this.stateManager.ongoingRenegotiation = true;
 
-        data = deserializedMediaEvent.data;
-        if (this.getEndpointId() === data.endpointId) return;
-        data.tracks = new Map<string, any>(Object.entries(data.tracks));
-        endpoint = this.stateManager.idToEndpoint.get(data.endpointId)!;
-        const oldTracks = endpoint.tracks;
-
-        data.tracks = mapMediaEventTracksToTrackContextImpl(
-          data.tracks,
-          endpoint,
-          this.trackMetadataParser,
-        );
-
-        endpoint.tracks = new Map([...endpoint.tracks, ...data.tracks]);
-
-        this.stateManager.idToEndpoint.set(endpoint.id, endpoint);
-        Array.from(endpoint.tracks.entries()).forEach(([trackId, ctx]) => {
-          if (!oldTracks.has(trackId)) {
-            this.stateManager.trackIdToTrack.set(trackId, ctx);
-
-            this.emit('trackAdded', ctx);
-          }
-        });
+        this.stateManager.onTracksAdded(deserializedMediaEvent.data)
         break;
       }
       case 'tracksRemoved': {

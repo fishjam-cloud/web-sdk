@@ -8,12 +8,6 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import EventEmitter from 'events';
 import type TypedEmitter from 'typed-emitter';
-import type {
-  AddTrackCommand,
-  Command,
-  RemoveTrackCommand,
-  ReplaceTackCommand,
-} from './commands';
 import { Deferred } from './deferred';
 import type {
   BandwidthLimit,
@@ -27,24 +21,22 @@ import type {
 } from './types';
 import type { EndpointWithTrackContext } from './internal';
 import { mapMediaEventTracksToTrackContextImpl } from './internal';
-import { TrackContextImpl, isTrackKind } from './internal';
 import { applyBandwidthLimitation } from './bandwidth';
 import { createTrackVariantBitratesEvent, getTrackBitrates } from './bitrate';
 import {
   findSender,
   findSenderByTrack,
-  isTrackInUse,
 } from './RTCPeerConnectionUtils';
 import {
   addTrackToConnection,
   addTransceiversIfNeeded,
-  setTransceiverDirection,
   setTransceiversToReadOnly,
 } from './transciever';
 import { createSdpOfferEvent } from './sdpEvents';
 import { setTurns } from './turn';
 import { StateManager } from './StateManager';
 import { NegotiationManager } from "./NegotiationManager";
+import { CommandsQueue } from "./CommandsQueue";
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -57,14 +49,12 @@ export class WebRTCEndpoint<
     Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>
   >;
 })<EndpointMetadata, TrackMetadata> {
-  private commandsQueue: Command<TrackMetadata>[] = [];
-  private commandResolutionNotifier: Deferred<void> | null = null;
-
   private readonly endpointMetadataParser: MetadataParser<EndpointMetadata>;
   private readonly trackMetadataParser: MetadataParser<TrackMetadata>;
 
-  private stateManager: StateManager<EndpointMetadata, TrackMetadata>;
-  private negotiationManager: NegotiationManager;
+  private readonly stateManager: StateManager<EndpointMetadata, TrackMetadata>;
+  private readonly negotiationManager: NegotiationManager;
+  private readonly commandsQueue: CommandsQueue<EndpointMetadata, TrackMetadata>;
 
   constructor(config?: Config<EndpointMetadata, TrackMetadata>) {
     super();
@@ -75,6 +65,7 @@ export class WebRTCEndpoint<
 
     this.stateManager = new StateManager(this, this.endpointMetadataParser, this.trackMetadataParser);
     this.negotiationManager = new NegotiationManager();
+    this.commandsQueue = new CommandsQueue(this, this.stateManager, this.negotiationManager, this.trackMetadataParser)
   }
 
   /**
@@ -270,7 +261,7 @@ export class WebRTCEndpoint<
         this.stateManager.onSdpAnswer(deserializedMediaEvent.data)
 
         this.negotiationManager.ongoingRenegotiation = false;
-        this.processNextCommand();
+        this.commandsQueue.processNextCommand();
         break;
 
       case 'candidate':
@@ -423,7 +414,7 @@ export class WebRTCEndpoint<
 
       stream.addTrack(track);
 
-      this.pushCommand({
+      this.commandsQueue.pushCommand({
         commandType: 'ADD-TRACK',
         trackId,
         track,
@@ -448,127 +439,6 @@ export class WebRTCEndpoint<
       });
       return trackId;
     });
-  }
-
-  private pushCommand(command: Command<TrackMetadata>) {
-    this.commandsQueue.push(command);
-    this.processNextCommand();
-  }
-
-  private handleCommand(command: Command<TrackMetadata>) {
-    switch (command.commandType) {
-      case 'ADD-TRACK':
-        this.addTrackHandler(command);
-        break;
-      case 'REMOVE-TRACK':
-        this.removeTrackHandler(command);
-        break;
-      case 'REPLACE-TRACK':
-        this.replaceTrackHandler(command);
-        break;
-    }
-  }
-
-  private processNextCommand() {
-    if (
-      this.negotiationManager.ongoingRenegotiation ||
-      this.stateManager.ongoingTrackReplacement
-    )
-      return;
-
-    if (
-      this.stateManager.connection &&
-      (this.stateManager.connection.signalingState !== 'stable' ||
-        this.stateManager.connection.connectionState !== 'connected' ||
-        this.stateManager.connection.iceConnectionState !== 'connected')
-    )
-      return;
-
-    this.resolvePreviousCommand();
-
-    const command = this.commandsQueue.shift();
-
-    if (!command) return;
-
-    this.commandResolutionNotifier = command.resolutionNotifier;
-    this.handleCommand(command);
-  }
-
-  private resolvePreviousCommand() {
-    if (this.commandResolutionNotifier) {
-      this.commandResolutionNotifier.resolve();
-      this.commandResolutionNotifier = null;
-    }
-  }
-
-  private addTrackHandler(addTrackCommand: AddTrackCommand<TrackMetadata>) {
-    const {
-      simulcastConfig,
-      maxBandwidth,
-      track,
-      stream,
-      trackMetadata,
-      trackId,
-    } = addTrackCommand;
-    const isUsedTrack = isTrackInUse(this.stateManager.connection, track);
-
-    let error;
-    if (isUsedTrack) {
-      error =
-        "This track was already added to peerConnection, it can't be added again!";
-    }
-
-    if (!simulcastConfig.enabled && !(typeof maxBandwidth === 'number'))
-      error =
-        'Invalid type of `maxBandwidth` argument for a non-simulcast track, expected: number';
-    if (this.getEndpointId() === '')
-      error = 'Cannot add tracks before being accepted by the server';
-
-    if (error) {
-      this.commandResolutionNotifier?.reject(error);
-      this.commandResolutionNotifier = null;
-      this.processNextCommand();
-      return;
-    }
-
-    this.negotiationManager.ongoingRenegotiation = true;
-
-    const trackContext = new TrackContextImpl(
-      this.stateManager.localEndpoint,
-      trackId,
-      trackMetadata,
-      simulcastConfig,
-      this.trackMetadataParser,
-    );
-
-    if (!isTrackKind(track.kind)) throw new Error('Track has no kind');
-
-    trackContext.track = track;
-    trackContext.stream = stream;
-    trackContext.maxBandwidth = maxBandwidth;
-    trackContext.trackKind = track.kind;
-
-    this.stateManager.localEndpoint.tracks.set(trackId, trackContext);
-
-    this.stateManager.localTrackIdToTrack.set(trackId, trackContext);
-
-    if (this.stateManager.connection) {
-      addTrackToConnection(
-        trackContext,
-        this.stateManager.disabledTrackEncodings,
-        this.stateManager.connection,
-      );
-
-      setTransceiverDirection(this.stateManager.connection);
-    }
-
-    this.stateManager.trackIdToSender.set(trackId, {
-      remoteTrackId: trackId,
-      localTrackId: track.id,
-      sender: null,
-    });
-    const mediaEvent = generateCustomEvent({ type: 'renegotiateTracks' });
-    this.sendMediaEvent(mediaEvent);
   }
 
   /**
@@ -630,7 +500,7 @@ export class WebRTCEndpoint<
           ? this.trackMetadataParser(newTrackMetadata)
           : undefined;
 
-      this.pushCommand({
+      this.commandsQueue.pushCommand({
         commandType: 'REPLACE-TRACK',
         trackId,
         newTrack,
@@ -647,61 +517,6 @@ export class WebRTCEndpoint<
         metadata: newTrackMetadata,
       });
     });
-  }
-
-  private async replaceTrackHandler(
-    command: ReplaceTackCommand<TrackMetadata>,
-  ) {
-    const { trackId, newTrack, newTrackMetadata } = command;
-
-    // todo add validation to track.kind, you cannot replace video with audio
-
-    const trackContext = this.stateManager.localTrackIdToTrack.get(trackId)!;
-
-    const track = this.stateManager.trackIdToSender.get(trackId);
-    const sender = track?.sender ?? null;
-
-    if (!track) throw Error(`There is no track with id: ${trackId}`);
-    if (!sender) throw Error('There is no RTCRtpSender for this track id!');
-
-    this.stateManager.ongoingTrackReplacement = true;
-
-    trackContext.stream?.getTracks().forEach((track) => {
-      trackContext.stream?.removeTrack(track);
-    });
-
-    if (newTrack) {
-      trackContext.stream?.addTrack(newTrack);
-    }
-
-    if (trackContext.track && !newTrack) {
-      const mediaEvent = generateMediaEvent('muteTrack', { trackId: trackId });
-      this.sendMediaEvent(mediaEvent);
-      this.emit('localTrackMuted', { trackId: trackId });
-    } else if (!trackContext.track && newTrack) {
-      const mediaEvent = generateMediaEvent('unmuteTrack', {
-        trackId: trackId,
-      });
-      this.sendMediaEvent(mediaEvent);
-      this.emit('localTrackUnmuted', { trackId: trackId });
-    }
-
-    track.localTrackId = newTrack?.id ?? null;
-
-    try {
-      await sender.replaceTrack(newTrack);
-      trackContext.track = newTrack;
-
-      if (newTrackMetadata) {
-        this.updateTrackMetadata(trackId, newTrackMetadata);
-      }
-    } catch (error) {
-      // ignore
-    } finally {
-      this.resolvePreviousCommand();
-      this.stateManager.ongoingTrackReplacement = false;
-      this.processNextCommand();
-    }
   }
 
   /**
@@ -845,7 +660,7 @@ export class WebRTCEndpoint<
    */
   public removeTrack(trackId: string): Promise<void> {
     const resolutionNotifier = new Deferred<void>();
-    this.pushCommand({
+    this.commandsQueue.pushCommand({
       commandType: 'REMOVE-TRACK',
       trackId,
       resolutionNotifier,
@@ -855,23 +670,6 @@ export class WebRTCEndpoint<
         trackId,
       });
     });
-  }
-
-  private removeTrackHandler(command: RemoveTrackCommand) {
-    const { trackId } = command;
-    const trackContext = this.stateManager.localTrackIdToTrack.get(trackId)!;
-    const sender = findSender(
-      this.stateManager.connection,
-      trackContext.track!.id,
-    );
-
-    this.negotiationManager.ongoingRenegotiation = true;
-
-    this.stateManager.connection!.removeTrack(sender);
-    const mediaEvent = generateCustomEvent({ type: 'renegotiateTracks' });
-    this.sendMediaEvent(mediaEvent);
-    this.stateManager.localTrackIdToTrack.delete(trackId);
-    this.stateManager.localEndpoint.tracks.delete(trackId);
   }
 
   /**
@@ -1067,9 +865,8 @@ export class WebRTCEndpoint<
       this.stateManager.connection.oniceconnectionstatechange = null;
       this.stateManager.connection.close();
 
-      this.commandResolutionNotifier?.reject('Disconnected');
-      this.commandResolutionNotifier = null;
-      this.commandsQueue = [];
+      this.commandsQueue.clenUp()
+
       this.stateManager.ongoingTrackReplacement = false;
       this.negotiationManager.ongoingRenegotiation = false;
     }
@@ -1078,7 +875,7 @@ export class WebRTCEndpoint<
   };
 
   private getTrackId(uuid: string): string {
-    return `${this.getEndpointId()}:${uuid}`;
+    return `${this.stateManager.getEndpointId()}:${uuid}`;
   }
 
   // todo change to private
@@ -1207,7 +1004,7 @@ export class WebRTCEndpoint<
   private onConnectionStateChange = (event: Event) => {
     switch (this.stateManager.connection?.connectionState) {
       case 'connected':
-        this.processNextCommand();
+        this.commandsQueue.processNextCommand();
         break;
       case 'failed':
         this.emit('connectionError', {
@@ -1233,7 +1030,7 @@ export class WebRTCEndpoint<
         });
         break;
       case 'connected':
-        this.processNextCommand();
+        this.commandsQueue.processNextCommand();
         break;
     }
   };
@@ -1241,7 +1038,7 @@ export class WebRTCEndpoint<
   private onIceGatheringStateChange = (_event: any) => {
     switch (this.stateManager.connection?.iceGatheringState) {
       case 'complete':
-        this.processNextCommand();
+        this.commandsQueue.processNextCommand();
         break;
     }
   };
@@ -1249,10 +1046,8 @@ export class WebRTCEndpoint<
   private onSignalingStateChange = (_event: any) => {
     switch (this.stateManager.connection?.signalingState) {
       case 'stable':
-        this.processNextCommand();
+        this.commandsQueue.processNextCommand();
         break;
     }
   };
-
-  private getEndpointId = () => this.stateManager.localEndpoint.id;
 }

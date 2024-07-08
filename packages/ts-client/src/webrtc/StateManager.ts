@@ -392,5 +392,5 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     this.disabledTrackEncodings.delete(trackId);
   };
 
-  private getEndpointId = () => this.localEndpoint.id;
+  public getEndpointId = () => this.localEndpoint.id;
 }

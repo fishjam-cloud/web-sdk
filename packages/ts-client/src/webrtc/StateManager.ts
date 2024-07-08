@@ -47,11 +47,6 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   };
   public bandwidthEstimation: bigint = BigInt(0);
 
-  /**
-   * Indicates if an ongoing renegotiation is active.
-   * During renegotiation, both parties are expected to actively exchange events: renegotiateTracks, offerData, sdpOffer, sdpAnswer.
-   */
-  public ongoingRenegotiation: boolean = false;
   public ongoingTrackReplacement: boolean = false;
 
   // temporary for webrtc.emit and webrtc.sendMediaEvent

@@ -44,6 +44,7 @@ import {
 import { createSdpOfferEvent } from './sdpEvents';
 import { setTurns } from './turn';
 import { StateManager } from './StateManager';
+import { NegotiationManager } from "./NegotiationManager";
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -63,6 +64,7 @@ export class WebRTCEndpoint<
   private readonly trackMetadataParser: MetadataParser<TrackMetadata>;
 
   private stateManager: StateManager<EndpointMetadata, TrackMetadata>;
+  private negotiationManager: NegotiationManager;
 
   constructor(config?: Config<EndpointMetadata, TrackMetadata>) {
     super();
@@ -72,6 +74,7 @@ export class WebRTCEndpoint<
       config?.trackMetadataParser ?? ((x) => x as TrackMetadata);
 
     this.stateManager = new StateManager(this, this.endpointMetadataParser, this.trackMetadataParser);
+    this.negotiationManager = new NegotiationManager();
   }
 
   /**
@@ -251,13 +254,13 @@ export class WebRTCEndpoint<
         break;
       }
       case 'tracksAdded': {
-        this.stateManager.ongoingRenegotiation = true;
+        this.negotiationManager.ongoingRenegotiation = true;
 
         this.stateManager.onTracksAdded(deserializedMediaEvent.data)
         break;
       }
       case 'tracksRemoved': {
-        this.stateManager.ongoingRenegotiation = true;
+        this.negotiationManager.ongoingRenegotiation = true;
 
         this.stateManager.onTracksRemoved(deserializedMediaEvent.data)
         break;
@@ -266,7 +269,7 @@ export class WebRTCEndpoint<
       case 'sdpAnswer':
         this.stateManager.onSdpAnswer(deserializedMediaEvent.data)
 
-        this.stateManager.ongoingRenegotiation = false;
+        this.negotiationManager.ongoingRenegotiation = false;
         this.processNextCommand();
         break;
 
@@ -468,7 +471,7 @@ export class WebRTCEndpoint<
 
   private processNextCommand() {
     if (
-      this.stateManager.ongoingRenegotiation ||
+      this.negotiationManager.ongoingRenegotiation ||
       this.stateManager.ongoingTrackReplacement
     )
       return;
@@ -528,7 +531,7 @@ export class WebRTCEndpoint<
       return;
     }
 
-    this.stateManager.ongoingRenegotiation = true;
+    this.negotiationManager.ongoingRenegotiation = true;
 
     const trackContext = new TrackContextImpl(
       this.stateManager.localEndpoint,
@@ -862,7 +865,7 @@ export class WebRTCEndpoint<
       trackContext.track!.id,
     );
 
-    this.stateManager.ongoingRenegotiation = true;
+    this.negotiationManager.ongoingRenegotiation = true;
 
     this.stateManager.connection!.removeTrack(sender);
     const mediaEvent = generateCustomEvent({ type: 'renegotiateTracks' });
@@ -1068,7 +1071,7 @@ export class WebRTCEndpoint<
       this.commandResolutionNotifier = null;
       this.commandsQueue = [];
       this.stateManager.ongoingTrackReplacement = false;
-      this.stateManager.ongoingRenegotiation = false;
+      this.negotiationManager.ongoingRenegotiation = false;
     }
 
     this.stateManager.connection = undefined;

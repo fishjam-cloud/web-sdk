@@ -576,6 +576,7 @@ __metadata:
     react-dom: "npm:^18.2.0"
     testcontainers: "npm:^10.3.2"
     ts-proto: "npm:^1.176.0"
+    typescript: "npm:^5.5.0"
     vite: "npm:^5.1.2"
     vitest: "npm:^1.6.0"
   languageName: unknown

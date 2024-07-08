@@ -72,7 +72,7 @@ export class WebRTCEndpoint<
     this.trackMetadataParser =
       config?.trackMetadataParser ?? ((x) => x as TrackMetadata);
 
-    this.stateManager = new StateManager();
+    this.stateManager = new StateManager(this);
   }
 
   /**
@@ -324,7 +324,7 @@ export class WebRTCEndpoint<
           }
         }
 
-        this.onAnswer(deserializedMediaEvent.data);
+        this.stateManager.onAnswer(deserializedMediaEvent.data);
 
         this.stateManager.ongoingRenegotiation = false;
         this.processNextCommand();
@@ -1137,24 +1137,7 @@ export class WebRTCEndpoint<
    * ```
    */
   public disableTrackEncoding(trackId: string, encoding: TrackEncoding) {
-    const track = this.stateManager.localTrackIdToTrack.get(trackId)?.track;
-    this.stateManager.disabledTrackEncodings.get(trackId)!.push(encoding);
-
-    const sender = findSenderByTrack(this.stateManager.connection, track);
-
-    const params = sender?.getParameters();
-    params!.encodings.filter((en) => en.rid == encoding)[0].active = false;
-    sender?.setParameters(params!);
-
-    const mediaEvent = generateMediaEvent('disableTrackEncoding', {
-      trackId: trackId,
-      encoding: encoding,
-    });
-    this.sendMediaEvent(mediaEvent);
-    this.emit('localTrackEncodingDisabled', {
-      trackId,
-      encoding,
-    });
+    this.stateManager.disableTrackEncoding(trackId, encoding)
   }
 
   /**
@@ -1274,25 +1257,10 @@ export class WebRTCEndpoint<
     return `${this.getEndpointId()}:${uuid}`;
   }
 
-  private sendMediaEvent = (mediaEvent: MediaEvent) => {
+  // todo change to private
+  public sendMediaEvent = (mediaEvent: MediaEvent) => {
     const serializedMediaEvent = serializeMediaEvent(mediaEvent);
     this.emit('sendMediaEvent', serializedMediaEvent);
-  };
-
-  private onAnswer = async (answer: RTCSessionDescriptionInit) => {
-    this.stateManager.connection!.ontrack = this.onTrack();
-    try {
-      await this.stateManager.connection!.setRemoteDescription(answer);
-      this.stateManager.disabledTrackEncodings.forEach(
-        (encodings: TrackEncoding[], trackId: string) => {
-          encodings.forEach((encoding: TrackEncoding) =>
-            this.disableTrackEncoding(trackId, encoding),
-          );
-        },
-      );
-    } catch (err) {
-      console.error(err);
-    }
   };
 
   private async createAndSendOffer() {
@@ -1329,14 +1297,6 @@ export class WebRTCEndpoint<
       console.error(error);
     }
   }
-
-  private checkIfTrackBelongToEndpoint = (
-    trackId: string,
-    endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
-  ) =>
-    Array.from(endpoint.tracks.keys()).some((track) =>
-      trackId.startsWith(track),
-    );
 
   private onOfferData = async (offerData: MediaEvent) => {
     if (!this.stateManager.connection) {
@@ -1468,36 +1428,6 @@ export class WebRTCEndpoint<
         this.processNextCommand();
         break;
     }
-  };
-
-  private onTrack = () => {
-    return (event: RTCTrackEvent) => {
-      const [stream] = event.streams;
-      const mid = event.transceiver.mid!;
-
-      const trackId = this.stateManager.midToTrackId.get(mid)!;
-
-      if (
-        this.checkIfTrackBelongToEndpoint(
-          trackId,
-          this.stateManager.localEndpoint,
-        )
-      )
-        return;
-      if (!isTrackKind(event.track.kind)) throw new Error('Track has no kind');
-
-      const trackContext = this.stateManager.trackIdToTrack.get(trackId)!;
-
-      trackContext.stream = stream;
-      trackContext.track = event.track;
-      trackContext.trackKind = event.track.kind;
-
-      this.stateManager.idToEndpoint
-        .get(trackContext.endpoint.id)
-        ?.tracks.set(trackId, trackContext);
-
-      this.emit('trackReady', trackContext);
-    };
   };
 
   private addEndpoint = (

@@ -28,6 +28,7 @@ import type {
   WebRTCEndpointEvents,
 } from './types';
 import type { EndpointWithTrackContext } from './internal';
+import { mapMediaEventTracksToTrackContextImpl } from './internal';
 import { TrackContextImpl, isTrackKind } from './internal';
 import { handleVoiceActivationDetectionNotification } from './voiceActivityDetection';
 import { applyBandwidthLimitation } from './bandwidth';
@@ -53,7 +54,7 @@ export class WebRTCEndpoint<
   EndpointMetadata = any,
   TrackMetadata = any,
 > extends (EventEmitter as {
-  new <EndpointMetadata, TrackMetadata>(): TypedEmitter<
+  new<EndpointMetadata, TrackMetadata>(): TypedEmitter<
     Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>
   >;
 })<EndpointMetadata, TrackMetadata> {
@@ -174,11 +175,12 @@ export class WebRTCEndpoint<
           EndpointMetadata,
           TrackMetadata
         >[] = endpoints.map((endpoint) => {
-          const tracks = this.mapMediaEventTracksToTrackContextImpl(
+          const tracks = mapMediaEventTracksToTrackContextImpl<EndpointMetadata, TrackMetadata>(
             new Map<string, TrackContext<EndpointMetadata, TrackMetadata>>(
               Object.entries(endpoint.tracks),
             ),
             endpoint,
+            this.trackMetadataParser
           );
 
           try {
@@ -297,9 +299,10 @@ export class WebRTCEndpoint<
         endpoint = this.idToEndpoint.get(data.endpointId)!;
         const oldTracks = endpoint.tracks;
 
-        data.tracks = this.mapMediaEventTracksToTrackContextImpl(
+        data.tracks = mapMediaEventTracksToTrackContextImpl(
           data.tracks,
           endpoint,
+          this.trackMetadataParser
         );
 
         endpoint.tracks = new Map([...endpoint.tracks, ...data.tracks]);
@@ -1526,24 +1529,4 @@ export class WebRTCEndpoint<
   };
 
   private getEndpointId = () => this.localEndpoint.id;
-
-  private mapMediaEventTracksToTrackContextImpl = (
-    tracks: Map<string, any>,
-    endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
-  ): Map<string, TrackContextImpl<EndpointMetadata, TrackMetadata>> => {
-    const mappedTracks: Array<
-      [string, TrackContextImpl<EndpointMetadata, TrackMetadata>]
-    > = Array.from(tracks).map(([trackId, track]) => [
-      trackId,
-      new TrackContextImpl(
-        endpoint,
-        trackId,
-        track.metadata,
-        track.simulcastConfig,
-        this.trackMetadataParser,
-      ),
-    ]);
-
-    return new Map(mappedTracks);
-  };
 }

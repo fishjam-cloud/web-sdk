@@ -281,29 +281,13 @@ export class WebRTCEndpoint<
         break;
 
       case 'endpointRemoved':
-        if (
-          deserializedMediaEvent.data.id === this.stateManager.localEndpoint.id
-        ) {
+        if (deserializedMediaEvent.data.id === this.stateManager.localEndpoint.id) {
           this.cleanUp();
           this.emit('disconnected');
           return;
         }
 
-        endpoint = this.stateManager.idToEndpoint.get(
-          deserializedMediaEvent.data.id,
-        )!;
-        if (endpoint === undefined) return;
-
-        Array.from(endpoint.tracks.keys()).forEach((trackId) => {
-          this.emit(
-            'trackRemoved',
-            this.stateManager.trackIdToTrack.get(trackId)!,
-          );
-        });
-
-        this.eraseEndpoint(endpoint);
-
-        this.emit('endpointRemoved', endpoint);
+        this.stateManager.onEndpointRemoved(deserializedMediaEvent.data)
         break;
 
       case 'endpointUpdated':
@@ -1342,22 +1326,6 @@ export class WebRTCEndpoint<
         this.processNextCommand();
         break;
     }
-  };
-
-  private eraseEndpoint = (
-    endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
-  ): void => {
-    const tracksId = Array.from(endpoint.tracks.keys());
-    tracksId.forEach((trackId) =>
-      this.stateManager.trackIdToTrack.delete(trackId),
-    );
-    Array.from(this.stateManager.midToTrackId.entries()).forEach(
-      ([mid, trackId]) => {
-        if (tracksId.includes(trackId))
-          this.stateManager.midToTrackId.delete(mid);
-      },
-    );
-    this.stateManager.idToEndpoint.delete(endpoint.id);
   };
 
   private getEndpointId = () => this.stateManager.localEndpoint.id;

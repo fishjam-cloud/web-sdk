@@ -246,6 +246,22 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     this.webrtc.emit('endpointUpdated', endpoint);
   }
 
+  public onEndpointRemoved(data: any) {
+    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> = this.idToEndpoint.get(data.id)!;
+    if (endpoint === undefined) return;
+
+    Array.from(endpoint.tracks.keys()).forEach((trackId) => {
+      this.webrtc.emit(
+        'trackRemoved',
+        this.trackIdToTrack.get(trackId)!,
+      );
+    });
+
+    this.eraseEndpoint(endpoint);
+
+    this.webrtc.emit('endpointRemoved', endpoint);
+  }
+
   private addEndpoint = (
     endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
   ): void => {
@@ -255,6 +271,22 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     else endpoint.tracks = new Map();
 
     this.idToEndpoint.set(endpoint.id, endpoint);
+  };
+
+  private eraseEndpoint = (
+    endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
+  ): void => {
+    const tracksId = Array.from(endpoint.tracks.keys());
+    tracksId.forEach((trackId) =>
+      this.trackIdToTrack.delete(trackId),
+    );
+    Array.from(this.midToTrackId.entries()).forEach(
+      ([mid, trackId]) => {
+        if (tracksId.includes(trackId))
+          this.midToTrackId.delete(mid);
+      },
+    );
+    this.idToEndpoint.delete(endpoint.id);
   };
 
   private eraseTrack = (trackId: string, endpointId: string) => {

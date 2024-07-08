@@ -38,7 +38,7 @@
     "format:check": "prettier --check . --ignore-path ./.eslintignore",
     "lint": "eslint . --ext .ts,.tsx --fix",
     "lint:check": "eslint . --ext .ts,.tsx",
-    "prepack": "yarn workspace @fishjam-dev/ts-client build && yarn build",
+    "prepack": "yarn && yarn workspace @fishjam-dev/ts-client build && yarn build",
     "typecheck": "tsc"
   },
   "devDependencies": {

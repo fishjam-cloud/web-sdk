@@ -295,42 +295,7 @@ export class WebRTCEndpoint<
         break;
 
       case 'trackUpdated': {
-        if (this.getEndpointId() === deserializedMediaEvent.data.endpointId)
-          return;
-
-        endpoint = this.stateManager.idToEndpoint.get(
-          deserializedMediaEvent.data.endpointId,
-        )!;
-        if (endpoint == null)
-          throw `Endpoint with id: ${deserializedMediaEvent.data.endpointId} doesn't exist`;
-
-        const trackId = deserializedMediaEvent.data.trackId;
-        const trackMetadata = deserializedMediaEvent.data.metadata;
-        let newTrack = endpoint.tracks.get(trackId)!;
-        const trackContext = this.stateManager.trackIdToTrack.get(trackId)!;
-        try {
-          const parsedMetadata = this.trackMetadataParser(trackMetadata);
-          newTrack = {
-            ...newTrack,
-            metadata: parsedMetadata,
-            metadataParsingError: undefined,
-          };
-          trackContext.metadata = parsedMetadata;
-          trackContext.metadataParsingError = undefined;
-        } catch (error) {
-          newTrack = {
-            ...newTrack,
-            metadata: undefined,
-            metadataParsingError: error,
-          };
-          trackContext.metadataParsingError = error;
-          trackContext.metadata = undefined;
-        }
-        newTrack = { ...newTrack, rawMetadata: trackMetadata };
-        trackContext.rawMetadata = trackMetadata;
-        endpoint.tracks.set(trackId, newTrack);
-
-        this.emit('trackUpdated', trackContext);
+        this.stateManager.onTrackUpdated(deserializedMediaEvent.data)
         break;
       }
 

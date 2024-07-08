@@ -262,6 +262,45 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     this.webrtc.emit('endpointRemoved', endpoint);
   }
 
+  public onTrackUpdated(data: any) {
+    if (this.getEndpointId() === data.endpointId)
+      return;
+
+    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> = this.idToEndpoint.get(data.endpointId)!;
+
+    if (endpoint == null)
+      throw `Endpoint with id: ${data.endpointId} doesn't exist`;
+
+    const trackId = data.trackId;
+    const trackMetadata = data.metadata;
+    let newTrack = endpoint.tracks.get(trackId)!;
+    const trackContext = this.trackIdToTrack.get(trackId)!;
+
+    try {
+      const parsedMetadata = this.trackMetadataParser(trackMetadata);
+      newTrack = {
+        ...newTrack,
+        metadata: parsedMetadata,
+        metadataParsingError: undefined,
+      };
+      trackContext.metadata = parsedMetadata;
+      trackContext.metadataParsingError = undefined;
+    } catch (error) {
+      newTrack = {
+        ...newTrack,
+        metadata: undefined,
+        metadataParsingError: error,
+      };
+      trackContext.metadataParsingError = error;
+      trackContext.metadata = undefined;
+    }
+    newTrack = { ...newTrack, rawMetadata: trackMetadata };
+    trackContext.rawMetadata = trackMetadata;
+    endpoint.tracks.set(trackId, newTrack);
+
+    this.webrtc.emit('trackUpdated', trackContext);
+  }
+
   private addEndpoint = (
     endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
   ): void => {

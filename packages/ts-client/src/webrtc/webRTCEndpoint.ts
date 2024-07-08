@@ -72,12 +72,7 @@ export class WebRTCEndpoint<
       this.endpointMetadataParser,
       this.trackMetadataParser,
     );
-    this.commandsQueue = new CommandsQueue(
-      this,
-      this.stateManager,
-      this.negotiationManager,
-      this.trackMetadataParser,
-    );
+    this.commandsQueue = new CommandsQueue(this.stateManager, this.negotiationManager,);
   }
 
   /**
@@ -429,13 +424,17 @@ export class WebRTCEndpoint<
       stream.addTrack(track);
 
       this.commandsQueue.pushCommand({
-        commandType: 'ADD-TRACK',
-        trackId,
-        track,
-        stream,
-        trackMetadata: parsedMetadata,
-        simulcastConfig,
-        maxBandwidth,
+        commandType: 'COMMAND-WITH-HANDLER',
+        handler: () => {
+          this.stateManager.addTrackHandler(trackId,
+            track,
+            stream,
+            parsedMetadata,
+            simulcastConfig,
+            maxBandwidth)
+        },
+        validate: () => this.stateManager.validateAddTrack(track, simulcastConfig, maxBandwidth),
+        resolve: "after-renegotiation",
         resolutionNotifier,
       });
     } catch (error) {

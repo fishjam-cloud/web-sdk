@@ -1,17 +1,18 @@
 import type {
   LocalTrackId,
   MetadataParser,
-  RemoteTrackId,
+  RemoteTrackId, SimulcastConfig, TrackBandwidthLimit,
   TrackEncoding,
 } from './types';
 import { isTrackKind, mapMediaEventTracksToTrackContextImpl } from './internal';
-import type { TrackContextImpl, EndpointWithTrackContext } from './internal';
-import { findSender, findSenderByTrack } from './RTCPeerConnectionUtils';
+import type { EndpointWithTrackContext } from './internal';
+import { TrackContextImpl } from './internal';
+import { findSender, findSenderByTrack, isTrackInUse } from './RTCPeerConnectionUtils';
 import { generateCustomEvent, generateMediaEvent } from './mediaEvent';
 import type { WebRTCEndpoint } from './webRTCEndpoint';
 import { isVadStatus } from './voiceActivityDetection';
-import { NegotiationManager } from "./NegotiationManager";
-import type { ReplaceTackCommand } from "./commands";
+import type { NegotiationManager } from "./NegotiationManager";
+import { addTrackToConnection, setTransceiverDirection } from "./transciever";
 
 export class StateManager<EndpointMetadata, TrackMetadata> {
   public trackIdToTrack: Map<
@@ -365,6 +366,77 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
 
     this.webrtc.emit('bandwidthEstimationChanged', this.bandwidthEstimation);
   }
+
+  public validateAddTrack(
+    track: MediaStreamTrack,
+    simulcastConfig: SimulcastConfig,
+    maxBandwidth: TrackBandwidthLimit,
+  ): string | null {
+    const isUsedTrack = isTrackInUse(this.connection, track);
+
+    let error;
+    if (isUsedTrack) {
+      error =
+        "This track was already added to peerConnection, it can't be added again!";
+    }
+
+    if (!simulcastConfig.enabled && !(typeof maxBandwidth === 'number'))
+      error =
+        'Invalid type of `maxBandwidth` argument for a non-simulcast track, expected: number';
+    if (this.getEndpointId() === '')
+      error = 'Cannot add tracks before being accepted by the server';
+
+    return error ?? null
+  }
+
+  public addTrackHandler(
+    trackId: string,
+    track: MediaStreamTrack,
+    stream: MediaStream,
+    trackMetadata: TrackMetadata | undefined,
+    simulcastConfig: SimulcastConfig,
+    maxBandwidth: TrackBandwidthLimit,
+  ) {
+    this.negotiationManager.ongoingRenegotiation = true;
+
+    const trackContext = new TrackContextImpl(
+      this.localEndpoint,
+      trackId,
+      trackMetadata,
+      simulcastConfig,
+      this.trackMetadataParser,
+    );
+
+    if (!isTrackKind(track.kind)) throw new Error('Track has no kind');
+
+    trackContext.track = track;
+    trackContext.stream = stream;
+    trackContext.maxBandwidth = maxBandwidth;
+    trackContext.trackKind = track.kind;
+
+    this.localEndpoint.tracks.set(trackId, trackContext);
+
+    this.localTrackIdToTrack.set(trackId, trackContext);
+
+    if (this.connection) {
+      addTrackToConnection(
+        trackContext,
+        this.disabledTrackEncodings,
+        this.connection,
+      );
+
+      setTransceiverDirection(this.connection);
+    }
+
+    this.trackIdToSender.set(trackId, {
+      remoteTrackId: trackId,
+      localTrackId: track.id,
+      sender: null,
+    });
+    const mediaEvent = generateCustomEvent({ type: 'renegotiateTracks' });
+    this.webrtc.sendMediaEvent(mediaEvent);
+  }
+
 
   public removeTrackHandler(trackId: string) {
     const trackContext = this.localTrackIdToTrack.get(trackId)!;

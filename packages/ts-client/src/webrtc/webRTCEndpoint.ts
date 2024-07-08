@@ -309,6 +309,7 @@ export class WebRTCEndpoint<
         break;
       }
 
+      // todo The event may not be implemented in the Fishjam
       case 'tracksPriority': {
         const enabledTracks = (
           deserializedMediaEvent.data.tracks as string[]

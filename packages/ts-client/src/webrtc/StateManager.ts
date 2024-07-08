@@ -1,10 +1,15 @@
-import type { LocalTrackId, MetadataParser, RemoteTrackId, TrackEncoding } from './types';
+import type {
+  LocalTrackId,
+  MetadataParser,
+  RemoteTrackId,
+  TrackEncoding,
+} from './types';
 import { isTrackKind, mapMediaEventTracksToTrackContextImpl } from './internal';
 import type { TrackContextImpl, EndpointWithTrackContext } from './internal';
-import { findSenderByTrack } from "./RTCPeerConnectionUtils";
-import { generateMediaEvent } from "./mediaEvent";
-import type { WebRTCEndpoint } from "./webRTCEndpoint";
-import { isVadStatus } from "./voiceActivityDetection";
+import { findSenderByTrack } from './RTCPeerConnectionUtils';
+import { generateMediaEvent } from './mediaEvent';
+import type { WebRTCEndpoint } from './webRTCEndpoint';
+import { isVadStatus } from './voiceActivityDetection';
 
 export class StateManager<EndpointMetadata, TrackMetadata> {
   public trackIdToTrack: Map<
@@ -50,13 +55,16 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   public ongoingTrackReplacement: boolean = false;
 
   // temporary for webrtc.emit and webrtc.sendMediaEvent
-  private readonly webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>
+  private readonly webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>;
   private readonly endpointMetadataParser: MetadataParser<EndpointMetadata>;
   private readonly trackMetadataParser: MetadataParser<TrackMetadata>;
 
   constructor(
-    webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>, endpointMetadataParser: MetadataParser<EndpointMetadata>, trackMetadataParser: MetadataParser<TrackMetadata>) {
-    this.webrtc = webrtc
+    webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
+    endpointMetadataParser: MetadataParser<EndpointMetadata>,
+    trackMetadataParser: MetadataParser<TrackMetadata>,
+  ) {
+    this.webrtc = webrtc;
     this.endpointMetadataParser = endpointMetadataParser;
     this.trackMetadataParser = trackMetadataParser;
   }
@@ -115,12 +123,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
 
       const trackId = this.midToTrackId.get(mid)!;
 
-      if (
-        this.checkIfTrackBelongToEndpoint(
-          trackId,
-          this.localEndpoint,
-        )
-      )
+      if (this.checkIfTrackBelongToEndpoint(trackId, this.localEndpoint))
         return;
       if (!isTrackKind(event.track.kind)) throw new Error('Track has no kind');
 
@@ -149,7 +152,8 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   public onTracksAdded(data: any) {
     if (this.getEndpointId() === data.endpointId) return;
     data.tracks = new Map<string, any>(Object.entries(data.tracks));
-    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> = this.idToEndpoint.get(data.endpointId)!;
+    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
+      this.idToEndpoint.get(data.endpointId)!;
     const oldTracks = endpoint.tracks;
 
     data.tracks = mapMediaEventTracksToTrackContextImpl(
@@ -184,9 +188,9 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   }
 
   public onSdpAnswer(data: any) {
-    this.midToTrackId = new Map(Object.entries(data.midToTrackId),);
+    this.midToTrackId = new Map(Object.entries(data.midToTrackId));
 
-    for (const trackId of Object.values(data.midToTrackId,)) {
+    for (const trackId of Object.values(data.midToTrackId)) {
       const track = this.localTrackIdToTrack.get(trackId as string);
 
       // if is local track
@@ -208,7 +212,9 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     this.onAnswer(data);
   }
 
-  public onEndpointAdded(endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>) {
+  public onEndpointAdded(
+    endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
+  ) {
     if (endpoint.id === this.getEndpointId()) return;
     endpoint.rawMetadata = endpoint.metadata;
     try {
@@ -225,12 +231,11 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
 
   public onEndpointUpdated(data: any) {
     if (this.getEndpointId() === data.id) return;
-    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> = this.idToEndpoint.get(data.id)!;
+    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
+      this.idToEndpoint.get(data.id)!;
 
     try {
-      endpoint.metadata = this.endpointMetadataParser(
-        data.metadata,
-      );
+      endpoint.metadata = this.endpointMetadataParser(data.metadata);
       endpoint.metadataParsingError = undefined;
     } catch (error) {
       endpoint.metadata = undefined;
@@ -243,14 +248,12 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   }
 
   public onEndpointRemoved(data: any) {
-    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> = this.idToEndpoint.get(data.id)!;
+    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
+      this.idToEndpoint.get(data.id)!;
     if (endpoint === undefined) return;
 
     Array.from(endpoint.tracks.keys()).forEach((trackId) => {
-      this.webrtc.emit(
-        'trackRemoved',
-        this.trackIdToTrack.get(trackId)!,
-      );
+      this.webrtc.emit('trackRemoved', this.trackIdToTrack.get(trackId)!);
     });
 
     this.eraseEndpoint(endpoint);
@@ -259,10 +262,10 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   }
 
   public onTrackUpdated(data: any) {
-    if (this.getEndpointId() === data.endpointId)
-      return;
+    if (this.getEndpointId() === data.endpointId) return;
 
-    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> = this.idToEndpoint.get(data.endpointId)!;
+    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
+      this.idToEndpoint.get(data.endpointId)!;
 
     if (endpoint == null)
       throw `Endpoint with id: ${data.endpointId} doesn't exist`;
@@ -300,9 +303,11 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   public onTrackEncodingDisabled(data: any) {
     if (this.getEndpointId() === data.endpointId) return;
 
-    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> = this.idToEndpoint.get(data.endpointId)!;
+    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
+      this.idToEndpoint.get(data.endpointId)!;
 
-    if (endpoint == null) throw `Endpoint with id: ${data.endpointId} doesn't exist`;
+    if (endpoint == null)
+      throw `Endpoint with id: ${data.endpointId} doesn't exist`;
 
     const trackId = data.trackId;
     const encoding = data.encoding;
@@ -315,9 +320,11 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   public onTrackEncodingEnabled(data: any) {
     if (this.getEndpointId() === data.endpointId) return;
 
-    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> = this.idToEndpoint.get(data.endpointId)!;
+    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
+      this.idToEndpoint.get(data.endpointId)!;
 
-    if (endpoint == null) throw `Endpoint with id: ${data.endpointId} doesn't exist`;
+    if (endpoint == null)
+      throw `Endpoint with id: ${data.endpointId} doesn't exist`;
 
     const trackId = data.trackId;
     const encoding = data.encoding;
@@ -346,7 +353,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     } else {
       console.warn('Received unknown vad status: ', vadStatus);
     }
-  };
+  }
 
   public onBandwidthEstimation(data: any) {
     this.bandwidthEstimation = data.estimation;
@@ -369,15 +376,10 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
   ): void => {
     const tracksId = Array.from(endpoint.tracks.keys());
-    tracksId.forEach((trackId) =>
-      this.trackIdToTrack.delete(trackId),
-    );
-    Array.from(this.midToTrackId.entries()).forEach(
-      ([mid, trackId]) => {
-        if (tracksId.includes(trackId))
-          this.midToTrackId.delete(mid);
-      },
-    );
+    tracksId.forEach((trackId) => this.trackIdToTrack.delete(trackId));
+    Array.from(this.midToTrackId.entries()).forEach(([mid, trackId]) => {
+      if (tracksId.includes(trackId)) this.midToTrackId.delete(mid);
+    });
     this.idToEndpoint.delete(endpoint.id);
   };
 

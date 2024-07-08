@@ -1,13 +1,18 @@
-import type { AddTrackCommand, Command, RemoveTrackCommand, ReplaceTackCommand } from "./commands";
-import type { Deferred } from "./deferred";
-import { findSender, isTrackInUse } from "./RTCPeerConnectionUtils";
-import { isTrackKind, TrackContextImpl } from "./internal";
-import { addTrackToConnection, setTransceiverDirection } from "./transciever";
-import { generateCustomEvent, generateMediaEvent } from "./mediaEvent";
-import type { StateManager } from "./StateManager";
-import type { NegotiationManager } from "./NegotiationManager";
-import type { WebRTCEndpoint } from "./webRTCEndpoint";
-import type { MetadataParser } from "./types";
+import type {
+  AddTrackCommand,
+  Command,
+  RemoveTrackCommand,
+  ReplaceTackCommand,
+} from './commands';
+import type { Deferred } from './deferred';
+import { findSender, isTrackInUse } from './RTCPeerConnectionUtils';
+import { isTrackKind, TrackContextImpl } from './internal';
+import { addTrackToConnection, setTransceiverDirection } from './transciever';
+import { generateCustomEvent, generateMediaEvent } from './mediaEvent';
+import type { StateManager } from './StateManager';
+import type { NegotiationManager } from './NegotiationManager';
+import type { WebRTCEndpoint } from './webRTCEndpoint';
+import type { MetadataParser } from './types';
 
 export class CommandsQueue<EndpointMetadata, TrackMetadata> {
   private readonly stateManager: StateManager<EndpointMetadata, TrackMetadata>;
@@ -15,13 +20,13 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
   private webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>;
   private readonly trackMetadataParser: MetadataParser<TrackMetadata>;
 
-  private clearConnectionCallbacks: (() => void) | null = null
+  private clearConnectionCallbacks: (() => void) | null = null;
 
   constructor(
     webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
     stateManager: StateManager<EndpointMetadata, TrackMetadata>,
     negotiationManager: NegotiationManager,
-    trackMetadataParser: MetadataParser<TrackMetadata>
+    trackMetadataParser: MetadataParser<TrackMetadata>,
   ) {
     this.webrtc = webrtc;
     this.stateManager = stateManager;
@@ -36,7 +41,7 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
           this.processNextCommand();
           break;
       }
-    }
+    };
 
     const onIceGatheringStateChange = () => {
       switch (this.stateManager.connection?.iceGatheringState) {
@@ -44,7 +49,7 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
           this.processNextCommand();
           break;
       }
-    }
+    };
 
     const onConnectionStateChange = () => {
       switch (connection.connectionState) {
@@ -52,26 +57,47 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
           this.processNextCommand();
           break;
       }
-    }
+    };
     const onIceConnectionStateChange = () => {
       switch (this.stateManager.connection?.iceConnectionState) {
         case 'connected':
           this.processNextCommand();
           break;
       }
-    }
+    };
 
     this.clearConnectionCallbacks = () => {
-      connection.removeEventListener("signalingstatechange", onSignalingStateChange)
-      connection.removeEventListener("icegatheringstatechange", onIceGatheringStateChange)
-      connection.removeEventListener("connectionstatechange", onConnectionStateChange)
-      connection.removeEventListener("iceconnectionstatechange", onIceConnectionStateChange)
-    }
+      connection.removeEventListener(
+        'signalingstatechange',
+        onSignalingStateChange,
+      );
+      connection.removeEventListener(
+        'icegatheringstatechange',
+        onIceGatheringStateChange,
+      );
+      connection.removeEventListener(
+        'connectionstatechange',
+        onConnectionStateChange,
+      );
+      connection.removeEventListener(
+        'iceconnectionstatechange',
+        onIceConnectionStateChange,
+      );
+    };
 
-    connection.addEventListener("icegatheringstatechange", onIceConnectionStateChange)
-    connection.addEventListener("connectionstatechange", onConnectionStateChange);
-    connection.addEventListener("iceconnectionstatechange", onIceConnectionStateChange)
-    connection.addEventListener("signalingstatechange", onSignalingStateChange )
+    connection.addEventListener(
+      'icegatheringstatechange',
+      onIceConnectionStateChange,
+    );
+    connection.addEventListener(
+      'connectionstatechange',
+      onConnectionStateChange,
+    );
+    connection.addEventListener(
+      'iceconnectionstatechange',
+      onIceConnectionStateChange,
+    );
+    connection.addEventListener('signalingstatechange', onSignalingStateChange);
   }
 
   private commandsQueue: Command<TrackMetadata>[] = [];
@@ -208,7 +234,9 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
     this.stateManager.localEndpoint.tracks.delete(trackId);
   }
 
-  private async replaceTrackHandler(command: ReplaceTackCommand<TrackMetadata>) {
+  private async replaceTrackHandler(
+    command: ReplaceTackCommand<TrackMetadata>,
+  ) {
     const { trackId, newTrack, newTrackMetadata } = command;
 
     // todo add validation to track.kind, you cannot replace video with audio
@@ -272,6 +300,6 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
     this.commandResolutionNotifier?.reject('Disconnected');
     this.commandResolutionNotifier = null;
     this.commandsQueue = [];
-    this.clearConnectionCallbacks?.()
+    this.clearConnectionCallbacks?.();
   }
 }

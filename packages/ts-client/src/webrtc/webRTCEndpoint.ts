@@ -44,6 +44,7 @@ import {
   setTransceiversToReadOnly,
 } from './transciever';
 import { createSdpOfferEvent } from './sdpEvents';
+import { setTurns } from './turn';
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -1341,7 +1342,7 @@ export class WebRTCEndpoint<
   private onOfferData = async (offerData: MediaEvent) => {
     if (!this.connection) {
       const turnServers = offerData.data.integratedTurnServers;
-      this.setTurns(turnServers);
+      setTurns(turnServers, this.rtcConfig);
 
       this.connection = new RTCPeerConnection(this.rtcConfig);
       this.connection.onicecandidate = this.onLocalCandidate();
@@ -1489,34 +1490,6 @@ export class WebRTCEndpoint<
 
       this.emit('trackReady', trackContext);
     };
-  };
-
-  private setTurns = (turnServers: any[]): void => {
-    turnServers.forEach((turnServer: any) => {
-      let transport, uri;
-      if (turnServer.transport == 'tls') {
-        transport = 'tcp';
-        uri = 'turns';
-      } else {
-        transport = turnServer.transport;
-        uri = 'turn';
-      }
-
-      const rtcIceServer: RTCIceServer = {
-        credential: turnServer.password,
-        urls: uri.concat(
-          ':',
-          turnServer.serverAddr,
-          ':',
-          turnServer.serverPort,
-          '?transport=',
-          transport,
-        ),
-        username: turnServer.username,
-      };
-
-      this.rtcConfig.iceServers!.push(rtcIceServer);
-    });
   };
 
   private addEndpoint = (

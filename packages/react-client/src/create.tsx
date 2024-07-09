@@ -177,10 +177,11 @@ export const create = <PeerMetadata, TrackMetadata>(
           local: clientRef.current.local,
           status: clientRef.current.status,
           devices: clientRef.current.devices,
-          videoManager: clientRef.current.videoTrackManager,
+          videoTrackManager: clientRef.current.videoTrackManager,
+          audioTrackManager: clientRef.current.audioTrackManager,
           client: clientRef.current,
           reconnectionStatus: clientRef.current.reconnectionStatus,
-        };
+        } satisfies State<PeerMetadata, TrackMetadata>;
 
         lastSnapshotRef.current = state;
         mutationRef.current = false;

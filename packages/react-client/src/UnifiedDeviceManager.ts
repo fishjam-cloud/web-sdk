@@ -190,21 +190,17 @@ const prepareDeviceState = (
   };
 };
 
-const LOCAL_STORAGE_VIDEO_DEVICE_KEY = "last-selected-video-device";
-const LOCAL_STORAGE_AUDIO_DEVICE_KEY = "last-selected-audio-device";
-
 const DISABLE_STORAGE_CONFIG: StorageConfig = {
-  getLastVideoDevice: null,
-  getLastAudioDevice: null,
-  saveLastAudioDevice: () => {},
-  saveLastVideoDevice: () => {},
+  getLastDevice: null,
+  saveLastDevice: () => {},
 };
 
-const LOCAL_STORAGE_CONFIG: StorageConfig = {
-  getLastAudioDevice: () => loadObject<MediaDeviceInfo | null>(LOCAL_STORAGE_AUDIO_DEVICE_KEY, null),
-  saveLastAudioDevice: (info: MediaDeviceInfo) => saveObject<MediaDeviceInfo>(LOCAL_STORAGE_AUDIO_DEVICE_KEY, info),
-  getLastVideoDevice: () => loadObject<MediaDeviceInfo | null>(LOCAL_STORAGE_VIDEO_DEVICE_KEY, null),
-  saveLastVideoDevice: (info: MediaDeviceInfo) => saveObject<MediaDeviceInfo>(LOCAL_STORAGE_VIDEO_DEVICE_KEY, info),
+const getLocalStorageConfig = (deviceType: "audio" | "video"): StorageConfig => {
+  const key = `last-selected-${deviceType}-device`;
+  return {
+    getLastDevice: () => loadObject<MediaDeviceInfo | null>(key, null),
+    saveLastDevice: (info: MediaDeviceInfo) => saveObject<MediaDeviceInfo>(key, info),
+  };
 };
 
 export type DeviceManagerEvents = {
@@ -258,7 +254,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
 
   private createStorageConfig(storage: boolean | StorageConfig | undefined): StorageConfig {
     if (storage === false) return DISABLE_STORAGE_CONFIG;
-    if (storage === true || storage === undefined) return LOCAL_STORAGE_CONFIG;
+    if (storage === true || storage === undefined) return getLocalStorageConfig(this.deviceType);
     return storage;
   }
 
@@ -289,7 +285,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
       return Promise.resolve("error");
     }
 
-    const previousDevice: MediaDeviceInfo | null = this.getLastAudioDevice() ?? null;
+    const previousDevice: MediaDeviceInfo | null = this.getLastDevice() ?? null;
 
     const trackConstraints = this.getConstraints(initialConstraints);
 
@@ -361,7 +357,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     );
 
     const deviceInfo = this.deviceState.media?.deviceInfo;
-    if (deviceInfo) this.saveLastVideoDevice(deviceInfo);
+    if (deviceInfo) this.saveLastDevice(deviceInfo);
 
     this.setupOnEndedCallback();
     this.emit("managerInitialized", this.deviceState);
@@ -384,35 +380,23 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
     }
   };
 
-  private getLastVideoDevice(): MediaDeviceInfo | null {
-    return this.storageConfig?.getLastVideoDevice?.() ?? this.defaultStorageConfig?.getLastVideoDevice?.() ?? null;
+  private getLastDevice(): MediaDeviceInfo | null {
+    return this.storageConfig?.getLastDevice?.() ?? this.defaultStorageConfig?.getLastDevice?.() ?? null;
   }
 
-  private saveLastVideoDevice(info: MediaDeviceInfo) {
-    if (this.storageConfig?.saveLastVideoDevice) {
-      this.storageConfig.saveLastVideoDevice(info);
+  private saveLastDevice(info: MediaDeviceInfo) {
+    if (this.storageConfig?.saveLastDevice) {
+      this.storageConfig.saveLastDevice(info);
     } else {
-      this.defaultStorageConfig.saveLastVideoDevice?.(info);
+      this.defaultStorageConfig.saveLastDevice?.(info);
     }
-  }
-
-  private saveLastAudioDevice(info: MediaDeviceInfo) {
-    if (this.storageConfig?.saveLastAudioDevice) {
-      this.storageConfig.saveLastAudioDevice(info);
-    } else {
-      this.defaultStorageConfig.saveLastAudioDevice?.(info);
-    }
-  }
-
-  private getLastAudioDevice(): MediaDeviceInfo | null {
-    return this.storageConfig?.getLastAudioDevice?.() ?? this.defaultStorageConfig?.getLastAudioDevice?.() ?? null;
   }
 
   // todo `audioDeviceId / videoDeviceId === true` means use last device
   public async start(deviceId?: string | boolean) {
     const shouldRestart = !!deviceId && deviceId !== this.deviceState.media?.deviceInfo?.deviceId;
 
-    const newDevice = deviceId === true ? this.getLastAudioDevice?.()?.deviceId || true : deviceId;
+    const newDevice = deviceId === true ? this.getLastDevice?.()?.deviceId || true : deviceId;
 
     const trackConstraints = this.constraints ?? this.defaultConstraints;
 
@@ -444,7 +428,7 @@ export class DeviceManager extends (EventEmitter as new () => TypedEmitter<Devic
       const currentDeviceId = getTrack()?.getSettings()?.deviceId;
       const deviceInfo = currentDeviceId ? getDeviceInfo(currentDeviceId, this.deviceState.devices ?? []) : null;
       if (deviceInfo) {
-        this.saveLastVideoDevice?.(deviceInfo);
+        this.saveLastDevice?.(deviceInfo);
       }
 
       // The device manager assumes that there is only one audio and video track.

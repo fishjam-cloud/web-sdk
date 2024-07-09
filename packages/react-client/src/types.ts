@@ -40,10 +40,8 @@ export type DeviceManagerConfig = {
 };
 
 export type StorageConfig = {
-  getLastAudioDevice: (() => MediaDeviceInfo | null) | null;
-  saveLastAudioDevice: (info: MediaDeviceInfo) => void;
-  getLastVideoDevice: (() => MediaDeviceInfo | null) | null;
-  saveLastVideoDevice: (info: MediaDeviceInfo) => void;
+  getLastDevice: (() => MediaDeviceInfo | null) | null;
+  saveLastDevice: (info: MediaDeviceInfo) => void;
 };
 
 export type DeviceManagerStartConfig = {

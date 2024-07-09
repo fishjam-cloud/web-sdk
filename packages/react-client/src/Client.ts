@@ -17,10 +17,18 @@ import type {
 import { FishjamClient } from "@fishjam-dev/ts-client";
 import type { PeerId, PeerState, PeerStatus, Track, TrackId, TrackWithOrigin } from "./state.types";
 import type { DeviceManagerEvents } from "./DeviceManager";
-import { DeviceManager } from "./DeviceManager";
 import type { MediaDeviceType, ScreenShareManagerConfig } from "./ScreenShareManager";
 import { ScreenShareManager } from "./ScreenShareManager";
-import type { DeviceManagerConfig, DeviceManagerInitConfig, Devices, DeviceState, MediaState } from "./types";
+import type {
+  DeviceManagerConfig,
+  DeviceManagerInitConfig,
+  DeviceManagerStartConfig,
+  Devices,
+  DeviceState,
+  MediaState,
+} from "./types";
+import { DeviceManager } from "./UnifiedDeviceManager";
+import { TrackManager } from "./trackManager";
 
 export type ClientApi<PeerMetadata, TrackMetadata> = {
   local: PeerState<PeerMetadata, TrackMetadata> | null;
@@ -35,7 +43,10 @@ export type ClientApi<PeerMetadata, TrackMetadata> = {
   status: PeerStatus;
   media: MediaState | null;
   devices: Devices<TrackMetadata>;
-  deviceManager: DeviceManager;
+
+  videoTrackManager: TrackManager<PeerMetadata, TrackMetadata>;
+  audioTrackManager: TrackManager<PeerMetadata, TrackMetadata>;
+
   screenShareManager: ScreenShareManager;
 
   isReconnecting: () => boolean;
@@ -302,13 +313,10 @@ export type ReactClientCreteConfig<PeerMetadata, TrackMetadata> = {
   screenShareManagerDefaultConfig?: ScreenShareManagerConfig;
 };
 
-const NOOP = () => {};
-
 export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
   new <PeerMetadata, TrackMetadata>(): TypedEmitter<Required<ClientEvents<PeerMetadata, TrackMetadata>>>;
 })<PeerMetadata, TrackMetadata> {
   private readonly tsClient: FishjamClient<PeerMetadata, TrackMetadata>;
-  public readonly deviceManager: DeviceManager;
   public readonly screenShareManager: ScreenShareManager;
 
   public local: PeerState<PeerMetadata, TrackMetadata> | null = null;
@@ -330,30 +338,26 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
   private currentCameraTrackId: string | null = null;
   private currentScreenShareTrackId: string | null = null;
 
+  private videoDeviceManager: DeviceManager;
+  private audioDeviceManager: DeviceManager;
+
+  public videoTrackManager: TrackManager<PeerMetadata, TrackMetadata>;
+  public audioTrackManager: TrackManager<PeerMetadata, TrackMetadata>;
+
   constructor(config?: ReactClientCreteConfig<PeerMetadata, TrackMetadata>) {
     super();
 
     this.tsClient = new FishjamClient<PeerMetadata, TrackMetadata>(config?.clientConfig);
-    this.deviceManager = new DeviceManager(config?.deviceManagerDefaultConfig);
+    this.videoDeviceManager = new DeviceManager("video", config?.deviceManagerDefaultConfig);
+    this.audioDeviceManager = new DeviceManager("audio", config?.deviceManagerDefaultConfig);
+
+    this.videoTrackManager = new TrackManager(this.tsClient, this.videoDeviceManager);
+    this.audioTrackManager = new TrackManager(this.tsClient, this.audioDeviceManager);
+
     this.screenShareManager = new ScreenShareManager(config?.screenShareManagerDefaultConfig);
 
     this.devices = {
-      init: NOOP,
-      start: NOOP,
       camera: {
-        stop: NOOP,
-        setEnable: NOOP,
-        start: NOOP,
-        addTrack: (
-          _trackMetadata?: TrackMetadata,
-          _simulcastConfig?: SimulcastConfig,
-          _maxBandwidth?: TrackBandwidthLimit,
-        ) => Promise.reject(),
-        removeTrack: () => Promise.reject(),
-        replaceTrack: (_newTrackMetadata?: TrackMetadata) => Promise.reject(),
-        muteTrack: (_newTrackMetadata?: TrackMetadata) => Promise.reject(),
-        unmuteTrack: (_newTrackMetadata?: TrackMetadata) => Promise.reject(),
-        updateTrackMetadata: NOOP,
         broadcast: null,
         status: null,
         stream: null,
@@ -365,15 +369,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         devices: null,
       },
       microphone: {
-        stop: NOOP,
-        setEnable: NOOP,
-        start: NOOP,
-        addTrack: (_trackMetadata?: TrackMetadata, _maxBandwidth?: TrackBandwidthLimit) => Promise.reject(),
-        removeTrack: () => Promise.reject(),
-        replaceTrack: (_newTrackMetadata?: TrackMetadata) => Promise.reject(),
-        muteTrack: (_newTrackMetadata?: TrackMetadata) => Promise.reject(),
-        unmuteTrack: (_newTrackMetadata?: TrackMetadata) => Promise.reject(),
-        updateTrackMetadata: NOOP,
         broadcast: null,
         status: null,
         stream: null,
@@ -385,11 +380,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         devices: null,
       },
       screenShare: {
-        stop: NOOP,
-        setEnable: NOOP,
-        start: NOOP,
-        addTrack: (_trackMetadata?: TrackMetadata, _maxBandwidth?: TrackBandwidthLimit) => Promise.reject(),
-        removeTrack: () => Promise.reject(),
         broadcast: null,
         status: null,
         stream: null,
@@ -559,55 +549,97 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       this.emit("bandwidthEstimationChanged", estimation, this);
     });
 
-    this.deviceManager.on("deviceDisabled", (event) => {
+    this.videoDeviceManager.on("deviceDisabled", () => {
       this.stateToSnapshot();
 
-      this.emit("deviceDisabled", { ...event, mediaDeviceType: "userMedia" }, this);
+      this.emit("deviceDisabled", { trackType: "video", mediaDeviceType: "userMedia" }, this);
     });
 
-    this.deviceManager.on("deviceEnabled", (event) => {
+    this.videoDeviceManager.on("deviceEnabled", () => {
       this.stateToSnapshot();
 
-      this.emit("deviceEnabled", { ...event, mediaDeviceType: "userMedia" }, this);
+      this.emit("deviceEnabled", { trackType: "video", mediaDeviceType: "userMedia" }, this);
     });
 
-    this.deviceManager.on("managerInitialized", (event) => {
+    this.videoDeviceManager.on("managerInitialized", () => {
       this.stateToSnapshot();
 
-      this.emit("managerInitialized", { ...event, mediaDeviceType: "userMedia" }, this);
+      this.emit("managerInitialized", { mediaDeviceType: "userMedia" }, this);
     });
 
-    this.deviceManager.on("managerStarted", (event) => {
+    this.videoDeviceManager.on("managerStarted", () => {
       this.stateToSnapshot();
 
-      this.emit("managerStarted", { ...event, mediaDeviceType: "userMedia" }, this);
+      this.emit("managerStarted", { mediaDeviceType: "userMedia" }, this);
     });
 
-    this.deviceManager.on("deviceStopped", (event) => {
+    this.videoDeviceManager.on("deviceStopped", () => {
       this.stateToSnapshot();
 
-      this.emit("deviceStopped", { trackType: event.trackType, mediaDeviceType: "userMedia" }, this);
+      this.emit("deviceStopped", { trackType: "video", mediaDeviceType: "userMedia" }, this);
     });
 
-    this.deviceManager.on("deviceReady", (event) => {
+    this.videoDeviceManager.on("deviceReady", ({ stream }) => {
       this.stateToSnapshot();
 
-      this.emit("deviceReady", { ...event, mediaDeviceType: "userMedia" }, this);
+      this.emit("deviceReady", { trackType: "video", stream, mediaDeviceType: "userMedia" }, this);
     });
 
-    this.deviceManager.on("devicesStarted", (event) => {
+    this.videoDeviceManager.on("error", (event) => {
       this.stateToSnapshot();
 
-      this.emit("devicesStarted", { ...event, mediaDeviceType: "userMedia" }, this);
+      this.emit("error", event, this);
     });
 
-    this.deviceManager.on("devicesReady", (event) => {
+    this.audioDeviceManager.on("deviceDisabled", () => {
       this.stateToSnapshot();
 
-      this.emit("devicesReady", { ...event, mediaDeviceType: "userMedia" }, this);
+      this.emit("deviceDisabled", { trackType: "audio", mediaDeviceType: "userMedia" }, this);
     });
 
-    this.deviceManager.on("error", (event) => {
+    this.audioDeviceManager.on("deviceEnabled", () => {
+      this.stateToSnapshot();
+
+      this.emit("deviceEnabled", { trackType: "audio", mediaDeviceType: "userMedia" }, this);
+    });
+
+    this.audioDeviceManager.on("managerInitialized", () => {
+      this.stateToSnapshot();
+
+      this.emit("managerInitialized", { mediaDeviceType: "userMedia" }, this);
+    });
+
+    this.audioDeviceManager.on("managerStarted", () => {
+      this.stateToSnapshot();
+
+      this.emit("managerStarted", { mediaDeviceType: "userMedia" }, this);
+    });
+
+    this.audioDeviceManager.on("deviceStopped", () => {
+      this.stateToSnapshot();
+
+      this.emit("deviceStopped", { trackType: "audio", mediaDeviceType: "userMedia" }, this);
+    });
+
+    this.audioDeviceManager.on("deviceReady", ({ stream }) => {
+      this.stateToSnapshot();
+
+      this.emit("deviceReady", { trackType: "audio", stream, mediaDeviceType: "userMedia" }, this);
+    });
+
+    // this.videoDeviceManager.on("devicesStarted", (event) => {
+    //   this.stateToSnapshot();
+
+    //   this.emit("devicesStarted", { ...event, mediaDeviceType: "userMedia" }, this);
+    // });
+
+    // this.videoDeviceManager.on("devicesReady", ({ restarted }) => {
+    //   this.stateToSnapshot();
+
+    //   this.emit("devicesReady", { video: { restarted }, mediaDeviceType: "userMedia" }, this);
+    // });
+
+    this.audioDeviceManager.on("error", (event) => {
       this.stateToSnapshot();
 
       this.emit("error", event, this);
@@ -737,7 +769,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
   }
 
   public setDeviceManagerConfig(config: DeviceManagerConfig) {
-    this.deviceManager?.setConfig(config);
+    this.videoDeviceManager.setConfig(config.storage, config.videoTrackConstraints);
+    this.audioDeviceManager.setConfig(config.storage, config.audioTrackConstraints);
   }
 
   private trackContextToTrack(track: TrackContext<PeerMetadata, TrackMetadata>): Track<TrackMetadata> {
@@ -770,8 +803,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
     simulcastConfig: SimulcastConfig = { enabled: false, activeEncodings: [], disabledEncodings: [] },
     maxBandwidth: TrackBandwidthLimit = 0, // unlimited bandwidth
   ): Promise<string> {
-    if (!this.tsClient) throw Error("Client not initialized");
-
     return this.tsClient.addTrack(track, trackMetadata, simulcastConfig, maxBandwidth);
   }
 
@@ -827,6 +858,16 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
     return this.tsClient.isReconnecting();
   };
 
+  public initializeDevices = async (config?: DeviceManagerInitConfig) => {
+    this.videoDeviceManager.init(config?.videoTrackConstraints);
+    this.audioDeviceManager.init(config?.audioTrackConstraints);
+  };
+
+  public startDevices = async (config: DeviceManagerStartConfig) => {
+    this.videoDeviceManager.start(config?.videoDeviceId);
+    this.audioDeviceManager.start(config?.audioDeviceId);
+  };
+
   // In most cases, the track is identified by its remote track ID.
   // This ID comes from the ts-client `addTrack` method.
   // However, we don't have that ID before the `addTrack` method returns it.
@@ -849,12 +890,10 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
   };
 
   private stateToSnapshot() {
-    if (!this.deviceManager) Error("Device manager is null");
-
-    const screenShareManager = this.screenShareManager?.getSnapshot();
+    const screenShareManager = this.screenShareManager.getSnapshot();
     const deviceManagerSnapshot = {
-      audio: this?.deviceManager?.audio,
-      video: this?.deviceManager?.video,
+      audio: this?.audioDeviceManager?.deviceState,
+      video: this?.videoDeviceManager?.deviceState,
     };
 
     const localEndpoint = this.tsClient.getLocalEndpoint();
@@ -869,97 +908,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
     const screenShareVideoTrack = this.getRemoteTrack(this.currentScreenShareTrackId);
 
     const devices: Devices<TrackMetadata> = {
-      init: (config?: DeviceManagerInitConfig) => {
-        this?.deviceManager?.init(config);
-      },
-      start: (config) => this?.deviceManager?.start(config),
       camera: {
-        stop: () => {
-          this?.deviceManager?.stop("video");
-        },
-        setEnable: (value: boolean) => this?.deviceManager?.setEnable("video", value),
-        start: (deviceId?: string) => {
-          this?.deviceManager?.start({ videoDeviceId: deviceId ?? true });
-        },
-        addTrack: async (
-          trackMetadata?: TrackMetadata,
-          simulcastConfig?: SimulcastConfig,
-          maxBandwidth?: TrackBandwidthLimit,
-        ) => {
-          if (this.currentCameraTrackId) throw Error("Track already added");
-
-          const media = this.deviceManager?.video.media;
-
-          if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
-
-          const track = this.getRemoteTrack(media.track.id);
-
-          if (track) return track.trackId;
-
-          // see `getRemoteTrack()` explanation
-          this.currentCameraTrackId = media.track.id;
-
-          const remoteTrackId = await this.tsClient.addTrack(media.track, trackMetadata, simulcastConfig, maxBandwidth);
-
-          this.currentCameraTrackId = remoteTrackId;
-
-          return remoteTrackId;
-        },
-        removeTrack: () => {
-          if (!this.currentCameraTrackId) throw Error("There is no video track id");
-
-          const prevTrack = this.getRemoteTrack(this.currentCameraTrackId);
-
-          if (!prevTrack) throw Error("There is no video track");
-
-          this.currentCameraTrackId = null;
-
-          return this.tsClient.removeTrack(prevTrack.trackId);
-        },
-        replaceTrack: async (newTrackMetadata?: TrackMetadata) => {
-          if (!this.currentCameraTrackId) throw Error("There is no  track id");
-
-          const prevTrack = this.getRemoteTrack(this.currentCameraTrackId);
-
-          if (!prevTrack) throw Error("There is no video track");
-
-          const track = this.devices.camera.stream?.getVideoTracks()[0];
-
-          if (!track) throw Error("New track is empty");
-
-          await this.tsClient.replaceTrack(prevTrack.trackId, track, newTrackMetadata);
-        },
-        muteTrack: async (newTrackMetadata?: TrackMetadata) => {
-          if (!this.currentCameraTrackId) throw Error("There is no video track id");
-
-          const prevTrack = this.getRemoteTrack(this.currentCameraTrackId);
-
-          if (!prevTrack) throw Error("There is no video track");
-
-          await this.tsClient.replaceTrack(prevTrack.trackId, null, newTrackMetadata);
-        },
-        unmuteTrack: async (newTrackMetadata?: TrackMetadata) => {
-          if (!this.currentCameraTrackId) throw Error("There is no video track id");
-
-          const prevTrack = this.getRemoteTrack(this.currentCameraTrackId);
-
-          if (!prevTrack) throw Error("There is no video track");
-
-          const media = this.deviceManager?.video.media;
-
-          if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
-
-          await this.tsClient.replaceTrack(prevTrack.trackId, media.track, newTrackMetadata);
-        },
-        updateTrackMetadata: (newTrackMetadata: TrackMetadata) => {
-          if (!this.currentCameraTrackId) throw Error("There is no video track id");
-
-          const prevTrack = this.getRemoteTrack(this.currentCameraTrackId);
-
-          if (!prevTrack) throw Error("There is no video track");
-
-          this.tsClient.updateTrackMetadata(this.currentCameraTrackId, newTrackMetadata);
-        },
         broadcast: broadcastedVideoTrack ?? null,
         status: deviceManagerSnapshot?.video?.devicesStatus || null,
         stream: deviceManagerSnapshot?.video.media?.stream || null,
@@ -971,86 +920,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         devices: deviceManagerSnapshot?.video?.devices || null,
       },
       microphone: {
-        stop: () => this?.deviceManager?.stop("audio"),
-        setEnable: (value: boolean) => this?.deviceManager?.setEnable("audio", value),
-        start: (deviceId?: string) => {
-          this?.deviceManager?.start({ audioDeviceId: deviceId ?? true });
-        },
-        addTrack: async (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => {
-          const media = this.deviceManager?.audio.media;
-
-          if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
-
-          if (this.currentMicrophoneTrackId) throw Error("Track already added");
-
-          const track = this.getRemoteTrack(media.track.id);
-
-          if (track) return track.trackId;
-
-          // see `getRemoteTrack()` explanation
-          this.currentMicrophoneTrackId = media.track.id;
-
-          const remoteTrackId = await this.tsClient.addTrack(media.track, trackMetadata, undefined, maxBandwidth);
-
-          this.currentMicrophoneTrackId = remoteTrackId;
-
-          return remoteTrackId;
-        },
-        removeTrack: () => {
-          if (!this.currentMicrophoneTrackId) throw Error("There is no audio track id");
-
-          const prevTrack = this.getRemoteTrack(this.currentMicrophoneTrackId);
-
-          if (!prevTrack) throw Error("There is no audio track");
-
-          this.currentMicrophoneTrackId = null;
-
-          return this.tsClient.removeTrack(prevTrack.trackId);
-        },
-        replaceTrack: async (newTrackMetadata?: TrackMetadata) => {
-          if (!this.currentMicrophoneTrackId) throw Error("There is no audio track id");
-
-          const prevTrack = this.getRemoteTrack(this.currentMicrophoneTrackId);
-
-          if (!prevTrack) throw Error("There is no audio track");
-
-          const track = this.devices.microphone.stream?.getAudioTracks()[0];
-
-          if (!track) throw Error("New track is empty");
-
-          await this.tsClient.replaceTrack(prevTrack.trackId, track, newTrackMetadata);
-        },
-        muteTrack: async (newTrackMetadata?: TrackMetadata) => {
-          if (!this.currentMicrophoneTrackId) throw Error("There is no audio track id");
-
-          const prevTrack = this.getRemoteTrack(this.currentMicrophoneTrackId);
-
-          if (!prevTrack) throw Error("There is no audio track");
-
-          await this.tsClient.replaceTrack(prevTrack.trackId, null, newTrackMetadata);
-        },
-        unmuteTrack: async (newTrackMetadata?: TrackMetadata) => {
-          if (!this.currentMicrophoneTrackId) throw Error("There is no audio track id");
-
-          const prevTrack = this.getRemoteTrack(this.currentMicrophoneTrackId);
-
-          if (!prevTrack) throw Error("There is no audio track");
-
-          const media = this.deviceManager?.audio.media;
-
-          if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
-
-          await this.tsClient.replaceTrack(prevTrack.trackId, media.track, newTrackMetadata);
-        },
-        updateTrackMetadata: (newTrackMetadata: TrackMetadata) => {
-          if (!this.currentMicrophoneTrackId) throw Error("There is no audio track id");
-
-          const prevTrack = this.getRemoteTrack(this.currentMicrophoneTrackId);
-
-          if (!prevTrack) throw Error("There is no audio track");
-
-          this.tsClient.updateTrackMetadata(this.currentMicrophoneTrackId, newTrackMetadata);
-        },
         broadcast: broadcastedAudioTrack ?? null,
         status: deviceManagerSnapshot?.audio?.devicesStatus || null,
         stream: deviceManagerSnapshot?.audio.media?.stream || null,
@@ -1062,44 +931,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         devices: deviceManagerSnapshot?.audio?.devices || null,
       },
       screenShare: {
-        stop: () => {
-          this?.screenShareManager?.stop("video");
-        },
-        setEnable: (value: boolean) => this.screenShareManager?.setEnable("video", value),
-        start: (config?: ScreenShareManagerConfig) => {
-          this.screenShareManager?.start(config);
-        },
-        addTrack: async (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => {
-          const media = this.screenShareManager?.getSnapshot().videoMedia;
-
-          if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
-
-          if (this.currentScreenShareTrackId) throw Error("Screen share track already added");
-
-          const track = this.getRemoteTrack(media.track.id);
-
-          if (track) return track.trackId;
-
-          // see `getRemoteTrack()` explanation
-          this.currentScreenShareTrackId = media.track.id;
-
-          const trackId = await this.tsClient.addTrack(media.track, trackMetadata, undefined, maxBandwidth);
-
-          this.currentScreenShareTrackId = trackId;
-
-          return trackId;
-        },
-        removeTrack: () => {
-          if (!this.currentScreenShareTrackId) throw Error("There is no screen share track id");
-
-          const prevTrack = this.getRemoteTrack(this.currentScreenShareTrackId);
-
-          if (!prevTrack) throw Error("There is no screen share video track");
-
-          this.currentScreenShareTrackId = null;
-
-          return this.tsClient.removeTrack(prevTrack.trackId);
-        },
         broadcast: screenShareVideoTrack ?? null,
         status: screenShareManager?.status || null,
         mediaStatus: null,

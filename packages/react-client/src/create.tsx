@@ -177,7 +177,7 @@ export const create = <PeerMetadata, TrackMetadata>(
           local: clientRef.current.local,
           status: clientRef.current.status,
           devices: clientRef.current.devices,
-          deviceManager: clientRef.current.deviceManager,
+          videoManager: clientRef.current.videoTrackManager,
           client: clientRef.current,
           reconnectionStatus: clientRef.current.reconnectionStatus,
         };
@@ -234,7 +234,7 @@ export const create = <PeerMetadata, TrackMetadata>(
   const useCamera = (): CameraAPI<TrackMetadata> => {
     const { state } = useFishjamContext();
 
-    return state.devices.camera;
+    return { ...state.devices.camera, ...state.client.videoTrackManager };
   };
 
   const useMicrophone = (): MicrophoneAPI<TrackMetadata> => {

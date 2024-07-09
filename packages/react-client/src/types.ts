@@ -145,20 +145,20 @@ export type UseSetupMediaResult = {
   init: () => void;
 };
 
-export type CameraAPI<TrackMetadata> = {
-  stop: () => void;
-  setEnable: (value: boolean) => void;
-  start: (deviceId?: string) => void;
-  addTrack: (
+export interface MediaService<TrackMetadata> {
+  initialize: (deviceId?: string) => Promise<void>;
+  cleanup: () => Promise<void>;
+  startStreaming: (
     trackMetadata?: TrackMetadata,
     simulcastConfig?: SimulcastConfig,
     maxBandwidth?: TrackBandwidthLimit,
   ) => Promise<string>;
-  removeTrack: () => Promise<void>;
-  replaceTrack: (newTrackMetadata?: TrackMetadata) => Promise<void>;
-  muteTrack: (newTrackMetadata?: TrackMetadata) => Promise<void>;
-  unmuteTrack: (newTrackMetadata?: TrackMetadata) => Promise<void>;
-  updateTrackMetadata: (newTrackMetadata: TrackMetadata) => void;
+  stopStreaming: () => Promise<void>;
+  muteTrack: () => Promise<void>;
+  unmuteTrack: () => Promise<void>;
+}
+
+export type CameraAPI<TrackMetadata> = {
   broadcast: Track<TrackMetadata> | null;
   status: DevicesStatus | null; // todo how to remove null
   stream: MediaStream | null;
@@ -171,15 +171,6 @@ export type CameraAPI<TrackMetadata> = {
 };
 
 export type MicrophoneAPI<TrackMetadata> = {
-  stop: () => void;
-  setEnable: (value: boolean) => void;
-  start: (deviceId?: string) => void;
-  addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => Promise<string>;
-  removeTrack: () => Promise<void>;
-  replaceTrack: (newTrackMetadata?: TrackMetadata) => Promise<void>;
-  muteTrack: (newTrackMetadata?: TrackMetadata) => Promise<void>;
-  unmuteTrack: (newTrackMetadata?: TrackMetadata) => Promise<void>;
-  updateTrackMetadata: (newTrackMetadata: TrackMetadata) => void;
   broadcast: Track<TrackMetadata> | null;
   status: DevicesStatus | null;
   stream: MediaStream | null;
@@ -192,18 +183,13 @@ export type MicrophoneAPI<TrackMetadata> = {
 };
 
 export type ScreenShareAPI<TrackMetadata> = {
-  stop: () => void;
-  setEnable: (value: boolean) => void;
-  start: (config?: ScreenShareManagerConfig) => void;
-  addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => Promise<string>;
-  removeTrack: () => Promise<void>;
   broadcast: Track<TrackMetadata> | null;
   status: DevicesStatus | null;
   stream: MediaStream | null;
-  // todo is mediaStatus necessary?,
-  mediaStatus: MediaStatus | null;
   track: MediaStreamTrack | null;
   enabled: boolean;
+  // todo is mediaStatus necessary?,
+  mediaStatus: MediaStatus | null;
   error: DeviceError | null;
 };
 
@@ -211,8 +197,6 @@ export type Devices<TrackMetadata> = {
   camera: CameraAPI<TrackMetadata>;
   microphone: MicrophoneAPI<TrackMetadata>;
   screenShare: ScreenShareAPI<TrackMetadata>;
-  init: (config?: DeviceManagerConfig) => void;
-  start: (config: DeviceManagerStartConfig) => void;
 };
 
 export const PERMISSION_DENIED: DeviceError = { name: "NotAllowedError" };

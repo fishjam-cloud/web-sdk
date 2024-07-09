@@ -6,9 +6,12 @@ import type {
   TrackBandwidthLimit,
   TrackEncoding,
 } from './types';
-import { isTrackKind, mapMediaEventTracksToTrackContextImpl } from './internal';
 import type { EndpointWithTrackContext } from './internal';
-import { TrackContextImpl } from './internal';
+import {
+  isTrackKind,
+  mapMediaEventTracksToTrackContextImpl,
+  TrackContextImpl,
+} from './internal';
 import {
   findSender,
   findSenderByTrack,
@@ -107,7 +110,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
    * webrtc.disableTrackEncoding(trackId, "l");
    * ```
    */
-  public disableTrackEncoding(trackId: string, encoding: TrackEncoding) {
+  public disableTrackEncoding = (trackId: string, encoding: TrackEncoding) => {
     const track = this.localTrackIdToTrack.get(trackId)?.track;
     this.disabledTrackEncodings.get(trackId)!.push(encoding);
 
@@ -126,7 +129,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
       trackId,
       encoding,
     });
-  }
+  };
 
   private onTrack = () => {
     return (event: RTCTrackEvent) => {
@@ -161,7 +164,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
       trackId.startsWith(track),
     );
 
-  public onTracksAdded(data: any) {
+  public onTracksAdded = (data: any) => {
     if (this.getEndpointId() === data.endpointId) return;
     data.tracks = new Map<string, any>(Object.entries(data.tracks));
     const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
@@ -184,9 +187,9 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
         this.webrtc.emit('trackAdded', ctx);
       }
     });
-  }
+  };
 
-  public onTracksRemoved(data: any) {
+  public onTracksRemoved = (data: any) => {
     const endpointId = data.endpointId;
     if (this.getEndpointId() === endpointId) return;
     const trackIds = data.trackIds as string[];
@@ -197,9 +200,9 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
 
       this.webrtc.emit('trackRemoved', trackContext);
     });
-  }
+  };
 
-  public onSdpAnswer(data: any) {
+  public onSdpAnswer = (data: any) => {
     this.midToTrackId = new Map(Object.entries(data.midToTrackId));
 
     for (const trackId of Object.values(data.midToTrackId)) {
@@ -222,11 +225,11 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     }
 
     this.onAnswer(data);
-  }
+  };
 
-  public onEndpointAdded(
+  public onEndpointAdded = (
     endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
-  ) {
+  ) => {
     if (endpoint.id === this.getEndpointId()) return;
     endpoint.rawMetadata = endpoint.metadata;
     try {
@@ -239,9 +242,9 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     this.addEndpoint(endpoint);
 
     this.webrtc.emit('endpointAdded', endpoint);
-  }
+  };
 
-  public onEndpointUpdated(data: any) {
+  public onEndpointUpdated = (data: any) => {
     if (this.getEndpointId() === data.id) return;
     const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
       this.idToEndpoint.get(data.id)!;
@@ -257,9 +260,9 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     this.addEndpoint(endpoint);
 
     this.webrtc.emit('endpointUpdated', endpoint);
-  }
+  };
 
-  public onEndpointRemoved(data: any) {
+  public onEndpointRemoved = (data: any) => {
     const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
       this.idToEndpoint.get(data.id)!;
     if (endpoint === undefined) return;
@@ -271,9 +274,9 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     this.eraseEndpoint(endpoint);
 
     this.webrtc.emit('endpointRemoved', endpoint);
-  }
+  };
 
-  public onTrackUpdated(data: any) {
+  public onTrackUpdated = (data: any) => {
     if (this.getEndpointId() === data.endpointId) return;
 
     const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
@@ -310,9 +313,9 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     endpoint.tracks.set(trackId, newTrack);
 
     this.webrtc.emit('trackUpdated', trackContext);
-  }
+  };
 
-  public onTrackEncodingDisabled(data: any) {
+  public onTrackEncodingDisabled = (data: any) => {
     if (this.getEndpointId() === data.endpointId) return;
 
     const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
@@ -327,9 +330,9 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     const trackContext = endpoint.tracks.get(trackId)!;
 
     this.webrtc.emit('trackEncodingDisabled', trackContext, encoding);
-  }
+  };
 
-  public onTrackEncodingEnabled(data: any) {
+  public onTrackEncodingEnabled = (data: any) => {
     if (this.getEndpointId() === data.endpointId) return;
 
     const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
@@ -344,18 +347,18 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     const trackContext = endpoint.tracks.get(trackId)!;
 
     this.webrtc.emit('trackEncodingEnabled', trackContext, encoding);
-  }
+  };
 
-  public onEncodingSwitched(data: any) {
+  public onEncodingSwitched = (data: any) => {
     const trackId = data.trackId;
     const trackContext = this.trackIdToTrack.get(trackId)!;
     trackContext.encoding = data.encoding;
     trackContext.encodingReason = data.reason;
 
     trackContext.emit('encodingChanged', trackContext);
-  }
+  };
 
-  public onVadNotification(data: any) {
+  public onVadNotification = (data: any) => {
     const trackId = data.trackId;
     const ctx = this.trackIdToTrack.get(trackId)!;
     const vadStatus = data.status;
@@ -365,44 +368,42 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     } else {
       console.warn('Received unknown vad status: ', vadStatus);
     }
-  }
+  };
 
-  public onBandwidthEstimation(data: any) {
+  public onBandwidthEstimation = (data: any) => {
     this.bandwidthEstimation = data.estimation;
 
     this.webrtc.emit('bandwidthEstimationChanged', this.bandwidthEstimation);
-  }
+  };
 
-  public validateAddTrack(
+  public validateAddTrack = (
     track: MediaStreamTrack,
     simulcastConfig: SimulcastConfig,
     maxBandwidth: TrackBandwidthLimit,
-  ): string | null {
-    const isUsedTrack = isTrackInUse(this.connection, track);
-
-    let error;
-    if (isUsedTrack) {
-      error =
-        "This track was already added to peerConnection, it can't be added again!";
+  ): string | null => {
+    if (this.getEndpointId() === '') {
+      return 'Cannot add tracks before being accepted by the server';
     }
 
-    if (!simulcastConfig.enabled && !(typeof maxBandwidth === 'number'))
-      error =
-        'Invalid type of `maxBandwidth` argument for a non-simulcast track, expected: number';
-    if (this.getEndpointId() === '')
-      error = 'Cannot add tracks before being accepted by the server';
+    if (!simulcastConfig.enabled && !(typeof maxBandwidth === 'number')) {
+      return 'Invalid type of `maxBandwidth` argument for a non-simulcast track, expected: number';
+    }
 
-    return error ?? null;
-  }
+    if (isTrackInUse(this.connection, track)) {
+      return "This track was already added to peerConnection, it can't be added again!";
+    }
 
-  public addTrackHandler(
+    return null;
+  };
+
+  public addTrackHandler = (
     trackId: string,
     track: MediaStreamTrack,
     stream: MediaStream,
     trackMetadata: TrackMetadata | undefined,
     simulcastConfig: SimulcastConfig,
     maxBandwidth: TrackBandwidthLimit,
-  ) {
+  ) => {
     this.negotiationManager.ongoingRenegotiation = true;
 
     const trackContext = new TrackContextImpl(
@@ -441,9 +442,9 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     });
     const mediaEvent = generateCustomEvent({ type: 'renegotiateTracks' });
     this.webrtc.sendMediaEvent(mediaEvent);
-  }
+  };
 
-  public removeTrackHandler(trackId: string) {
+  public removeTrackHandler = (trackId: string) => {
     const trackContext = this.localTrackIdToTrack.get(trackId)!;
     const sender = findSender(this.connection, trackContext.track!.id);
 
@@ -454,13 +455,13 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     this.webrtc.sendMediaEvent(mediaEvent);
     this.localTrackIdToTrack.delete(trackId);
     this.localEndpoint.tracks.delete(trackId);
-  }
+  };
 
-  public async replaceTrackHandler(
+  public replaceTrackHandler = async (
     trackId: string,
     newTrack: MediaStreamTrack | null,
     newTrackMetadata?: TrackMetadata,
-  ) {
+  ): Promise<void> => {
     // todo add validation to track.kind, you cannot replace video with audio
 
     const trackContext = this.localTrackIdToTrack.get(trackId)!;
@@ -509,7 +510,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
       this.ongoingTrackReplacement = false;
       // this.processNextCommand();
     }
-  }
+  };
 
   private addEndpoint = (
     endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,

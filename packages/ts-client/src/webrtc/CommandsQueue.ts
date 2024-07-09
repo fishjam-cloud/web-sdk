@@ -17,7 +17,7 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
     this.negotiationManager = negotiationManager;
   }
 
-  public setupEventListeners(connection: RTCPeerConnection) {
+  public setupEventListeners = (connection: RTCPeerConnection) => {
     const onSignalingStateChange = () => {
       switch (this.stateManager.connection?.signalingState) {
         case 'stable':
@@ -81,17 +81,17 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
       onIceConnectionStateChange,
     );
     connection.addEventListener('signalingstatechange', onSignalingStateChange);
-  }
+  };
 
   private commandsQueue: Command[] = [];
   private commandResolutionNotifier: Deferred<void> | null = null;
 
-  public pushCommand(command: Command) {
+  public pushCommand = (command: Command) => {
     this.commandsQueue.push(command);
     this.processNextCommand();
-  }
+  };
 
-  private isConnectionUnstable() {
+  private isConnectionUnstable = () => {
     const connection = this.stateManager.connection;
     if (connection === undefined) return false;
 
@@ -100,16 +100,16 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
     const isIceNotConnected = connection.iceConnectionState !== 'connected';
 
     return isSignalingUnstable && isConnectionNotConnected && isIceNotConnected;
-  }
+  };
 
-  private isNegotiationInProgress() {
+  private isNegotiationInProgress = () => {
     return (
       this.negotiationManager.ongoingRenegotiation ||
       this.stateManager.ongoingTrackReplacement
     );
-  }
+  };
 
-  public processNextCommand() {
+  public processNextCommand = () => {
     if (this.isNegotiationInProgress()) return;
     if (this.isConnectionUnstable()) return;
 
@@ -121,9 +121,9 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
 
     this.commandResolutionNotifier = command.resolutionNotifier;
     this.handleCommand(command);
-  }
+  };
 
-  private handleCommand(command: Command) {
+  private handleCommand = (command: Command) => {
     const error = command.validate?.();
 
     if (error) {
@@ -138,19 +138,19 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
         this.processNextCommand();
       }
     }
-  }
+  };
 
-  private resolvePreviousCommand() {
+  private resolvePreviousCommand = () => {
     if (!this.commandResolutionNotifier) return;
 
     this.commandResolutionNotifier.resolve();
     this.commandResolutionNotifier = null;
-  }
+  };
 
-  public cleanUp() {
+  public cleanUp = () => {
     this.commandResolutionNotifier?.reject('Disconnected');
     this.commandResolutionNotifier = null;
     this.commandsQueue = [];
     this.clearConnectionCallbacks?.();
-  }
+  };
 }

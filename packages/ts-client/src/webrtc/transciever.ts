@@ -176,19 +176,16 @@ const getTransceiverMapping = <EndpointMetadata, TrackMetadata>(
   connection
     .getTransceivers()
     .filter((transceiver) => transceiver.sender.track?.id && transceiver.mid)
-    .reduce(
-      (acc, transceiver) => {
-        const localTrackId = transceiver.sender.track!.id;
-        const mid = transceiver!.mid!;
+    .reduce((acc, transceiver) => {
+      const localTrackId = transceiver.sender.track!.id;
+      const mid = transceiver!.mid!;
 
-        const trackContext = getTrackContext(localTrackIdToTrack, localTrackId);
+      const trackContext = getTrackContext(localTrackIdToTrack, localTrackId);
 
-        acc[mid] = trackContext.trackId;
+      acc[mid] = trackContext.trackId;
 
-        return acc;
-      },
-      {} as Record<Mid, TrackId>,
-    );
+      return acc;
+    }, {} as MidToTrackId);
 
 const getAllNegotiatedLocalTracksMapping = <EndpointMetadata, TrackMetadata>(
   midToTrackId: Map<string, string> = new Map(),
@@ -198,6 +195,6 @@ const getAllNegotiatedLocalTracksMapping = <EndpointMetadata, TrackMetadata>(
     .filter(([_mid, trackId]) => localEndpoint.tracks.get(trackId))
     .reduce(
       (acc, [mid, trackId]) => ({ ...acc, [mid]: trackId }),
-      {} as Record<Mid, TrackId>,
+      {} as MidToTrackId,
     );
 };

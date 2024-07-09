@@ -1,30 +1,33 @@
+export type TurnServer = {
+  transport: string;
+  password: string;
+  serverAddr: string;
+  serverPort: string;
+  username: string;
+};
+
+/**
+ * Configures TURN servers for WebRTC connections by adding them to the provided RTCConfiguration object.
+ */
 export const setTurns = (
-  turnServers: any[],
+  turnServers: TurnServer[],
   rtcConfig: RTCConfiguration,
 ): void => {
-  turnServers.forEach((turnServer: any) => {
-    let transport, uri;
-    if (turnServer.transport == 'tls') {
-      transport = 'tcp';
-      uri = 'turns';
-    } else {
-      transport = turnServer.transport;
-      uri = 'turn';
-    }
+  turnServers
+    .map((turnServer: TurnServer) => {
+      const transport =
+        turnServer.transport === 'tls' ? 'tcp' : turnServer.transport;
+      const uri = turnServer.transport === 'tls' ? 'turns' : 'turn';
+      const address = turnServer.serverAddr;
+      const port = turnServer.serverPort;
 
-    const rtcIceServer: RTCIceServer = {
-      credential: turnServer.password,
-      urls: uri.concat(
-        ':',
-        turnServer.serverAddr,
-        ':',
-        turnServer.serverPort,
-        '?transport=',
-        transport,
-      ),
-      username: turnServer.username,
-    };
-
-    rtcConfig.iceServers!.push(rtcIceServer);
-  });
+      return {
+        credential: turnServer.password,
+        urls: uri.concat(':', address, ':', port, '?transport=', transport),
+        username: turnServer.username,
+      } satisfies RTCIceServer;
+    })
+    .forEach((rtcIceServer) => {
+      rtcConfig.iceServers!.push(rtcIceServer);
+    });
 };

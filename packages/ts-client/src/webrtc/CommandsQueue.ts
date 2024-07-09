@@ -5,7 +5,7 @@ import type { NegotiationManager } from './NegotiationManager';
 
 export class CommandsQueue<EndpointMetadata, TrackMetadata> {
   private readonly stateManager: StateManager<EndpointMetadata, TrackMetadata>;
-  private negotiationManager: NegotiationManager;
+  private readonly negotiationManager: NegotiationManager;
 
   private clearConnectionCallbacks: (() => void) | null = null;
 

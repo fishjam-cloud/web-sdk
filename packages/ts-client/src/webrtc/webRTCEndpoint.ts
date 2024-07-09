@@ -42,7 +42,7 @@ export class WebRTCEndpoint<
   EndpointMetadata = any,
   TrackMetadata = any,
 > extends (EventEmitter as {
-  new<EndpointMetadata, TrackMetadata>(): TypedEmitter<
+  new <EndpointMetadata, TrackMetadata>(): TypedEmitter<
     Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>
   >;
 })<EndpointMetadata, TrackMetadata> {
@@ -72,7 +72,10 @@ export class WebRTCEndpoint<
       this.endpointMetadataParser,
       this.trackMetadataParser,
     );
-    this.commandsQueue = new CommandsQueue(this.stateManager, this.negotiationManager,);
+    this.commandsQueue = new CommandsQueue(
+      this.stateManager,
+      this.negotiationManager,
+    );
   }
 
   /**
@@ -426,15 +429,22 @@ export class WebRTCEndpoint<
       this.commandsQueue.pushCommand({
         commandType: 'COMMAND-WITH-HANDLER',
         handler: () => {
-          this.stateManager.addTrackHandler(trackId,
+          this.stateManager.addTrackHandler(
+            trackId,
             track,
             stream,
             parsedMetadata,
             simulcastConfig,
-            maxBandwidth)
+            maxBandwidth,
+          );
         },
-        validate: () => this.stateManager.validateAddTrack(track, simulcastConfig, maxBandwidth),
-        resolve: "after-renegotiation",
+        validate: () =>
+          this.stateManager.validateAddTrack(
+            track,
+            simulcastConfig,
+            maxBandwidth,
+          ),
+        resolve: 'after-renegotiation',
         resolutionNotifier,
       });
     } catch (error) {
@@ -517,14 +527,10 @@ export class WebRTCEndpoint<
       this.commandsQueue.pushCommand({
         commandType: 'COMMAND-WITH-HANDLER',
         handler: () => {
-          this.stateManager.replaceTrackHandler(
-            trackId,
-            newTrack,
-            newMetadata,
-          )
+          this.stateManager.replaceTrackHandler(trackId, newTrack, newMetadata);
         },
         resolutionNotifier,
-        resolve: "immediately"
+        resolve: 'immediately',
       });
     } catch (error) {
       resolutionNotifier.reject(error);
@@ -684,10 +690,10 @@ export class WebRTCEndpoint<
     this.commandsQueue.pushCommand({
       commandType: 'COMMAND-WITH-HANDLER',
       handler: () => {
-        this.stateManager.removeTrackHandler(trackId)
+        this.stateManager.removeTrackHandler(trackId);
       },
       resolutionNotifier,
-      resolve: "after-renegotiation"
+      resolve: 'after-renegotiation',
     });
 
     return resolutionNotifier.promise.then(() => {

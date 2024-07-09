@@ -117,16 +117,16 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
   }
 
   private handleCommand(command: Command) {
-    const error = command.validate?.()
+    const error = command.validate?.();
 
     if (error) {
       this.commandResolutionNotifier?.reject(error);
       this.commandResolutionNotifier = null;
       this.processNextCommand();
     } else {
-      command.handler()
+      command.handler();
 
-      if (command.resolve === "immediately") {
+      if (command.resolve === 'immediately') {
         this.resolvePreviousCommand();
         this.processNextCommand();
       }

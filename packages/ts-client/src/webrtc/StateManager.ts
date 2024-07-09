@@ -1,18 +1,24 @@
 import type {
   LocalTrackId,
   MetadataParser,
-  RemoteTrackId, SimulcastConfig, TrackBandwidthLimit,
+  RemoteTrackId,
+  SimulcastConfig,
+  TrackBandwidthLimit,
   TrackEncoding,
 } from './types';
 import { isTrackKind, mapMediaEventTracksToTrackContextImpl } from './internal';
 import type { EndpointWithTrackContext } from './internal';
 import { TrackContextImpl } from './internal';
-import { findSender, findSenderByTrack, isTrackInUse } from './RTCPeerConnectionUtils';
+import {
+  findSender,
+  findSenderByTrack,
+  isTrackInUse,
+} from './RTCPeerConnectionUtils';
 import { generateCustomEvent, generateMediaEvent } from './mediaEvent';
 import type { WebRTCEndpoint } from './webRTCEndpoint';
 import { isVadStatus } from './voiceActivityDetection';
-import type { NegotiationManager } from "./NegotiationManager";
-import { addTrackToConnection, setTransceiverDirection } from "./transciever";
+import type { NegotiationManager } from './NegotiationManager';
+import { addTrackToConnection, setTransceiverDirection } from './transciever';
 
 export class StateManager<EndpointMetadata, TrackMetadata> {
   public trackIdToTrack: Map<
@@ -386,7 +392,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     if (this.getEndpointId() === '')
       error = 'Cannot add tracks before being accepted by the server';
 
-    return error ?? null
+    return error ?? null;
   }
 
   public addTrackHandler(
@@ -437,10 +443,9 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     this.webrtc.sendMediaEvent(mediaEvent);
   }
 
-
   public removeTrackHandler(trackId: string) {
     const trackContext = this.localTrackIdToTrack.get(trackId)!;
-    const sender = findSender(this.connection, trackContext.track!.id,);
+    const sender = findSender(this.connection, trackContext.track!.id);
 
     this.negotiationManager.ongoingRenegotiation = true;
 
@@ -505,7 +510,6 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
       // this.processNextCommand();
     }
   }
-
 
   private addEndpoint = (
     endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,

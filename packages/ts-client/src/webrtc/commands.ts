@@ -5,6 +5,5 @@ export type Command = {
   handler: () => void;
   validate?: () => string | null;
   resolutionNotifier: Deferred<void>;
-  resolve: "after-renegotiation" | "immediately";
-}
-
+  resolve: 'after-renegotiation' | 'immediately';
+};

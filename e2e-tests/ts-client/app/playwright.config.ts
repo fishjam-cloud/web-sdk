@@ -56,17 +56,9 @@ export default defineConfig({
           ],
           // default Google Chrome path on MacOS
           // executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-          executablePath:
-            "/Users/kamilstasiak/Library/Caches/ms-playwright/chromium-1091/chrome-mac/Chromium.app/Contents/MacOS/Chromium",
         },
       },
     },
-    // {
-    //   name: "safari",
-    //   use: {
-    //     ...devices["Desktop Safari"]
-    //   }
-    // }
   ],
 
   /* Run your local dev server before starting the tests */

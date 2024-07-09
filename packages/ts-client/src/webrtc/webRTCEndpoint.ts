@@ -889,7 +889,7 @@ export class WebRTCEndpoint<
       this.clearConnectionCallbacks?.();
       this.stateManager.connection.close();
 
-      this.commandsQueue.clenUp();
+      this.commandsQueue.cleanUp();
 
       this.stateManager.ongoingTrackReplacement = false;
       this.negotiationManager.ongoingRenegotiation = false;

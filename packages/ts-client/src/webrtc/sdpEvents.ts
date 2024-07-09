@@ -35,10 +35,11 @@ export const createSdpOfferEvent = <EndpointMetadata, TrackMetadata>(
 
 const getTrackIdToMetadata = <EndpointMetadata, TrackMetadata>(
   tracks: Map<string, TrackContext<EndpointMetadata, TrackMetadata>>,
-): Record<string, TrackMetadata | undefined> => {
-  const trackIdToMetadata: Record<string, TrackMetadata | undefined> = {};
-  Array.from(tracks.entries()).forEach(([trackId, { metadata }]) => {
-    trackIdToMetadata[trackId] = metadata;
-  });
-  return trackIdToMetadata;
-};
+): Record<string, TrackMetadata | undefined> =>
+  Array.from(tracks.entries()).reduce(
+    (previousValue, [trackId, { metadata }]) => ({
+      ...previousValue,
+      [trackId]: metadata,
+    }),
+    {} as Record<string, TrackMetadata | undefined>,
+  );

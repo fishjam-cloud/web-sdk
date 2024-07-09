@@ -91,20 +91,27 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
     this.processNextCommand();
   }
 
-  public processNextCommand() {
-    if (
+  private isConnectionUnstable() {
+    const connection = this.stateManager.connection;
+    if (connection === undefined) return false;
+
+    const isSignalingUnstable = connection.signalingState !== 'stable';
+    const isConnectionNotConnected = connection.connectionState !== 'connected';
+    const isIceNotConnected = connection.iceConnectionState !== 'connected';
+
+    return isSignalingUnstable && isConnectionNotConnected && isIceNotConnected;
+  }
+
+  private isNegotiationInProgress() {
+    return (
       this.negotiationManager.ongoingRenegotiation ||
       this.stateManager.ongoingTrackReplacement
-    )
-      return;
+    );
+  }
 
-    if (
-      this.stateManager.connection &&
-      (this.stateManager.connection.signalingState !== 'stable' ||
-        this.stateManager.connection.connectionState !== 'connected' ||
-        this.stateManager.connection.iceConnectionState !== 'connected')
-    )
-      return;
+  public processNextCommand() {
+    if (this.isNegotiationInProgress()) return;
+    if (this.isConnectionUnstable()) return;
 
     this.resolvePreviousCommand();
 
@@ -134,13 +141,13 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
   }
 
   private resolvePreviousCommand() {
-    if (this.commandResolutionNotifier) {
-      this.commandResolutionNotifier.resolve();
-      this.commandResolutionNotifier = null;
-    }
+    if (!this.commandResolutionNotifier) return;
+
+    this.commandResolutionNotifier.resolve();
+    this.commandResolutionNotifier = null;
   }
 
-  public clenUp() {
+  public cleanUp() {
     this.commandResolutionNotifier?.reject('Disconnected');
     this.commandResolutionNotifier = null;
     this.commandsQueue = [];

@@ -3,6 +3,20 @@ import { simulcastTransceiverConfig } from './const';
 import { applyBandwidthLimitation } from './bandwidth';
 import type { EndpointWithTrackContext, TrackContextImpl } from './internal';
 
+const getNeededTransceiversTypes = (
+  type: string,
+  recvTransceivers: RTCRtpTransceiver[],
+  serverTracks: Map<string, number>,
+): string[] => {
+  const typeNumber = serverTracks.get(type) ?? 0;
+
+  const typeTransceiversNumber = recvTransceivers.filter(
+    (elem) => elem.receiver.track.kind === type,
+  ).length;
+
+  return Array(typeNumber - typeTransceiversNumber).fill(type);
+};
+
 export const addTransceiversIfNeeded = (
   connection: RTCPeerConnection | undefined,
   serverTracks: Map<string, number>,
@@ -10,24 +24,14 @@ export const addTransceiversIfNeeded = (
   const recvTransceivers = connection!
     .getTransceivers()
     .filter((elem) => elem.direction === 'recvonly');
-  let toAdd: string[] = [];
 
-  const getNeededTransceiversTypes = (type: string): string[] => {
-    let typeNumber = serverTracks.get(type);
-    typeNumber = typeNumber !== undefined ? typeNumber : 0;
-    const typeTransceiversNumber = recvTransceivers.filter(
-      (elem) => elem.receiver.track.kind === type,
-    ).length;
-    return Array(typeNumber - typeTransceiversNumber).fill(type);
-  };
-
-  const audio = getNeededTransceiversTypes('audio');
-  const video = getNeededTransceiversTypes('video');
-  toAdd = toAdd.concat(audio);
-  toAdd = toAdd.concat(video);
-
-  for (const kind of toAdd)
-    connection?.addTransceiver(kind, { direction: 'recvonly' });
+  ['audio', 'video']
+    .flatMap((type) =>
+      getNeededTransceiversTypes(type, recvTransceivers, serverTracks),
+    )
+    .forEach((kind) =>
+      connection?.addTransceiver(kind, { direction: 'recvonly' }),
+    );
 };
 
 export const setTransceiverDirection = (connection: RTCPeerConnection) => {
@@ -59,18 +63,11 @@ const createTransceiverConfig = <EndpointMetadata, TrackMetadata>(
   trackContext: TrackContext<EndpointMetadata, TrackMetadata>,
   disabledTrackEncodingsMap: Map<string, TrackEncoding[]>,
 ): RTCRtpTransceiverInit => {
-  let transceiverConfig: RTCRtpTransceiverInit;
-
   if (trackContext.track!.kind === 'audio') {
-    transceiverConfig = createAudioTransceiverConfig(trackContext);
-  } else {
-    transceiverConfig = createVideoTransceiverConfig(
-      trackContext,
-      disabledTrackEncodingsMap,
-    );
+    return createAudioTransceiverConfig(trackContext);
   }
 
-  return transceiverConfig;
+  return createVideoTransceiverConfig(trackContext, disabledTrackEncodingsMap);
 };
 
 const createAudioTransceiverConfig = <EndpointMetadata, TrackMetadata>(
@@ -200,11 +197,7 @@ const getAllNegotiatedLocalTracksMapping = <EndpointMetadata, TrackMetadata>(
   return [...midToTrackId.entries()]
     .filter(([_mid, trackId]) => localEndpoint.tracks.get(trackId))
     .reduce(
-      (acc, [mid, trackId]) => {
-        acc[mid] = trackId;
-
-        return acc;
-      },
+      (acc, [mid, trackId]) => ({ ...acc, [mid]: trackId }),
       {} as Record<Mid, TrackId>,
     );
 };

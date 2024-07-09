@@ -427,7 +427,6 @@ export class WebRTCEndpoint<
       stream.addTrack(track);
 
       this.commandsQueue.pushCommand({
-        commandType: 'COMMAND-WITH-HANDLER',
         handler: () => {
           this.stateManager.addTrackHandler(
             trackId,
@@ -525,7 +524,6 @@ export class WebRTCEndpoint<
           : undefined;
 
       this.commandsQueue.pushCommand({
-        commandType: 'COMMAND-WITH-HANDLER',
         handler: () => {
           this.stateManager.replaceTrackHandler(trackId, newTrack, newMetadata);
         },
@@ -688,7 +686,6 @@ export class WebRTCEndpoint<
     const resolutionNotifier = new Deferred<void>();
 
     this.commandsQueue.pushCommand({
-      commandType: 'COMMAND-WITH-HANDLER',
       handler: () => {
         this.stateManager.removeTrackHandler(trackId);
       },

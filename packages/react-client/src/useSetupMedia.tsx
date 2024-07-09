@@ -312,9 +312,9 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
     useEffect(() => {
       const onScreenShareStop: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (event, client) => {
         const stream = client.devices.screenShare.broadcast?.stream;
-        if (isBroadcastedScreenShareTrackStopped("displayMedia", client.status, event, stream)) {
-          await client.devices.screenShare.removeTrack();
-        }
+        if (!isBroadcastedScreenShareTrackStopped("displayMedia", client.status, event, stream)) return;
+
+        await client.devices.screenShare.removeTrack();
       };
 
       state.client.on("deviceStopped", onScreenShareStop);

@@ -263,7 +263,9 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   };
 
   public onEndpointRemoved = (data: any) => {
-    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> | undefined = this.idToEndpoint.get(data.id);
+    const endpoint:
+      | EndpointWithTrackContext<EndpointMetadata, TrackMetadata>
+      | undefined = this.idToEndpoint.get(data.id);
     if (!endpoint) return;
 
     Array.from(endpoint.tracks.keys()).forEach((trackId) => {
@@ -278,8 +280,9 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   public onTrackUpdated = (data: any) => {
     if (this.getEndpointId() === data.endpointId) return;
 
-    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> | undefined =
-      this.idToEndpoint.get(data.endpointId);
+    const endpoint:
+      | EndpointWithTrackContext<EndpointMetadata, TrackMetadata>
+      | undefined = this.idToEndpoint.get(data.endpointId);
 
     if (!endpoint) throw `Endpoint with id: ${data.endpointId} doesn't exist`;
 

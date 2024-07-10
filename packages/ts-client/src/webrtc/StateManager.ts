@@ -23,47 +23,68 @@ import { isVadStatus } from './voiceActivityDetection';
 import type { NegotiationManager } from './NegotiationManager';
 import { addTrackToConnection, setTransceiverDirection } from './transciever';
 
+// localEndpoint + EndpointWithTrackContext
+
+// trackId from signaling Event + TrackContextImpl
+// endpointId from signaling Event + EndpointWithTrackContext
+
+// locally generated track id (uuid) + TrackContextImpl
+// locally generated track id (uuid) + RTCRtpSender
+// locally generated track id (uuid) + TrackEncoding
+
+// mid + trackId from signaling Event
+
+export type TrackData<EndpointMetadata, TrackMetadata> = {
+  id: string;
+  trackContextImpl: TrackContextImpl<EndpointMetadata, TrackMetadata>,
+  rtcRtpSender: RTCRtpSender,
+  trackEncoding: TrackEncoding[],
+}
+
 export class StateManager<EndpointMetadata, TrackMetadata> {
-  public trackIdToTrack: Map<
-    string,
-    TrackContextImpl<EndpointMetadata, TrackMetadata>
-  > = new Map();
+  // master object
   public connection?: RTCPeerConnection;
-  public idToEndpoint: Map<
-    string,
-    EndpointWithTrackContext<EndpointMetadata, TrackMetadata>
-  > = new Map();
-  public localEndpoint: EndpointWithTrackContext<
-    EndpointMetadata,
-    TrackMetadata
-  > = {
+
+  private localTrackIdsToData: Record<LocalTrackId, TrackData<EndpointMetadata, TrackMetadata>> = {}
+
+  private deleteLocalTrack = (trackId: LocalTrackId) {
+
+  }
+
+  // locally generated track id (uuid) + TrackContextImpl
+  public localTrackIdToTrack: Map<RemoteTrackId, TrackContextImpl<EndpointMetadata, TrackMetadata>> = new Map();
+  // locally generated track id (uuid) + RTCRtpSender
+  public trackIdToSender: Map<RemoteTrackId, {
+    remoteTrackId: RemoteTrackId;
+    localTrackId: LocalTrackId | null;
+    sender: RTCRtpSender | null;
+  }> = new Map();
+  // locally generated track id (uuid) + TrackEncoding
+  public disabledTrackEncodings: Map<string, TrackEncoding[]> = new Map();
+
+
+
+
+  // trackId from signaling Event + TrackContextImpl
+  public trackIdToTrack: Map<string, TrackContextImpl<EndpointMetadata, TrackMetadata>> = new Map();
+
+  // endpointId from signaling Event + EndpointWithTrackContext
+  public idToEndpoint: Map<string, EndpointWithTrackContext<EndpointMetadata, TrackMetadata>> = new Map();
+
+  // localEndpoint + EndpointWithTrackContext
+  public localEndpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> = {
     id: '',
     type: 'webrtc',
     metadata: undefined,
     rawMetadata: undefined,
     tracks: new Map(),
   };
-  public localTrackIdToTrack: Map<
-    RemoteTrackId,
-    TrackContextImpl<EndpointMetadata, TrackMetadata>
-  > = new Map();
-  public trackIdToSender: Map<
-    RemoteTrackId,
-    {
-      remoteTrackId: RemoteTrackId;
-      localTrackId: LocalTrackId | null;
-      sender: RTCRtpSender | null;
-    }
-  > = new Map();
-  public midToTrackId: Map<string, string> = new Map();
-  public disabledTrackEncodings: Map<string, TrackEncoding[]> = new Map();
-  public rtcConfig: RTCConfiguration = {
-    bundlePolicy: 'max-bundle',
-    iceServers: [],
-    iceTransportPolicy: 'relay',
-  };
-  public bandwidthEstimation: bigint = BigInt(0);
 
+  // mid + trackId from signaling Event
+  public midToTrackId: Map<string, string> = new Map();
+
+  public rtcConfig: RTCConfiguration = { bundlePolicy: 'max-bundle', iceServers: [], iceTransportPolicy: 'relay' };
+  public bandwidthEstimation: bigint = BigInt(0);
   public ongoingTrackReplacement: boolean = false;
 
   // temporary for webrtc.emit and webrtc.sendMediaEvent
@@ -542,6 +563,8 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     )!;
     this.midToTrackId.delete(mid);
     this.idToEndpoint.get(endpointId)!.tracks.delete(trackId);
+
+    this.deleteLocalTrack(trackId)
     this.disabledTrackEncodings.delete(trackId);
   };
 

@@ -206,21 +206,21 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     this.midToTrackId = new Map(Object.entries(data.midToTrackId));
 
     for (const trackId of Object.values(data.midToTrackId)) {
-      const track = this.localTrackIdToTrack.get(trackId as string);
+      const trackContext = this.localTrackIdToTrack.get(trackId as string);
 
-      // if is local track
-      if (track) {
-        track.negotiationStatus = 'done';
+      // if is local trackContext
+      if (trackContext) {
+        trackContext.negotiationStatus = 'done';
 
-        if (track.pendingMetadataUpdate) {
+        if (trackContext.pendingMetadataUpdate) {
           const mediaEvent = generateMediaEvent('updateTrackMetadata', {
             trackId,
-            trackMetadata: track.metadata,
+            trackMetadata: trackContext.metadata,
           });
           this.webrtc.sendMediaEvent(mediaEvent);
         }
 
-        track.pendingMetadataUpdate = false;
+        trackContext.pendingMetadataUpdate = false;
       }
     }
 
@@ -263,9 +263,8 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   };
 
   public onEndpointRemoved = (data: any) => {
-    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
-      this.idToEndpoint.get(data.id)!;
-    if (endpoint === undefined) return;
+    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> | undefined = this.idToEndpoint.get(data.id);
+    if (!endpoint) return;
 
     Array.from(endpoint.tracks.keys()).forEach((trackId) => {
       this.webrtc.emit('trackRemoved', this.trackIdToTrack.get(trackId)!);
@@ -279,11 +278,10 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   public onTrackUpdated = (data: any) => {
     if (this.getEndpointId() === data.endpointId) return;
 
-    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
-      this.idToEndpoint.get(data.endpointId)!;
+    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> | undefined =
+      this.idToEndpoint.get(data.endpointId);
 
-    if (endpoint == null)
-      throw `Endpoint with id: ${data.endpointId} doesn't exist`;
+    if (!endpoint) throw `Endpoint with id: ${data.endpointId} doesn't exist`;
 
     const trackId = data.trackId;
     const trackMetadata = data.metadata;
@@ -321,8 +319,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
       this.idToEndpoint.get(data.endpointId)!;
 
-    if (endpoint == null)
-      throw `Endpoint with id: ${data.endpointId} doesn't exist`;
+    if (!endpoint) throw `Endpoint with id: ${data.endpointId} doesn't exist`;
 
     const trackId = data.trackId;
     const encoding = data.encoding;
@@ -338,8 +335,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
       this.idToEndpoint.get(data.endpointId)!;
 
-    if (endpoint == null)
-      throw `Endpoint with id: ${data.endpointId} doesn't exist`;
+    if (!endpoint) throw `Endpoint with id: ${data.endpointId} doesn't exist`;
 
     const trackId = data.trackId;
     const encoding = data.encoding;
@@ -360,11 +356,12 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
 
   public onVadNotification = (data: any) => {
     const trackId = data.trackId;
-    const ctx = this.trackIdToTrack.get(trackId)!;
+    const trackContext = this.trackIdToTrack.get(trackId)!;
+
     const vadStatus = data.status;
     if (isVadStatus(vadStatus)) {
-      ctx.vadStatus = vadStatus;
-      ctx.emit('voiceActivityChanged', ctx);
+      trackContext.vadStatus = vadStatus;
+      trackContext.emit('voiceActivityChanged', trackContext);
     } else {
       console.warn('Received unknown vad status: ', vadStatus);
     }

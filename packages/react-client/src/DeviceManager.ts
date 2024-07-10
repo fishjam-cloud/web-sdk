@@ -1,10 +1,17 @@
-import type { DeviceManagerConfig, DeviceState, Media, GenericMediaManager, StorageConfig } from "./types";
+import type { DeviceManagerConfig, DeviceState, Media, GenericMediaManager, StorageConfig, GetMedia } from "./types";
 
 import { prepareMediaTrackConstraints, toMediaTrackConstraints } from "./constraints";
 
 import EventEmitter from "events";
 import type TypedEmitter from "typed-emitter";
-import { DISABLE_STORAGE_CONFIG, getDeviceInfo, getLocalStorageConfig, getMedia } from "./utils/media";
+import {
+  DISABLE_STORAGE_CONFIG,
+  getDeviceInfo,
+  getError,
+  getLocalStorageConfig,
+  getMedia,
+  prepareDeviceState,
+} from "./utils/media";
 
 export type DeviceManagerEvents = {
   managerStarted: (
@@ -82,8 +89,16 @@ export class DeviceManager
 
   public getMedia = () => this.deviceState.media;
 
-  public initializeWithDeviceState = (state: DeviceState) => {
-    this.deviceState = state;
+  public initialize = (getMediaResult: GetMedia, devices: MediaDeviceInfo[]) => {
+    const stream = getMediaResult.type === "OK" ? getMediaResult.stream : null;
+
+    this.deviceState = prepareDeviceState(
+      stream,
+      stream?.getVideoTracks()[0] || null,
+      devices.filter((device) => device.kind === `${this.deviceType}input`),
+      getError(getMediaResult, this.deviceType),
+      !!getMediaResult.constraints[this.deviceType],
+    );
 
     const deviceInfo = this.deviceState.media?.deviceInfo;
     if (deviceInfo) this.saveLastDevice(deviceInfo);

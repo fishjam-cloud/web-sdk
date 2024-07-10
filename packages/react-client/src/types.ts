@@ -248,7 +248,7 @@ export type CreateFishjamClient<PeerMetadata, TrackMetadata> = {
   useSetupMedia: (config: UseSetupMediaConfig<TrackMetadata>) => UseSetupMediaResult;
   useCamera: () => Devices<TrackMetadata>["camera"] & GenericTrackManager<TrackMetadata>;
   useMicrophone: () => Devices<TrackMetadata>["microphone"] & GenericTrackManager<TrackMetadata>;
-  useScreenShare: () => ScreenShareAPI<TrackMetadata> & GenericTrackManager<TrackMetadata>;
+  useScreenShare: () => ScreenShareAPI<TrackMetadata>;
   useClient: () => Client<PeerMetadata, TrackMetadata>;
   useReconnection: () => UseReconnection;
 };

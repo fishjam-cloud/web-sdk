@@ -8,7 +8,6 @@ import {
   getCurrentDevicesSettings,
   stopTracks,
   isAnyDeviceDifferentFromLastSession,
-  getError,
 } from "./utils/media";
 
 interface MediaConstraints {
@@ -21,17 +20,7 @@ interface PreviousDevices {
   video: MediaDeviceInfo | null;
 }
 
-type MediaInitializerResult = {
-  stream: MediaStream | null;
-  devices: MediaDeviceInfo[];
-  audioError?: DeviceError | null;
-  videoError?: DeviceError | null;
-};
-
-export const mediaInitializer = async (
-  constraints: MediaConstraints,
-  previousDevices: PreviousDevices,
-): Promise<MediaInitializerResult> => {
+export const getAvailableMedia = async (constraints: MediaConstraints) => {
   let result: GetMedia = await getMedia(constraints, {});
 
   if (result.type === "Error" && result.error?.name === "NotFoundError") {
@@ -46,27 +35,31 @@ export const mediaInitializer = async (
     result = await handleNotAllowedError(result.constraints);
   }
 
-  const devices: MediaDeviceInfo[] = await navigator.mediaDevices.enumerateDevices();
+  return result;
+};
 
-  if (result.type !== "OK")
-    return { stream: null, devices, audioError: getError(result, "audio"), videoError: getError(result, "video") };
+// Safari changes deviceId between sessions, therefore we cannot rely on deviceId for identification purposes.
+// We can switch a random device that comes from safari to one that has the same label as the one used in the previous session.
+export const getCorrectedResult = async (
+  result: GetMedia,
+  devices: MediaDeviceInfo[],
+  constraints: MediaConstraints,
+  previousDevices: PreviousDevices,
+) => {
+  if (result.type !== "OK") return;
 
-  const stream = result.stream;
-
-  // Safari changes deviceId between sessions, therefore we cannot rely on deviceId for identification purposes.
-  // We can switch a random device that comes from safari to one that has the same label as the one used in the previous session.
   const shouldCorrectDevices = isAnyDeviceDifferentFromLastSession(
     previousDevices.video,
     previousDevices.audio,
-    getCurrentDevicesSettings(stream, devices),
+    getCurrentDevicesSettings(result.stream, devices),
   );
 
-  if (!shouldCorrectDevices) return { stream, devices };
+  if (!shouldCorrectDevices) return;
 
   const videoIdToStart = devices.find((info) => info.label === previousDevices.video?.label)?.deviceId;
   const audioIdToStart = devices.find((info) => info.label === previousDevices.audio?.label)?.deviceId;
 
-  if (!videoIdToStart && !audioIdToStart) return { stream, devices };
+  if (!videoIdToStart && !audioIdToStart) return;
 
   stopTracks(result.stream);
 
@@ -79,13 +72,8 @@ export const mediaInitializer = async (
 
   if (correctedResult.type !== "OK") {
     console.error("Device Manager unexpected error");
-    return { stream: null, devices };
+    return correctedResult;
   }
 
-  return {
-    stream: correctedResult.stream,
-    devices,
-    audioError: getError(result, "audio"),
-    videoError: getError(result, "video"),
-  };
+  return correctedResult;
 };

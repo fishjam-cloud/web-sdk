@@ -28,8 +28,7 @@ import type {
 } from "./types";
 import { DeviceManager, DeviceManagerEvents } from "./DeviceManager";
 import { TrackManager } from "./trackManager";
-import { mediaInitializer } from "./mediaInitializer";
-import { getError, prepareDeviceState } from "./utils/media";
+import { getAvailableMedia, getCorrectedResult } from "./mediaInitializer";
 
 export type ClientApi<PeerMetadata, TrackMetadata> = {
   local: PeerState<PeerMetadata, TrackMetadata> | null;
@@ -890,26 +889,16 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       audio: this.audioDeviceManager.getLastDevice(),
     };
 
-    const { stream, devices, audioError, videoError } = await mediaInitializer(constraints, previousDevices);
+    const getMediaResult = await getAvailableMedia(constraints);
 
-    const videoState: DeviceState = prepareDeviceState(
-      stream,
-      stream?.getVideoTracks()[0] || null,
-      devices.filter((device) => device.kind === "videoinput"),
-      videoError ?? null,
-      !!constraints.video,
-    );
+    const devices = await navigator.mediaDevices.enumerateDevices();
 
-    const audioState: DeviceState = prepareDeviceState(
-      stream,
-      stream?.getAudioTracks()[0] || null,
-      devices.filter((device) => device.kind === "audioinput"),
-      audioError ?? null,
-      !!constraints.audio,
-    );
+    const correctedResult = await getCorrectedResult(getMediaResult, devices, constraints, previousDevices);
 
-    this.videoDeviceManager.initializeWithDeviceState(videoState);
-    this.audioDeviceManager.initializeWithDeviceState(audioState);
+    const finalResult = correctedResult ?? getMediaResult;
+
+    this.videoDeviceManager.initialize(finalResult, devices);
+    this.audioDeviceManager.initialize(finalResult, devices);
   };
 
   public startDevices = async (config: DeviceManagerStartConfig) => {

@@ -52,11 +52,14 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
 
     useEffect(() => {
       if (!configRef.current.startOnMount) return;
-      if (state.client.audioDeviceManager.getStatus() === "uninitialized") {
-        state.client.audioDeviceManager.init(configRef.current?.microphone?.trackConstraints);
-      }
-      if (state.client.videoDeviceManager.getStatus() === "uninitialized") {
-        state.client.videoDeviceManager.init(configRef.current?.camera?.trackConstraints);
+      if (
+        state.client.audioDeviceManager.getStatus() === "uninitialized" ||
+        state.client.videoDeviceManager.getStatus() === "uninitialized"
+      ) {
+        state.client.initializeDevices({
+          audioTrackConstraints: configRef?.current.camera.trackConstraints,
+          videoTrackConstraints: configRef?.current.camera.trackConstraints,
+        });
       }
       // eslint-disable-next-line
     }, []);

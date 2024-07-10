@@ -410,12 +410,12 @@ export const MainControls = () => {
             status={status}
             metadata={MANUAL_AUDIO_TRACK_METADATA}
           />
-          <DeviceControls
+          {/* <DeviceControls
             device={screenShare}
             type="screenshare"
             status={status}
             metadata={MANUAL_SCREEN_SHARE_TRACK_METADATA}
-          />
+          /> */}
         </div>
       </div>
       <div>

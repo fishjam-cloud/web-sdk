@@ -72,6 +72,8 @@ export class ScreenShareManager extends (EventEmitter as new () => TypedEmitter<
     return null;
   }
 
+  public getMedia = () => this.data.videoMedia;
+
   public async start(config?: ScreenShareManagerConfig) {
     const options: DisplayMediaStreamOptions = {
       video:

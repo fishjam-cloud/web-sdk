@@ -11,7 +11,7 @@ import type {
   FishjamContextType,
   FishjamContextProviderProps,
   UseConnect,
-  MediaManager,
+  GenericTrackManager,
 } from "./types";
 import { Client } from "./Client";
 import type { ScreenShareManagerConfig } from "./ScreenShareManager";
@@ -233,13 +233,13 @@ export const create = <PeerMetadata, TrackMetadata>(
   const useTracks = () => useSelector((s) => s.tracks);
   const useClient = () => useSelector((s) => s.client);
 
-  const useCamera = (): CameraAPI<TrackMetadata> & MediaManager<TrackMetadata> => {
+  const useCamera = (): CameraAPI<TrackMetadata> & GenericTrackManager<TrackMetadata> => {
     const { state } = useFishjamContext();
 
     return { ...state.devices.camera, ...state.videoTrackManager };
   };
 
-  const useMicrophone = (): MicrophoneAPI<TrackMetadata> & MediaManager<TrackMetadata> => {
+  const useMicrophone = (): MicrophoneAPI<TrackMetadata> & GenericTrackManager<TrackMetadata> => {
     const { state } = useFishjamContext();
 
     return { ...state.devices.microphone, ...state.audioTrackManager };

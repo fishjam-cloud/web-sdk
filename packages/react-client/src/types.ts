@@ -33,8 +33,7 @@ export type DeviceManagerInitConfig = {
 };
 
 export type DeviceManagerConfig = {
-  videoTrackConstraints?: boolean | MediaTrackConstraints;
-  audioTrackConstraints?: boolean | MediaTrackConstraints;
+  trackConstraints?: boolean | MediaTrackConstraints;
   startOnMount?: boolean;
   storage?: boolean | StorageConfig;
 };
@@ -143,7 +142,12 @@ export type UseSetupMediaResult = {
   init: () => void;
 };
 
-export interface MediaService<TrackMetadata> {
+export interface GenericMediaManager {
+  start: (deviceId?: string) => Promise<void>;
+  getMedia: () => { stream: MediaStream | null; track: MediaStreamTrack | null } | null;
+}
+
+export interface GenericTrackManager<TrackMetadata> {
   initialize: (deviceId?: string) => Promise<void>;
   cleanup: () => Promise<void>;
   startStreaming: (
@@ -181,6 +185,11 @@ export type MicrophoneAPI<TrackMetadata> = {
 };
 
 export type ScreenShareAPI<TrackMetadata> = {
+  stop: () => void;
+  setEnable: (value: boolean) => void;
+  start: (config?: ScreenShareManagerConfig) => void;
+  addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => Promise<string>;
+  removeTrack: () => Promise<void>;
   broadcast: Track<TrackMetadata> | null;
   status: DevicesStatus | null;
   stream: MediaStream | null;
@@ -237,9 +246,9 @@ export type CreateFishjamClient<PeerMetadata, TrackMetadata> = {
   useSelector: <Result>(selector: Selector<PeerMetadata, TrackMetadata, Result>) => Result;
   useTracks: () => Record<TrackId, TrackWithOrigin<PeerMetadata, TrackMetadata>>;
   useSetupMedia: (config: UseSetupMediaConfig<TrackMetadata>) => UseSetupMediaResult;
-  useCamera: () => Devices<TrackMetadata>["camera"];
-  useMicrophone: () => Devices<TrackMetadata>["microphone"];
-  useScreenShare: () => ScreenShareAPI<TrackMetadata>;
+  useCamera: () => Devices<TrackMetadata>["camera"] & GenericTrackManager<TrackMetadata>;
+  useMicrophone: () => Devices<TrackMetadata>["microphone"] & GenericTrackManager<TrackMetadata>;
+  useScreenShare: () => ScreenShareAPI<TrackMetadata> & GenericTrackManager<TrackMetadata>;
   useClient: () => Client<PeerMetadata, TrackMetadata>;
   useReconnection: () => UseReconnection;
 };

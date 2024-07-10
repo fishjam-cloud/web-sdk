@@ -16,8 +16,7 @@ import type {
 } from "@fishjam-dev/ts-client";
 import { FishjamClient } from "@fishjam-dev/ts-client";
 import type { PeerId, PeerState, PeerStatus, Track, TrackId, TrackWithOrigin } from "./state.types";
-import type { DeviceManagerEvents } from "./DeviceManager";
-import type { MediaDeviceType, ScreenShareManagerConfig } from "./ScreenShareManager";
+import type { MediaDeviceType, ScreenShareManagerConfig, TrackType } from "./ScreenShareManager";
 import { ScreenShareManager } from "./ScreenShareManager";
 import type {
   DeviceManagerConfig,
@@ -27,8 +26,10 @@ import type {
   DeviceState,
   MediaState,
 } from "./types";
-import { DeviceManager } from "./UnifiedDeviceManager";
+import { DeviceManager, DeviceManagerEvents } from "./DeviceManager";
 import { TrackManager } from "./trackManager";
+import { mediaInitializer } from "./mediaInitializer";
+import { getError, prepareDeviceState } from "./utils/media";
 
 export type ClientApi<PeerMetadata, TrackMetadata> = {
   local: PeerState<PeerMetadata, TrackMetadata> | null;
@@ -215,6 +216,7 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
   managerStarted: (
     event: Parameters<DeviceManagerEvents["managerInitialized"]>[0] & {
       mediaDeviceType: MediaDeviceType;
+      trackType: TrackType;
     },
     client: ClientApi<PeerMetadata, TrackMetadata>,
   ) => void;
@@ -223,30 +225,44 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
     client: ClientApi<PeerMetadata, TrackMetadata>,
   ) => void;
   deviceReady: (
-    event: Parameters<DeviceManagerEvents["deviceReady"]>[0] & { mediaDeviceType: MediaDeviceType },
+    event: Parameters<DeviceManagerEvents["deviceReady"]>[0] & {
+      mediaDeviceType: MediaDeviceType;
+      trackType: TrackType;
+    },
     client: ClientApi<PeerMetadata, TrackMetadata>,
   ) => void;
   devicesStarted: (
-    event: Parameters<DeviceManagerEvents["devicesStarted"]>[0] & { mediaDeviceType: MediaDeviceType },
+    event: Parameters<DeviceManagerEvents["devicesStarted"]>[0] & {
+      mediaDeviceType: MediaDeviceType;
+      trackType: TrackType;
+    },
     client: ClientApi<PeerMetadata, TrackMetadata>,
   ) => void;
   devicesReady: (
-    event: Parameters<DeviceManagerEvents["devicesReady"]>[0] & { mediaDeviceType: MediaDeviceType },
+    event: Parameters<DeviceManagerEvents["devicesReady"]>[0] & {
+      mediaDeviceType: MediaDeviceType;
+      trackType: TrackType;
+    },
     client: ClientApi<PeerMetadata, TrackMetadata>,
   ) => void;
   deviceStopped: (
-    event: Parameters<DeviceManagerEvents["deviceStopped"]>[0] & { mediaDeviceType: MediaDeviceType },
+    event: {
+      mediaDeviceType: MediaDeviceType;
+      trackType: TrackType;
+    },
     client: ClientApi<PeerMetadata, TrackMetadata>,
   ) => void;
   deviceEnabled: (
-    event: Parameters<DeviceManagerEvents["deviceEnabled"]>[0] & {
+    event: {
       mediaDeviceType: MediaDeviceType;
+      trackType: TrackType;
     },
     client: ClientApi<PeerMetadata, TrackMetadata>,
   ) => void;
   deviceDisabled: (
-    event: Parameters<DeviceManagerEvents["deviceDisabled"]>[0] & {
+    event: {
       mediaDeviceType: MediaDeviceType;
+      trackType: TrackType;
     },
     client: ClientApi<PeerMetadata, TrackMetadata>,
   ) => void;
@@ -338,8 +354,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
   private currentCameraTrackId: string | null = null;
   private currentScreenShareTrackId: string | null = null;
 
-  private videoDeviceManager: DeviceManager;
-  private audioDeviceManager: DeviceManager;
+  public videoDeviceManager: DeviceManager;
+  public audioDeviceManager: DeviceManager;
 
   public videoTrackManager: TrackManager<PeerMetadata, TrackMetadata>;
   public audioTrackManager: TrackManager<PeerMetadata, TrackMetadata>;
@@ -380,6 +396,11 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         devices: null,
       },
       screenShare: {
+        stop: () => {},
+        setEnable: () => {},
+        start: () => {},
+        addTrack: (_trackMetadata?: TrackMetadata, _maxBandwidth?: TrackBandwidthLimit) => Promise.reject(),
+        removeTrack: () => Promise.reject(),
         broadcast: null,
         status: null,
         stream: null,
@@ -549,16 +570,16 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       this.emit("bandwidthEstimationChanged", estimation, this);
     });
 
-    this.videoDeviceManager.on("deviceDisabled", () => {
+    this.videoDeviceManager.on("deviceDisabled", (state) => {
       this.stateToSnapshot();
 
-      this.emit("deviceDisabled", { trackType: "video", mediaDeviceType: "userMedia" }, this);
+      this.emit("deviceDisabled", { ...state, trackType: "video", mediaDeviceType: "userMedia" }, this);
     });
 
-    this.videoDeviceManager.on("deviceEnabled", () => {
+    this.videoDeviceManager.on("deviceEnabled", (state) => {
       this.stateToSnapshot();
 
-      this.emit("deviceEnabled", { trackType: "video", mediaDeviceType: "userMedia" }, this);
+      this.emit("deviceEnabled", { ...state, trackType: "video", mediaDeviceType: "userMedia" }, this);
     });
 
     this.videoDeviceManager.on("managerInitialized", () => {
@@ -567,16 +588,16 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       this.emit("managerInitialized", { mediaDeviceType: "userMedia" }, this);
     });
 
-    this.videoDeviceManager.on("managerStarted", () => {
+    this.videoDeviceManager.on("managerStarted", (state) => {
       this.stateToSnapshot();
 
-      this.emit("managerStarted", { mediaDeviceType: "userMedia" }, this);
+      this.emit("managerStarted", { ...state, trackType: "video", mediaDeviceType: "userMedia" }, this);
     });
 
-    this.videoDeviceManager.on("deviceStopped", () => {
+    this.videoDeviceManager.on("deviceStopped", (state) => {
       this.stateToSnapshot();
 
-      this.emit("deviceStopped", { trackType: "video", mediaDeviceType: "userMedia" }, this);
+      this.emit("deviceStopped", { ...state, trackType: "video", mediaDeviceType: "userMedia" }, this);
     });
 
     this.videoDeviceManager.on("deviceReady", ({ stream }) => {
@@ -591,16 +612,16 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       this.emit("error", event, this);
     });
 
-    this.audioDeviceManager.on("deviceDisabled", () => {
+    this.audioDeviceManager.on("deviceDisabled", (state) => {
       this.stateToSnapshot();
 
-      this.emit("deviceDisabled", { trackType: "audio", mediaDeviceType: "userMedia" }, this);
+      this.emit("deviceDisabled", { ...state, trackType: "audio", mediaDeviceType: "userMedia" }, this);
     });
 
-    this.audioDeviceManager.on("deviceEnabled", () => {
+    this.audioDeviceManager.on("deviceEnabled", (state) => {
       this.stateToSnapshot();
 
-      this.emit("deviceEnabled", { trackType: "audio", mediaDeviceType: "userMedia" }, this);
+      this.emit("deviceEnabled", { ...state, trackType: "audio", mediaDeviceType: "userMedia" }, this);
     });
 
     this.audioDeviceManager.on("managerInitialized", () => {
@@ -609,16 +630,16 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       this.emit("managerInitialized", { mediaDeviceType: "userMedia" }, this);
     });
 
-    this.audioDeviceManager.on("managerStarted", () => {
+    this.audioDeviceManager.on("managerStarted", (state) => {
       this.stateToSnapshot();
 
-      this.emit("managerStarted", { mediaDeviceType: "userMedia" }, this);
+      this.emit("managerStarted", { ...state, trackType: "audio", mediaDeviceType: "userMedia" }, this);
     });
 
-    this.audioDeviceManager.on("deviceStopped", () => {
+    this.audioDeviceManager.on("deviceStopped", (state) => {
       this.stateToSnapshot();
 
-      this.emit("deviceStopped", { trackType: "audio", mediaDeviceType: "userMedia" }, this);
+      this.emit("deviceStopped", { ...state, trackType: "audio", mediaDeviceType: "userMedia" }, this);
     });
 
     this.audioDeviceManager.on("deviceReady", ({ stream }) => {
@@ -769,8 +790,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
   }
 
   public setDeviceManagerConfig(config: DeviceManagerConfig) {
-    this.videoDeviceManager.setConfig(config.storage, config.videoTrackConstraints);
-    this.audioDeviceManager.setConfig(config.storage, config.audioTrackConstraints);
+    this.videoDeviceManager.setConfig(config.storage, config.trackConstraints);
+    this.audioDeviceManager.setConfig(config.storage, config.trackConstraints);
   }
 
   private trackContextToTrack(track: TrackContext<PeerMetadata, TrackMetadata>): Track<TrackMetadata> {
@@ -859,8 +880,36 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
   };
 
   public initializeDevices = async (config?: DeviceManagerInitConfig) => {
-    this.videoDeviceManager.init(config?.videoTrackConstraints);
-    this.audioDeviceManager.init(config?.audioTrackConstraints);
+    const constraints = {
+      video: this.videoDeviceManager.getConstraints(config?.videoTrackConstraints),
+      audio: this.audioDeviceManager.getConstraints(config?.audioTrackConstraints),
+    };
+
+    const previousDevices = {
+      video: this.videoDeviceManager.getLastDevice(),
+      audio: this.audioDeviceManager.getLastDevice(),
+    };
+
+    const { stream, devices, audioError, videoError } = await mediaInitializer(constraints, previousDevices);
+
+    const videoState: DeviceState = prepareDeviceState(
+      stream,
+      stream?.getVideoTracks()[0] || null,
+      devices.filter((device) => device.kind === "videoinput"),
+      videoError ?? null,
+      !!constraints.video,
+    );
+
+    const audioState: DeviceState = prepareDeviceState(
+      stream,
+      stream?.getAudioTracks()[0] || null,
+      devices.filter((device) => device.kind === "audioinput"),
+      audioError ?? null,
+      !!constraints.audio,
+    );
+
+    this.videoDeviceManager.initializeWithDeviceState(videoState);
+    this.audioDeviceManager.initializeWithDeviceState(audioState);
   };
 
   public startDevices = async (config: DeviceManagerStartConfig) => {
@@ -931,6 +980,44 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         devices: deviceManagerSnapshot?.audio?.devices || null,
       },
       screenShare: {
+        stop: () => {
+          this?.screenShareManager?.stop("video");
+        },
+        setEnable: (value: boolean) => this.screenShareManager?.setEnable("video", value),
+        start: (config?: ScreenShareManagerConfig) => {
+          this.screenShareManager?.start(config);
+        },
+        addTrack: async (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => {
+          const media = this.screenShareManager?.getSnapshot().videoMedia;
+
+          if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
+
+          if (this.currentScreenShareTrackId) throw Error("Screen share track already added");
+
+          const track = this.getRemoteTrack(media.track.id);
+
+          if (track) return track.trackId;
+
+          // see `getRemoteTrack()` explanation
+          this.currentScreenShareTrackId = media.track.id;
+
+          const trackId = await this.tsClient.addTrack(media.track, trackMetadata, undefined, maxBandwidth);
+
+          this.currentScreenShareTrackId = trackId;
+
+          return trackId;
+        },
+        removeTrack: () => {
+          if (!this.currentScreenShareTrackId) throw Error("There is no screen share track id");
+
+          const prevTrack = this.getRemoteTrack(this.currentScreenShareTrackId);
+
+          if (!prevTrack) throw Error("There is no screen share video track");
+
+          this.currentScreenShareTrackId = null;
+
+          return this.tsClient.removeTrack(prevTrack.trackId);
+        },
         broadcast: screenShareVideoTrack ?? null,
         status: screenShareManager?.status || null,
         mediaStatus: null,

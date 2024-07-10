@@ -54,7 +54,7 @@ export const DeviceControls = ({
         className="btn btn-success btn-sm"
         disabled={!device?.stream || device?.enabled}
         onClick={() => {
-          device?.setEnable(true);
+          device?(true);
         }}
       >
         Enable {type} track

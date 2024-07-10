@@ -51,11 +51,12 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
     }, [config, state.client]);
 
     useEffect(() => {
-      if (configRef.current.startOnMount && state.deviceManager.getStatus() === "uninitialized") {
-        state.devices.init({
-          audioTrackConstraints: configRef.current?.microphone?.trackConstraints,
-          videoTrackConstraints: configRef.current?.camera?.trackConstraints,
-        });
+      if (!configRef.current.startOnMount) return;
+      if (state.client.audioDeviceManager.getStatus() === "uninitialized") {
+        state.client.audioDeviceManager.init(configRef.current?.microphone?.trackConstraints);
+      }
+      if (state.client.videoDeviceManager.getStatus() === "uninitialized") {
+        state.client.videoDeviceManager.init(configRef.current?.camera?.trackConstraints);
       }
       // eslint-disable-next-line
     }, []);
@@ -68,6 +69,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
         client: ClientApi<PeerMetadata, TrackMetadata>,
       ) => {
         const config = configRef.current.camera;
+        const videoTrackManager = client.videoTrackManager;
         const onDeviceChange = config.onDeviceChange ?? "replace";
         const camera = client.devices.camera;
         const stream = camera.broadcast?.stream;
@@ -76,21 +78,21 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
           if (!stream && config.broadcastOnDeviceStart) {
             pending = true;
 
-            await camera
-              .addTrack(config.defaultTrackMetadata, config.defaultSimulcastConfig, config.defaultMaxBandwidth)
+            await videoTrackManager
+              .startStreaming(config.defaultTrackMetadata, config.defaultSimulcastConfig, config.defaultMaxBandwidth)
               .finally(() => {
                 pending = false;
               });
           } else if (stream && onDeviceChange === "replace") {
             pending = true;
 
-            await camera.replaceTrack().finally(() => {
+            await videoTrackManager.refreshStreamedTrack().finally(() => {
               pending = false;
             });
           } else if (stream && onDeviceChange === "remove") {
             pending = true;
 
-            await camera.removeTrack().finally(() => {
+            await videoTrackManager.stopStreaming().finally(() => {
               pending = false;
             });
           }
@@ -107,7 +109,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
       };
 
       const devicesReady: ClientEvents<PeerMetadata, TrackMetadata>["devicesReady"] = async (event, client) => {
-        if (event.video.restarted && event.video?.media?.stream) {
+        if (event.trackType === "video" && event.restarted && event?.media?.stream) {
           await broadcastOnCameraStart(event, client);
         }
       };
@@ -135,14 +137,15 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
         client,
       ) => {
         const camera = client.devices.camera;
+        const videoTrackManager = client.videoTrackManager;
         const stream = camera.broadcast?.stream;
         const onDeviceStop = configRef.current.camera.onDeviceStop ?? "mute";
 
         if (isBroadcastedTrackStopped("userMedia", "video", client.status, event, stream)) {
           if (onDeviceStop === "mute") {
-            await camera.muteTrack();
+            await videoTrackManager.muteTrack();
           } else {
-            await camera.removeTrack();
+            await videoTrackManager.stopStreaming();
           }
         }
       };
@@ -161,7 +164,11 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
         const config = configRef.current.camera;
 
         if (stream && config.broadcastOnConnect) {
-          await camera.addTrack(config.defaultTrackMetadata, config.defaultSimulcastConfig, config.defaultMaxBandwidth);
+          await client.videoTrackManager.startStreaming(
+            config.defaultTrackMetadata,
+            config.defaultSimulcastConfig,
+            config.defaultMaxBandwidth,
+          );
         }
       };
 
@@ -180,6 +187,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
         client: ClientApi<PeerMetadata, TrackMetadata>,
       ) => {
         const microphone = client.devices.microphone;
+        const audioTrackManager = client.audioTrackManager;
         const stream = microphone.broadcast?.stream;
         const config = configRef.current.microphone;
         const onDeviceChange = config.onDeviceChange ?? "replace";
@@ -188,19 +196,21 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
           if (!stream && config.broadcastOnDeviceStart) {
             pending = true;
 
-            await microphone.addTrack(config.defaultTrackMetadata, config.defaultMaxBandwidth).finally(() => {
-              pending = false;
-            });
+            await audioTrackManager
+              .startStreaming(config.defaultTrackMetadata, config.defaultMaxBandwidth)
+              .finally(() => {
+                pending = false;
+              });
           } else if (stream && onDeviceChange === "replace") {
             pending = true;
 
-            await microphone.replaceTrack().finally(() => {
+            await audioTrackManager.refreshStreamedTrack().finally(() => {
               pending = false;
             });
           } else if (stream && onDeviceChange === "remove") {
             pending = true;
 
-            await microphone.removeTrack().finally(() => {
+            await audioTrackManager.stopStreaming().finally(() => {
               pending = false;
             });
           }
@@ -217,7 +227,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
       };
 
       const devicesReady: ClientEvents<PeerMetadata, TrackMetadata>["devicesReady"] = async (event, client) => {
-        if (event.audio.restarted && event.audio?.media?.stream) {
+        if (event.trackType === "audio" && event.restarted && event?.media?.stream) {
           await broadcastOnMicrophoneStart(event, client);
         }
       };
@@ -241,15 +251,15 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
 
     useEffect(() => {
       const onMicrophoneStopped: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (event, client) => {
-        const microphone = client.devices.microphone;
-        const stream = microphone.broadcast?.stream;
+        const audioTrackManager = client.audioTrackManager;
+        const stream = client.devices.microphone.broadcast?.stream;
         const onDeviceStop = configRef.current.microphone.onDeviceStop ?? "mute";
 
         if (isBroadcastedTrackStopped("userMedia", "audio", client.status, event, stream)) {
           if (onDeviceStop === "mute") {
-            await microphone.muteTrack();
+            await audioTrackManager.muteTrack();
           } else {
-            await microphone.removeTrack();
+            await audioTrackManager.stopStreaming();
           }
         }
       };
@@ -267,7 +277,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
         const microphone = client.devices.microphone;
 
         if (microphone.stream && config.broadcastOnConnect) {
-          await microphone.addTrack(config.defaultTrackMetadata, config.defaultMaxBandwidth);
+          await client.audioTrackManager.startStreaming(config.defaultTrackMetadata, config.defaultMaxBandwidth);
         }
       };
 
@@ -344,7 +354,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
     return useMemo(
       () => ({
         init: () =>
-          state.devices.init({
+          state.client.initializeDevices({
             audioTrackConstraints: configRef.current?.microphone?.trackConstraints,
             videoTrackConstraints: configRef.current?.camera?.trackConstraints,
           }),

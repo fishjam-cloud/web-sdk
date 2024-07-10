@@ -1,15 +1,14 @@
 import { FishjamClient, TrackContext } from "@fishjam-dev/ts-client";
-import { type DeviceManager } from "./UnifiedDeviceManager";
-import { MediaService } from "./types";
+import { GenericMediaManager, GenericTrackManager } from "./types";
 import { Track } from "./state.types";
 
-export class TrackManager<PeerMetadata, TrackMetadata> implements MediaService<TrackMetadata> {
-  private deviceManager: DeviceManager;
+export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackManager<TrackMetadata> {
+  private mediaManager: GenericMediaManager;
   private tsClient: FishjamClient<PeerMetadata, TrackMetadata>;
   private currentTrackId: string | null = null;
 
-  constructor(tsClient: FishjamClient<PeerMetadata, TrackMetadata>, deviceManager: DeviceManager) {
-    this.deviceManager = deviceManager;
+  constructor(tsClient: FishjamClient<PeerMetadata, TrackMetadata>, deviceManager: GenericMediaManager) {
+    this.mediaManager = deviceManager;
     this.tsClient = tsClient;
   }
 
@@ -23,19 +22,17 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements MediaService<T
     return prevTrack;
   };
 
-  private trackContextToTrack(track: TrackContext<unknown, TrackMetadata>): Track<TrackMetadata> {
-    return {
-      rawMetadata: track.rawMetadata,
-      metadata: track.metadata,
-      trackId: track.trackId,
-      stream: track.stream,
-      simulcastConfig: track.simulcastConfig || null,
-      encoding: track.encoding || null,
-      vadStatus: track.vadStatus,
-      track: track.track,
-      metadataParsingError: track.metadataParsingError,
-    };
-  }
+  private trackContextToTrack = (track: TrackContext<unknown, TrackMetadata>): Track<TrackMetadata> => ({
+    rawMetadata: track.rawMetadata,
+    metadata: track.metadata,
+    trackId: track.trackId,
+    stream: track.stream,
+    simulcastConfig: track.simulcastConfig || null,
+    encoding: track.encoding || null,
+    vadStatus: track.vadStatus,
+    track: track.track,
+    metadataParsingError: track.metadataParsingError,
+  });
 
   private getRemoteTrack = (remoteOrLocalTrackId: string | null): Track<TrackMetadata> | null => {
     if (!remoteOrLocalTrackId) return null;
@@ -51,7 +48,7 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements MediaService<T
   };
 
   public initialize = async (deviceId?: string) => {
-    this?.deviceManager?.start(deviceId);
+    this?.mediaManager?.start(deviceId);
   };
 
   public cleanup = async () => {};
@@ -59,7 +56,7 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements MediaService<T
   public startStreaming = async (trackMetadata?: TrackMetadata, simulcastConfig?: any, maxBandwidth?: any) => {
     if (this.currentTrackId) throw Error("Track already added");
 
-    const media = this.deviceManager?.deviceState.media;
+    const media = this.mediaManager.getMedia();
 
     if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
 
@@ -77,6 +74,15 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements MediaService<T
     return remoteTrackId;
   };
 
+  public refreshStreamedTrack = async () => {
+    const prevTrack = this.getPreviousTrack();
+
+    const newTrack = this.mediaManager.getMedia()?.stream?.getVideoTracks()[0];
+    if (!newTrack) throw Error("New track is empty");
+
+    return this.tsClient.replaceTrack(prevTrack.trackId, newTrack);
+  };
+
   public stopStreaming = async () => {
     const prevTrack = this.getPreviousTrack();
     this.currentTrackId = null;
@@ -90,7 +96,7 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements MediaService<T
 
   public unmuteTrack = async () => {
     const prevTrack = this.getPreviousTrack();
-    const media = this.deviceManager.deviceState.media;
+    const media = this.mediaManager.getMedia();
 
     if (!media) throw Error("Device is unavailable");
 

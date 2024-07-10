@@ -43,41 +43,41 @@ const tokenAtom = atomWithStorage("token", "");
 
 const broadcastVideoOnConnectAtom = atomWithStorage<boolean | undefined>(
   "broadcastVideoOnConnect",
-  undefined,
+  undefined
 );
 const broadcastVideoOnDeviceStartAtom = atomWithStorage<boolean | undefined>(
   "broadcastVideoOnDeviceStart",
-  undefined,
+  undefined
 );
 const videoOnDeviceChangeAtom = atomWithStorage<OnDeviceChange>(
   "videoOnDeviceChange",
-  undefined,
+  undefined
 );
 const videoOnDeviceStopAtom = atomWithStorage<OnDeviceStop>(
   "videoOnDeviceStop",
-  undefined,
+  undefined
 );
 
 const broadcastAudioOnConnectAtom = atomWithStorage<boolean | undefined>(
   "broadcastAudioOnConnect",
-  undefined,
+  undefined
 );
 const broadcastAudioOnDeviceStartAtom = atomWithStorage<boolean | undefined>(
   "broadcastAudioOnDeviceStart",
-  undefined,
+  undefined
 );
 const audioOnDeviceChangeAtom = atomWithStorage<OnDeviceChange>(
   "audioOnDeviceChange",
-  undefined,
+  undefined
 );
 const audioOnDeviceStopAtom = atomWithStorage<OnDeviceStop>(
   "audioOnDeviceStop",
-  undefined,
+  undefined
 );
 
 const broadcastScreenShareOnConnectAtom = atomWithStorage<boolean | undefined>(
   "broadcastScreenShareOnConnect",
-  undefined,
+  undefined
 );
 const broadcastScreenShareOnDeviceStartAtom = atomWithStorage<
   boolean | undefined
@@ -99,27 +99,27 @@ export const MainControls = () => {
   const authError = useAuthErrorReason();
 
   const [broadcastVideoOnConnect, setBroadcastVideoOnConnect] = useAtom(
-    broadcastVideoOnConnectAtom,
+    broadcastVideoOnConnectAtom
   );
   const [broadcastVideoOnDeviceStart, setBroadcastVideoOnDeviceStart] = useAtom(
-    broadcastVideoOnDeviceStartAtom,
+    broadcastVideoOnDeviceStartAtom
   );
   const [broadcastVideoOnDeviceChange, setBroadcastVideoOnDeviceChange] =
     useAtom(videoOnDeviceChangeAtom);
   const [broadcastVideoOnDeviceStop, setBroadcastVideoOnDeviceStop] = useAtom(
-    videoOnDeviceStopAtom,
+    videoOnDeviceStopAtom
   );
 
   const [broadcastAudioOnConnect, setBroadcastAudioOnConnect] = useAtom(
-    broadcastAudioOnConnectAtom,
+    broadcastAudioOnConnectAtom
   );
   const [broadcastAudioOnDeviceStart, setBroadcastAudioOnDeviceStart] = useAtom(
-    broadcastAudioOnDeviceStartAtom,
+    broadcastAudioOnDeviceStartAtom
   );
   const [broadcastAudioOnDeviceChange, setBroadcastAudioOnDeviceChange] =
     useAtom(audioOnDeviceChangeAtom);
   const [broadcastAudioOnDeviceStop, setBroadcastAudioOnDeviceStop] = useAtom(
-    audioOnDeviceStopAtom,
+    audioOnDeviceStopAtom
   );
 
   const [broadcastScreenShareOnConnect, setBroadcastScreenShareOnConnect] =
@@ -197,7 +197,11 @@ export const MainControls = () => {
 
           <button
             className="btn btn-info btn-sm"
-            disabled={client.deviceManager.getStatus() !== "uninitialized"}
+            disabled={
+              ![client.audioDeviceManager, client.videoDeviceManager]
+                .map((manager) => manager.getStatus())
+                .includes("uninitialized")
+            }
             onClick={() => {
               init();
             }}
@@ -371,11 +375,11 @@ export const MainControls = () => {
           devices={video?.devices || null}
           setInput={(id) => {
             if (!id) return;
-            video.start(id);
+            video.initialize(id);
           }}
           defaultOptionText="Select video device"
           stop={() => {
-            video.stop();
+            video.cleanup();
           }}
         />
 
@@ -385,11 +389,11 @@ export const MainControls = () => {
           devices={audio?.devices || null}
           setInput={(id) => {
             if (!id) return;
-            audio.start(id);
+            audio.initialize(id);
           }}
           defaultOptionText="Select audio device"
           stop={() => {
-            audio.stop();
+            audio.cleanup();
           }}
         />
 

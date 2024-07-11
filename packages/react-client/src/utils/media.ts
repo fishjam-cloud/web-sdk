@@ -188,11 +188,6 @@ export const prepareDeviceState = (
   };
 };
 
-export const DISABLE_STORAGE_CONFIG: StorageConfig = {
-  getLastDevice: null,
-  saveLastDevice: () => {},
-};
-
 export const getLocalStorageConfig = (deviceType: "audio" | "video"): StorageConfig => {
   const key = `last-selected-${deviceType}-device`;
   return {

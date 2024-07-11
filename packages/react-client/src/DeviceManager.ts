@@ -1,24 +1,10 @@
-import type {
-  DeviceManagerConfig,
-  DeviceState,
-  Media,
-  GenericMediaManager,
-  StorageConfig,
-  GetMedia,
-  DeviceError,
-} from "./types";
+import type { DeviceManagerConfig, DeviceState, Media, GenericMediaManager, StorageConfig, DeviceError } from "./types";
 
 import { prepareMediaTrackConstraints, toMediaTrackConstraints } from "./constraints";
 
 import EventEmitter from "events";
 import type TypedEmitter from "typed-emitter";
-import {
-  DISABLE_STORAGE_CONFIG,
-  getDeviceInfo,
-  getLocalStorageConfig,
-  getMedia,
-  prepareDeviceState,
-} from "./utils/media";
+import { getDeviceInfo, getLocalStorageConfig, getMedia, prepareDeviceState } from "./utils/media";
 
 export type DeviceManagerEvents = {
   managerStarted: (
@@ -71,8 +57,8 @@ export class DeviceManager
       : undefined;
   }
 
-  private createStorageConfig(storage: boolean | StorageConfig | undefined): StorageConfig {
-    if (storage === false) return DISABLE_STORAGE_CONFIG;
+  private createStorageConfig(storage?: boolean | StorageConfig): StorageConfig | null {
+    if (storage === false) return null;
     if (storage === true || storage === undefined) return getLocalStorageConfig(this.deviceType);
     return storage;
   }

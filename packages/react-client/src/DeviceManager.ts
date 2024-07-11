@@ -1,4 +1,12 @@
-import type { DeviceManagerConfig, DeviceState, Media, GenericMediaManager, StorageConfig, GetMedia } from "./types";
+import type {
+  DeviceManagerConfig,
+  DeviceState,
+  Media,
+  GenericMediaManager,
+  StorageConfig,
+  GetMedia,
+  DeviceError,
+} from "./types";
 
 import { prepareMediaTrackConstraints, toMediaTrackConstraints } from "./constraints";
 
@@ -7,7 +15,6 @@ import type TypedEmitter from "typed-emitter";
 import {
   DISABLE_STORAGE_CONFIG,
   getDeviceInfo,
-  getError,
   getLocalStorageConfig,
   getMedia,
   prepareDeviceState,
@@ -38,10 +45,9 @@ export class DeviceManager
   implements GenericMediaManager
 {
   private readonly defaultConstraints: MediaTrackConstraints | undefined;
-  private readonly defaultStorageConfig: StorageConfig;
 
   private constraints: MediaTrackConstraints | undefined;
-  private storageConfig: StorageConfig | undefined;
+  private storageConfig: StorageConfig | null;
 
   private status: DeviceManagerStatus = "uninitialized";
   private deviceType: "audio" | "video";
@@ -56,7 +62,7 @@ export class DeviceManager
 
   constructor(deviceType: "audio" | "video", defaultConfig?: DeviceManagerConfig) {
     super();
-    this.defaultStorageConfig = this.createStorageConfig(defaultConfig?.storage);
+    this.storageConfig = this.createStorageConfig(defaultConfig?.storage);
 
     this.deviceType = deviceType;
 
@@ -89,18 +95,14 @@ export class DeviceManager
 
   public getMedia = () => this.deviceState.media;
 
-  public initialize = (getMediaResult: GetMedia, devices: MediaDeviceInfo[]) => {
-    const stream = getMediaResult.type === "OK" ? getMediaResult.stream : null;
-
-    const tracks = this.deviceType === "audio" ? stream?.getAudioTracks() : stream?.getVideoTracks();
-
-    this.deviceState = prepareDeviceState(
-      stream,
-      tracks?.[0] || null,
-      devices.filter((device) => device.kind === `${this.deviceType}input`),
-      getError(getMediaResult, this.deviceType),
-      !!getMediaResult.constraints[this.deviceType],
-    );
+  public initialize = (
+    stream: MediaStream | null,
+    track: MediaStreamTrack | null,
+    devices: MediaDeviceInfo[],
+    requestedMedia: boolean,
+    error: DeviceError | null = null,
+  ) => {
+    this.deviceState = prepareDeviceState(stream, track, devices, error, requestedMedia);
 
     const deviceInfo = this.deviceState.media?.deviceInfo;
     if (deviceInfo) this.saveLastDevice(deviceInfo);
@@ -127,15 +129,12 @@ export class DeviceManager
   };
 
   public getLastDevice(): MediaDeviceInfo | null {
-    return this.storageConfig?.getLastDevice?.() ?? this.defaultStorageConfig?.getLastDevice?.() ?? null;
+    return this.storageConfig?.getLastDevice?.() ?? null;
   }
 
   private saveLastDevice(info: MediaDeviceInfo) {
-    if (this.storageConfig?.saveLastDevice) {
-      this.storageConfig.saveLastDevice(info);
-    } else {
-      this.defaultStorageConfig.saveLastDevice?.(info);
-    }
+    if (!this.storageConfig) console.warn("Device manager storage has been disabled");
+    this.storageConfig?.saveLastDevice(info);
   }
 
   // todo `audioDeviceId / videoDeviceId === true` means use last device
@@ -147,9 +146,6 @@ export class DeviceManager
     const trackConstraints = this.constraints ?? this.defaultConstraints;
 
     const exactConstraints = shouldRestart && prepareMediaTrackConstraints(newDevice, trackConstraints);
-
-    console.log(trackConstraints, exactConstraints, "constraints");
-
     if (!exactConstraints) return;
 
     this.deviceState.mediaStatus = "Requesting";
@@ -159,12 +155,11 @@ export class DeviceManager
       { ...this.deviceState, restarting: shouldRestart, constraints: newDevice },
       this.deviceState,
     );
-    console.log("requesting media");
+
     const result = await getMedia({ [this.deviceType]: exactConstraints });
 
     if (result.type === "OK") {
       const stream = result.stream;
-      console.log("STREEEAM", result);
 
       const getTrack = (): MediaStreamTrack | null => {
         const tracks = this.deviceType === "audio" ? stream.getAudioTracks() : stream.getVideoTracks();
@@ -173,10 +168,7 @@ export class DeviceManager
       };
 
       const currentDeviceId = getTrack()?.getSettings()?.deviceId;
-      console.log(currentDeviceId);
       const deviceInfo = currentDeviceId ? getDeviceInfo(currentDeviceId, this.deviceState.devices ?? []) : null;
-
-      console.log(deviceInfo);
 
       if (deviceInfo) {
         this.saveLastDevice?.(deviceInfo);
@@ -196,8 +188,6 @@ export class DeviceManager
       // Therefore, in the `onTrackEnded` method, events for already stopped tracks are filtered out to prevent the state from being damaged.
       if (shouldRestart) {
         this.deviceState?.media?.track?.stop();
-
-        console.log("could stop track");
       }
 
       const media: Media | null = shouldRestart
@@ -214,8 +204,6 @@ export class DeviceManager
       this.setupOnEndedCallback();
 
       this.deviceState.mediaStatus = "OK";
-
-      console.log("device ready", this.deviceState);
 
       this.emit("devicesReady", { ...this.deviceState, restarted: shouldRestart }, this.deviceState);
     } else {
@@ -262,19 +250,6 @@ export class DeviceManager
 
     this.emit("deviceEnabled", this.deviceState);
   }
-
-  // public setEnable(value: boolean) {
-  //   if (!this.deviceState.media || !this.deviceState.media?.track) {
-  //     return;
-  //   }
-
-  //   this.deviceState.media!.track!.enabled = value;
-  //   this.deviceState.media!.enabled = value;
-
-  //   const eventType = value ? "deviceEnabled" : "deviceDisabled";
-
-  //   this.emit(eventType, this.deviceState);
-  // }
 
   public setConfig(storage?: boolean | StorageConfig, constraints?: boolean | MediaTrackConstraints) {
     this.storageConfig = this.createStorageConfig(storage);

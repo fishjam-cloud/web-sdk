@@ -18,13 +18,14 @@ import { FishjamClient } from "@fishjam-dev/ts-client";
 import type { PeerId, PeerState, PeerStatus, Track, TrackId, TrackWithOrigin } from "./state.types";
 import type { MediaDeviceType, ScreenShareManagerConfig, TrackType } from "./ScreenShareManager";
 import { ScreenShareManager } from "./ScreenShareManager";
-import type {
-  DeviceManagerConfig,
-  DeviceManagerInitConfig,
-  DeviceManagerStartConfig,
-  Devices,
-  DeviceState,
-  MediaState,
+import {
+  DeviceError,
+  type DeviceManagerConfig,
+  type DeviceManagerInitConfig,
+  type DeviceManagerStartConfig,
+  type Devices,
+  type DeviceState,
+  type MediaState,
 } from "./types";
 import { DeviceManager, DeviceManagerEvents } from "./DeviceManager";
 import { TrackManager } from "./trackManager";
@@ -906,12 +907,31 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
     const devices = await navigator.mediaDevices.enumerateDevices();
 
+    const videoDevices = devices.filter(({ kind }) => kind === "videoinput");
+    const audioDevices = devices.filter(({ kind }) => kind === "audioinput");
+
     const correctedResult = await getCorrectedResult(getMediaResult, devices, constraints, previousDevices);
-    console.log(getMediaResult, correctedResult);
     const finalResult = correctedResult ?? getMediaResult;
 
-    this.videoDeviceManager.initialize(finalResult, devices);
-    this.audioDeviceManager.initialize(finalResult, devices);
+    let stream: MediaStream | null = null;
+    let videoTrack: MediaStreamTrack | null = null;
+    let audioTrack: MediaStreamTrack | null = null;
+    let audioError: DeviceError | null = null;
+    let videoError: DeviceError | null = null;
+
+    if (finalResult.type === "OK") {
+      stream = finalResult.stream;
+      videoTrack = stream.getVideoTracks()[0];
+      audioTrack = stream.getAudioTracks()[0];
+      videoError = finalResult.previousErrors["video"] ?? null;
+      audioError = finalResult.previousErrors["audio"] ?? null;
+    } else {
+      audioError = finalResult.error;
+      videoError = finalResult.error;
+    }
+
+    this.videoDeviceManager.initialize(stream, videoTrack, videoDevices, !!constraints.video, videoError);
+    this.audioDeviceManager.initialize(stream, audioTrack, audioDevices, !!constraints.audio, audioError);
   };
 
   public startDevices = async (config: DeviceManagerStartConfig) => {

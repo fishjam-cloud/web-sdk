@@ -48,12 +48,10 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackMa
   };
 
   public initialize = async (deviceId?: string) => {
-    console.log("initializing");
     this.mediaManager?.start(deviceId ?? true);
   };
 
   public cleanup = async () => {
-    console.log("xd cleanup");
     this?.mediaManager?.stop();
   };
 
@@ -65,8 +63,6 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackMa
     if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
 
     const track = this.getRemoteTrack(media.track.id);
-
-    console.log(track);
 
     if (track) return track.trackId;
 
@@ -91,14 +87,12 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackMa
 
   public stopStreaming = async () => {
     const prevTrack = this.getPreviousTrack();
-    console.log(prevTrack);
     this.currentTrackId = null;
     return this.tsClient.removeTrack(prevTrack.trackId);
   };
 
   public pauseStreaming = async () => {
     const prevTrack = this.getPreviousTrack();
-    console.log(prevTrack, "muting");
     await this.tsClient.replaceTrack(prevTrack.trackId, null);
   };
 

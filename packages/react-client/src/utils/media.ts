@@ -158,14 +158,9 @@ export const getError = (result: GetMedia, type: AudioOrVideoType): DeviceError 
   return UNHANDLED_ERROR;
 };
 
-const prepareStatus = (
-  requested: boolean,
-  track: MediaStreamTrack | null,
-  deviceError: DeviceError | null,
-): [DevicesStatus, DeviceError | null] => {
+const prepareStatus = (requested: boolean, track: MediaStreamTrack | null): [DevicesStatus, DeviceError | null] => {
   if (!requested) return ["Not requested", null];
   if (track) return ["OK", null];
-  if (deviceError) return ["Error", deviceError];
   return ["Error", null];
 };
 
@@ -177,7 +172,7 @@ export const prepareDeviceState = (
   shouldAsk: boolean,
 ): DeviceState => {
   const deviceInfo = getDeviceInfo(track?.getSettings()?.deviceId || null, devices);
-  const [devicesStatus, newError] = prepareStatus(shouldAsk, track, error);
+  const [devicesStatus, newError] = prepareStatus(shouldAsk, track);
 
   return {
     devices,
@@ -189,7 +184,7 @@ export const prepareDeviceState = (
       enabled: !!track,
     },
     mediaStatus: devicesStatus,
-    error: error ?? newError,
+    error: newError ?? error,
   };
 };
 

@@ -57,7 +57,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
         state.client.videoDeviceManager.getStatus() === "uninitialized"
       ) {
         state.client.initializeDevices({
-          audioTrackConstraints: configRef?.current.camera.trackConstraints,
+          audioTrackConstraints: configRef?.current.microphone.trackConstraints,
           videoTrackConstraints: configRef?.current.camera.trackConstraints,
         });
       }
@@ -146,7 +146,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
 
         if (isBroadcastedTrackStopped("userMedia", "video", client.status, event, stream)) {
           if (onDeviceStop === "mute") {
-            await videoTrackManager.muteTrack();
+            await videoTrackManager.pauseStreaming();
           } else {
             await videoTrackManager.stopStreaming();
           }
@@ -260,7 +260,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
 
         if (isBroadcastedTrackStopped("userMedia", "audio", client.status, event, stream)) {
           if (onDeviceStop === "mute") {
-            await audioTrackManager.muteTrack();
+            await audioTrackManager.pauseStreaming();
           } else {
             await audioTrackManager.stopStreaming();
           }
@@ -309,7 +309,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
         ) {
           pending = true;
 
-          await screenShare.addTrack(defaultTrackMetadata, defaultMaxBandwidth).finally(() => {
+          await screenShare.startStreaming(defaultTrackMetadata, defaultMaxBandwidth).finally(() => {
             pending = false;
           });
         }
@@ -325,9 +325,9 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
     useEffect(() => {
       const onScreenShareStop: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (event, client) => {
         const stream = client.devices.screenShare.broadcast?.stream;
-        if (!isBroadcastedScreenShareTrackStopped("displayMedia", client.status, event, stream)) return;
-
-        await client.devices.screenShare.removeTrack();
+        if (isBroadcastedTrackStopped("displayMedia", "video", client.status, event, stream)) {
+          await client.devices.screenShare.stopStreaming();
+        }
       };
 
       state.client.on("deviceStopped", onScreenShareStop);
@@ -340,7 +340,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
     useEffect(() => {
       const broadcastScreenShareOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
         if (client.devices.screenShare.stream && configRef.current.screenShare.broadcastOnConnect) {
-          await client.devices.screenShare.addTrack(
+          await client.devices.screenShare.startStreaming(
             configRef.current.screenShare.defaultTrackMetadata,
             configRef.current.screenShare.defaultMaxBandwidth,
           );

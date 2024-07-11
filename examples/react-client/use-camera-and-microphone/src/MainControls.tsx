@@ -410,18 +410,20 @@ export const MainControls = () => {
             status={status}
             metadata={MANUAL_AUDIO_TRACK_METADATA}
           />
-          {/* <DeviceControls
+          <DeviceControls
             device={screenShare}
             type="screenshare"
             status={status}
             metadata={MANUAL_SCREEN_SHARE_TRACK_METADATA}
-          /> */}
+          />
         </div>
       </div>
       <div>
         <div className="prose grid grid-rows-2">
           <div>
             <h3>Local:</h3>
+            <p>Video {video.track?.label}</p>
+            <p>Audio {audio.track?.label}</p>
             <div className="max-w-[500px]">
               {video?.track?.kind === "video" && (
                 <VideoPlayer stream={video?.stream} />

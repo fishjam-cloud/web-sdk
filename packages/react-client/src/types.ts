@@ -143,8 +143,11 @@ export type UseSetupMediaResult = {
 };
 
 export interface GenericMediaManager {
-  start: (deviceId?: string) => Promise<void>;
-  getMedia: () => { stream: MediaStream | null; track: MediaStreamTrack | null } | null;
+  start: (deviceId?: string | boolean) => Promise<void>;
+  stop: () => Promise<void>;
+  mute: () => void;
+  unmute: () => void;
+  getMedia: () => { stream: MediaStream | null; track: MediaStreamTrack | null; enabled: boolean } | null;
 }
 
 export interface GenericTrackManager<TrackMetadata> {
@@ -156,8 +159,10 @@ export interface GenericTrackManager<TrackMetadata> {
     maxBandwidth?: TrackBandwidthLimit,
   ) => Promise<string>;
   stopStreaming: () => Promise<void>;
-  muteTrack: () => Promise<void>;
-  unmuteTrack: () => Promise<void>;
+  pauseStreaming: () => Promise<void>;
+  resumeStreaming: () => Promise<void>;
+  muteTrack: () => void;
+  unmuteTrack: () => void;
 }
 
 export type CameraAPI<TrackMetadata> = {
@@ -185,11 +190,12 @@ export type MicrophoneAPI<TrackMetadata> = {
 };
 
 export type ScreenShareAPI<TrackMetadata> = {
-  stop: () => void;
-  setEnable: (value: boolean) => void;
-  start: (config?: ScreenShareManagerConfig) => void;
-  addTrack: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => Promise<string>;
-  removeTrack: () => Promise<void>;
+  initialize: (config?: ScreenShareManagerConfig) => Promise<void>;
+  cleanup: () => Promise<void>;
+  startStreaming: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => Promise<string>;
+  stopStreaming: () => Promise<void>;
+  muteTrack: () => void;
+  unmuteTrack: () => void;
   broadcast: Track<TrackMetadata> | null;
   status: DevicesStatus | null;
   stream: MediaStream | null;

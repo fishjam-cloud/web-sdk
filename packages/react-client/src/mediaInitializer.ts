@@ -21,7 +21,7 @@ interface PreviousDevices {
 }
 
 export const getAvailableMedia = async (constraints: MediaConstraints) => {
-  let result: GetMedia = await getMedia(constraints, {});
+  let result: GetMedia = await getMedia(constraints);
 
   if (result.type === "Error" && result.error?.name === "NotFoundError") {
     result = await handleNotFoundError(constraints);

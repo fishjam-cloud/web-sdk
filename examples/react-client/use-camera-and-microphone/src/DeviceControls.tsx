@@ -19,11 +19,11 @@ type DeviceControlsProps = {
       device: CameraAPI<TrackMetadata> & GenericTrackManager<TrackMetadata>;
       type: "video";
     }
+  | {
+      device: ScreenShareAPI<TrackMetadata>;
+      type: "screenshare";
+    }
 );
-// | {
-//     device: ScreenShareAPI<TrackMetadata>;
-//     type: "screenshare";
-//   }
 
 export const DeviceControls = ({
   device,
@@ -51,11 +51,11 @@ export const DeviceControls = ({
       >
         Stop {type} device
       </button>
-      {/* <button
+      <button
         className="btn btn-success btn-sm"
         disabled={!device?.stream || device?.enabled}
         onClick={() => {
-          device?(true);
+          device.unmuteTrack();
         }}
       >
         Enable {type} track
@@ -64,11 +64,11 @@ export const DeviceControls = ({
         className="btn btn-error btn-sm"
         disabled={!device?.enabled}
         onClick={() => {
-          device?.setEnable(false);
+          device?.muteTrack();
         }}
       >
         Disable {type} track
-      </button> */}
+      </button>
       <button
         className="btn btn-success btn-sm"
         disabled={

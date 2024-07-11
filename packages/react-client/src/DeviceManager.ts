@@ -92,9 +92,11 @@ export class DeviceManager
   public initialize = (getMediaResult: GetMedia, devices: MediaDeviceInfo[]) => {
     const stream = getMediaResult.type === "OK" ? getMediaResult.stream : null;
 
+    const tracks = this.deviceType === "audio" ? stream?.getAudioTracks() : stream?.getVideoTracks();
+
     this.deviceState = prepareDeviceState(
       stream,
-      stream?.getVideoTracks()[0] || null,
+      tracks?.[0] || null,
       devices.filter((device) => device.kind === `${this.deviceType}input`),
       getError(getMediaResult, this.deviceType),
       !!getMediaResult.constraints[this.deviceType],
@@ -140,11 +142,13 @@ export class DeviceManager
   public async start(deviceId?: string | boolean) {
     const shouldRestart = !!deviceId && deviceId !== this.deviceState.media?.deviceInfo?.deviceId;
 
-    const newDevice = deviceId === true ? this.getLastDevice?.()?.deviceId || true : deviceId;
+    const newDevice = deviceId === true ? this.getLastDevice()?.deviceId || true : deviceId;
 
     const trackConstraints = this.constraints ?? this.defaultConstraints;
 
     const exactConstraints = shouldRestart && prepareMediaTrackConstraints(newDevice, trackConstraints);
+
+    console.log(trackConstraints, exactConstraints, "constraints");
 
     if (!exactConstraints) return;
 
@@ -155,20 +159,25 @@ export class DeviceManager
       { ...this.deviceState, restarting: shouldRestart, constraints: newDevice },
       this.deviceState,
     );
-
-    const result = await getMedia({ [this.deviceType]: exactConstraints }, {});
+    console.log("requesting media");
+    const result = await getMedia({ [this.deviceType]: exactConstraints });
 
     if (result.type === "OK") {
       const stream = result.stream;
+      console.log("STREEEAM", result);
 
       const getTrack = (): MediaStreamTrack | null => {
-        const getTracks = this.deviceType === "audio" ? stream.getAudioTracks : stream.getVideoTracks;
+        const tracks = this.deviceType === "audio" ? stream.getAudioTracks() : stream.getVideoTracks();
 
-        return getTracks()?.[0] ?? null;
+        return tracks[0] ?? null;
       };
 
       const currentDeviceId = getTrack()?.getSettings()?.deviceId;
+      console.log(currentDeviceId);
       const deviceInfo = currentDeviceId ? getDeviceInfo(currentDeviceId, this.deviceState.devices ?? []) : null;
+
+      console.log(deviceInfo);
+
       if (deviceInfo) {
         this.saveLastDevice?.(deviceInfo);
       }
@@ -187,6 +196,8 @@ export class DeviceManager
       // Therefore, in the `onTrackEnded` method, events for already stopped tracks are filtered out to prevent the state from being damaged.
       if (shouldRestart) {
         this.deviceState?.media?.track?.stop();
+
+        console.log("could stop track");
       }
 
       const media: Media | null = shouldRestart
@@ -203,6 +214,8 @@ export class DeviceManager
       this.setupOnEndedCallback();
 
       this.deviceState.mediaStatus = "OK";
+
+      console.log("device ready", this.deviceState);
 
       this.emit("devicesReady", { ...this.deviceState, restarted: shouldRestart }, this.deviceState);
     } else {
@@ -228,18 +241,40 @@ export class DeviceManager
     this.emit("deviceStopped", this.deviceState);
   }
 
-  public setEnable(value: boolean) {
+  public mute() {
     if (!this.deviceState.media || !this.deviceState.media?.track) {
       return;
     }
 
-    this.deviceState.media!.track!.enabled = value;
-    this.deviceState.media!.enabled = value;
+    this.deviceState.media!.track!.enabled = false;
+    this.deviceState.media!.enabled = false;
 
-    const eventType = value ? "deviceEnabled" : "deviceDisabled";
-
-    this.emit(eventType, this.deviceState);
+    this.emit("deviceDisabled", this.deviceState);
   }
+
+  public unmute() {
+    if (!this.deviceState.media || !this.deviceState.media?.track) {
+      return;
+    }
+
+    this.deviceState.media!.track!.enabled = true;
+    this.deviceState.media!.enabled = true;
+
+    this.emit("deviceEnabled", this.deviceState);
+  }
+
+  // public setEnable(value: boolean) {
+  //   if (!this.deviceState.media || !this.deviceState.media?.track) {
+  //     return;
+  //   }
+
+  //   this.deviceState.media!.track!.enabled = value;
+  //   this.deviceState.media!.enabled = value;
+
+  //   const eventType = value ? "deviceEnabled" : "deviceDisabled";
+
+  //   this.emit(eventType, this.deviceState);
+  // }
 
   public setConfig(storage?: boolean | StorageConfig, constraints?: boolean | MediaTrackConstraints) {
     this.storageConfig = this.createStorageConfig(storage);

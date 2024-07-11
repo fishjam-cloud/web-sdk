@@ -71,7 +71,7 @@ export const stopTracks = (requestedDevices: MediaStream) => {
   }
 };
 
-export const getMedia = async (constraints: MediaStreamConstraints, previousErrors: Errors): Promise<GetMedia> => {
+export const getMedia = async (constraints: MediaStreamConstraints, previousErrors: Errors = {}): Promise<GetMedia> => {
   try {
     const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
     return { stream: mediaStream, type: "OK", constraints, previousErrors };

@@ -395,11 +395,12 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         devices: null,
       },
       screenShare: {
-        stop: () => {},
-        setEnable: () => {},
-        start: () => {},
-        addTrack: (_trackMetadata?: TrackMetadata, _maxBandwidth?: TrackBandwidthLimit) => Promise.reject(),
-        removeTrack: () => Promise.reject(),
+        cleanup: async () => {},
+        muteTrack: () => {},
+        unmuteTrack: () => {},
+        initialize: async () => {},
+        startStreaming: (_trackMetadata?: TrackMetadata, _maxBandwidth?: TrackBandwidthLimit) => Promise.reject(),
+        stopStreaming: () => Promise.reject(),
         broadcast: null,
         status: null,
         stream: null,
@@ -605,6 +606,18 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       this.emit("deviceReady", { trackType: "video", stream, mediaDeviceType: "userMedia" }, this);
     });
 
+    this.videoDeviceManager.on("devicesStarted", (event) => {
+      this.stateToSnapshot();
+
+      this.emit("devicesStarted", { ...event, trackType: "video", mediaDeviceType: "userMedia" }, this);
+    });
+
+    this.videoDeviceManager.on("devicesReady", (event) => {
+      this.stateToSnapshot();
+
+      this.emit("devicesReady", { ...event, trackType: "video", mediaDeviceType: "userMedia" }, this);
+    });
+
     this.videoDeviceManager.on("error", (event) => {
       this.stateToSnapshot();
 
@@ -647,17 +660,17 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       this.emit("deviceReady", { trackType: "audio", stream, mediaDeviceType: "userMedia" }, this);
     });
 
-    // this.videoDeviceManager.on("devicesStarted", (event) => {
-    //   this.stateToSnapshot();
+    this.audioDeviceManager.on("devicesStarted", (event) => {
+      this.stateToSnapshot();
 
-    //   this.emit("devicesStarted", { ...event, mediaDeviceType: "userMedia" }, this);
-    // });
+      this.emit("devicesStarted", { ...event, trackType: "audio", mediaDeviceType: "userMedia" }, this);
+    });
 
-    // this.videoDeviceManager.on("devicesReady", ({ restarted }) => {
-    //   this.stateToSnapshot();
+    this.audioDeviceManager.on("devicesReady", (event) => {
+      this.stateToSnapshot();
 
-    //   this.emit("devicesReady", { video: { restarted }, mediaDeviceType: "userMedia" }, this);
-    // });
+      this.emit("devicesReady", { ...event, trackType: "audio", mediaDeviceType: "userMedia" }, this);
+    });
 
     this.audioDeviceManager.on("error", (event) => {
       this.stateToSnapshot();
@@ -894,7 +907,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
     const devices = await navigator.mediaDevices.enumerateDevices();
 
     const correctedResult = await getCorrectedResult(getMediaResult, devices, constraints, previousDevices);
-
+    console.log(getMediaResult, correctedResult);
     const finalResult = correctedResult ?? getMediaResult;
 
     this.videoDeviceManager.initialize(finalResult, devices);
@@ -969,14 +982,19 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         devices: deviceManagerSnapshot?.audio?.devices || null,
       },
       screenShare: {
-        stop: () => {
+        cleanup: async () => {
           this?.screenShareManager?.stop("video");
         },
-        setEnable: (value: boolean) => this.screenShareManager?.setEnable("video", value),
-        start: (config?: ScreenShareManagerConfig) => {
-          this.screenShareManager?.start(config);
+        muteTrack: () => {
+          this.screenShareManager?.setEnable("video", false);
         },
-        addTrack: async (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => {
+        unmuteTrack: () => {
+          this.screenShareManager?.setEnable("video", true);
+        },
+        initialize: async (config?: ScreenShareManagerConfig) => {
+          await this.screenShareManager?.start(config);
+        },
+        startStreaming: async (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => {
           const media = this.screenShareManager?.getSnapshot().videoMedia;
 
           if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
@@ -996,7 +1014,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
           return trackId;
         },
-        removeTrack: () => {
+        stopStreaming: () => {
           if (!this.currentScreenShareTrackId) throw Error("There is no screen share track id");
 
           const prevTrack = this.getRemoteTrack(this.currentScreenShareTrackId);

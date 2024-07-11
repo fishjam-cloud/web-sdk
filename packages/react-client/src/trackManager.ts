@@ -48,10 +48,14 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackMa
   };
 
   public initialize = async (deviceId?: string) => {
-    this?.mediaManager?.start(deviceId);
+    console.log("initializing");
+    this.mediaManager?.start(deviceId ?? true);
   };
 
-  public cleanup = async () => {};
+  public cleanup = async () => {
+    console.log("xd cleanup");
+    this?.mediaManager?.stop();
+  };
 
   public startStreaming = async (trackMetadata?: TrackMetadata, simulcastConfig?: any, maxBandwidth?: any) => {
     if (this.currentTrackId) throw Error("Track already added");
@@ -61,6 +65,8 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackMa
     if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
 
     const track = this.getRemoteTrack(media.track.id);
+
+    console.log(track);
 
     if (track) return track.trackId;
 
@@ -85,21 +91,39 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackMa
 
   public stopStreaming = async () => {
     const prevTrack = this.getPreviousTrack();
+    console.log(prevTrack);
     this.currentTrackId = null;
     return this.tsClient.removeTrack(prevTrack.trackId);
   };
 
-  public muteTrack = async () => {
+  public pauseStreaming = async () => {
     const prevTrack = this.getPreviousTrack();
+    console.log(prevTrack, "muting");
     await this.tsClient.replaceTrack(prevTrack.trackId, null);
   };
 
-  public unmuteTrack = async () => {
+  public isMuted = () => {
+    const media = this.mediaManager.getMedia();
+    const isTrackDisabled = !media?.track?.enabled;
+    const areMediaDisabled = !media?.enabled;
+
+    return isTrackDisabled && areMediaDisabled;
+  };
+
+  public resumeStreaming = async () => {
     const prevTrack = this.getPreviousTrack();
     const media = this.mediaManager.getMedia();
 
     if (!media) throw Error("Device is unavailable");
 
     await this.tsClient.replaceTrack(prevTrack.trackId, media.track);
+  };
+
+  public muteTrack = async () => {
+    this.mediaManager.mute();
+  };
+
+  public unmuteTrack = async () => {
+    this.mediaManager.unmute();
   };
 }

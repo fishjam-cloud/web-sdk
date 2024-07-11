@@ -1,4 +1,5 @@
 import type {
+  BandwidthLimit,
   LocalTrackId,
   MetadataParser,
   RemoteTrackId,
@@ -7,21 +8,13 @@ import type {
   TrackEncoding,
 } from './types';
 import type { EndpointWithTrackContext } from './internal';
-import {
-  isTrackKind,
-  mapMediaEventTracksToTrackContextImpl,
-  TrackContextImpl,
-} from './internal';
-import {
-  findSender,
-  findSenderByTrack,
-  isTrackInUse,
-} from './RTCPeerConnectionUtils';
+import type { TrackContextImpl } from './internal';
+import { isTrackInUse, } from './RTCPeerConnectionUtils';
 import { generateCustomEvent, generateMediaEvent } from './mediaEvent';
 import type { WebRTCEndpoint } from './webRTCEndpoint';
-import { isVadStatus } from './voiceActivityDetection';
 import type { NegotiationManager } from './NegotiationManager';
-import { addTrackToConnection, setTransceiverDirection } from './transciever';
+import { setTransceiverDirection } from './transciever';
+import { Tracks } from "./tracks/Tracks";
 
 // localEndpoint + EndpointWithTrackContext
 
@@ -34,35 +27,30 @@ import { addTrackToConnection, setTransceiverDirection } from './transciever';
 
 // mid + trackId from signaling Event
 
-export type TrackData<EndpointMetadata, TrackMetadata> = {
-  id: string;
-  trackContextImpl: TrackContextImpl<EndpointMetadata, TrackMetadata>,
-  rtcRtpSender: RTCRtpSender,
-  trackEncoding: TrackEncoding[],
-}
-
 export class StateManager<EndpointMetadata, TrackMetadata> {
   // master object
   public connection?: RTCPeerConnection;
 
-  private localTrackIdsToData: Record<LocalTrackId, TrackData<EndpointMetadata, TrackMetadata>> = {}
+  private readonly tracks: Tracks<EndpointMetadata, TrackMetadata>;
 
-  private deleteLocalTrack = (trackId: LocalTrackId) {
-
+  public getTracks = (): Tracks<EndpointMetadata, TrackMetadata> => {
+    return this.tracks;
   }
 
   // locally generated track id (uuid) + TrackContextImpl
   public localTrackIdToTrack: Map<RemoteTrackId, TrackContextImpl<EndpointMetadata, TrackMetadata>> = new Map();
   // locally generated track id (uuid) + RTCRtpSender
   public trackIdToSender: Map<RemoteTrackId, {
+
+    // locally generated track id (uuid)
     remoteTrackId: RemoteTrackId;
+
+    // MediaStreamTrack id
     localTrackId: LocalTrackId | null;
     sender: RTCRtpSender | null;
   }> = new Map();
   // locally generated track id (uuid) + TrackEncoding
   public disabledTrackEncodings: Map<string, TrackEncoding[]> = new Map();
-
-
 
 
   // trackId from signaling Event + TrackContextImpl
@@ -90,8 +78,6 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   // temporary for webrtc.emit and webrtc.sendMediaEvent
   private readonly webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>;
   private readonly negotiationManager: NegotiationManager;
-  private readonly endpointMetadataParser: MetadataParser<EndpointMetadata>;
-  private readonly trackMetadataParser: MetadataParser<TrackMetadata>;
 
   constructor(
     webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
@@ -101,25 +87,9 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   ) {
     this.webrtc = webrtc;
     this.negotiationManager = negotiationManager;
-    this.endpointMetadataParser = endpointMetadataParser;
-    this.trackMetadataParser = trackMetadataParser;
-  }
 
-  private onAnswer = async (answer: RTCSessionDescriptionInit) => {
-    this.connection!.ontrack = this.onTrack();
-    try {
-      await this.connection!.setRemoteDescription(answer);
-      this.disabledTrackEncodings.forEach(
-        (encodings: TrackEncoding[], trackId: string) => {
-          encodings.forEach((encoding: TrackEncoding) =>
-            this.disableTrackEncoding(trackId, encoding),
-          );
-        },
-      );
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    this.tracks = new Tracks<EndpointMetadata, TrackMetadata>(webrtc, endpointMetadataParser, trackMetadataParser)
+  }
 
   /**
    * Disables track encoding so that it will be no longer sent to the server.
@@ -132,14 +102,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
    * ```
    */
   public disableTrackEncoding = (trackId: string, encoding: TrackEncoding) => {
-    const track = this.localTrackIdToTrack.get(trackId)?.track;
-    this.disabledTrackEncodings.get(trackId)!.push(encoding);
-
-    const sender = findSenderByTrack(this.connection, track);
-
-    const params = sender?.getParameters();
-    params!.encodings.filter((en) => en.rid == encoding)[0].active = false;
-    sender?.setParameters(params!);
+    this.tracks.disableTrackEncoding(trackId, encoding)
 
     const mediaEvent = generateMediaEvent('disableTrackEncoding', {
       trackId: trackId,
@@ -152,243 +115,150 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     });
   };
 
-  private onTrack = () => {
+
+  private onTrackReady = () => {
     return (event: RTCTrackEvent) => {
-      const [stream] = event.streams;
+      const stream = event.streams[0];
+      if (!stream) throw new Error("Cannot find media stream")
+
       const mid = event.transceiver.mid!;
+      const remoteTrack = this.tracks.getRemoteTrackByMid(mid)
 
-      const trackId = this.midToTrackId.get(mid)!;
+      remoteTrack.setReady(stream, event.track)
 
-      if (this.checkIfTrackBelongToEndpoint(trackId, this.localEndpoint))
-        return;
-      if (!isTrackKind(event.track.kind)) throw new Error('Track has no kind');
-
-      const trackContext = this.trackIdToTrack.get(trackId)!;
-
-      trackContext.stream = stream;
-      trackContext.track = event.track;
-      trackContext.trackKind = event.track.kind;
-
-      this.idToEndpoint
-        .get(trackContext.endpoint.id)
-        ?.tracks.set(trackId, trackContext);
-
-      this.webrtc.emit('trackReady', trackContext);
+      this.webrtc.emit('trackReady', remoteTrack.trackContext);
     };
   };
 
-  private checkIfTrackBelongToEndpoint = (
-    trackId: string,
-    endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
-  ) =>
-    Array.from(endpoint.tracks.keys()).some((track) =>
-      trackId.startsWith(track),
-    );
-
   public onTracksAdded = (data: any) => {
     if (this.getEndpointId() === data.endpointId) return;
-    data.tracks = new Map<string, any>(Object.entries(data.tracks));
-    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
-      this.idToEndpoint.get(data.endpointId)!;
-    const oldTracks = endpoint.tracks;
 
-    data.tracks = mapMediaEventTracksToTrackContextImpl(
-      data.tracks,
-      endpoint,
-      this.trackMetadataParser,
-    );
+    this.tracks.addRemoteTracks(data)
 
-    endpoint.tracks = new Map([...endpoint.tracks, ...data.tracks]);
-
-    this.idToEndpoint.set(endpoint.id, endpoint);
-    Array.from(endpoint.tracks.entries()).forEach(([trackId, ctx]) => {
-      if (!oldTracks.has(trackId)) {
-        this.trackIdToTrack.set(trackId, ctx);
-
-        this.webrtc.emit('trackAdded', ctx);
-      }
-    });
+    // data.tracks = new Map<string, any>(Object.entries(data.tracks));
+    // const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
+    //   this.idToEndpoint.get(data.endpointId)!;
+    // const oldTracks = endpoint.tracks;
+    //
+    // data.tracks = mapMediaEventTracksToTrackContextImpl(
+    //   data.tracks,
+    //   endpoint,
+    //   this.trackMetadataParser,
+    // );
+    //
+    // endpoint.tracks = new Map([...endpoint.tracks, ...data.tracks]);
+    //
+    // this.idToEndpoint.set(endpoint.id, endpoint);
+    // Array.from(endpoint.tracks.entries()).forEach(([trackId, ctx]) => {
+    //   if (!oldTracks.has(trackId)) {
+    //     this.trackIdToTrack.set(trackId, ctx);
+    //
+    //     this.webrtc.emit('trackAdded', ctx);
+    //   }
+    // });
   };
 
   public onTracksRemoved = (data: any) => {
     const endpointId = data.endpointId;
     if (this.getEndpointId() === endpointId) return;
-    const trackIds = data.trackIds as string[];
-    trackIds.forEach((trackId) => {
-      const trackContext = this.trackIdToTrack.get(trackId)!;
 
-      this.eraseTrack(trackId, endpointId);
-
-      this.webrtc.emit('trackRemoved', trackContext);
-    });
+    this.tracks.removeRemoteTracks(data.trackIds as string[])
   };
 
-  public onSdpAnswer = (data: any) => {
+  public onSdpAnswer = async (data: any) => {
     this.midToTrackId = new Map(Object.entries(data.midToTrackId));
 
-    for (const trackId of Object.values(data.midToTrackId)) {
-      const track = this.localTrackIdToTrack.get(trackId as string);
+    Object.values(data.midToTrackId)
+      .map((trackId) => {
+        if (!trackId) throw new Error("TrackId is not defined")
+        if (typeof trackId !== "string") throw new Error("TrackId is not a string")
 
-      // if is local track
-      if (track) {
-        track.negotiationStatus = 'done';
+        return trackId
+      })
+      .map((trackId) => this.tracks.getLocalTrackByMidOrNull(trackId))
+      .filter((localTrack) => localTrack !== null)
+      .forEach((localTrack) => {
+        const trackContext = localTrack.trackContext
 
-        if (track.pendingMetadataUpdate) {
+        trackContext.negotiationStatus = 'done';
+
+        if (trackContext.pendingMetadataUpdate) {
           const mediaEvent = generateMediaEvent('updateTrackMetadata', {
-            trackId,
-            trackMetadata: track.metadata,
+            trackId: localTrack.id,
+            trackMetadata: trackContext.metadata,
           });
           this.webrtc.sendMediaEvent(mediaEvent);
         }
 
-        track.pendingMetadataUpdate = false;
-      }
-    }
+        trackContext.pendingMetadataUpdate = false;
+      })
 
-    this.onAnswer(data);
+    if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
+
+    // probably there is no need to reassign it on every onAnswer
+    // refactor: remove unnecessary `()`
+    this.connection.ontrack = this.onTrackReady();
+
+    try {
+      await this.connection!.setRemoteDescription(data);
+      this.tracks.disableAllLocalTrackEncodings()
+
+      // this.disabledTrackEncodings.forEach(
+      //         (encodings: TrackEncoding[], trackId: string) => {
+      //           encodings.forEach((encoding: TrackEncoding) =>
+      //             this.disableTrackEncoding(trackId, encoding),
+      //           );
+      //         },
+      //       );
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   public onEndpointAdded = (
     endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
   ) => {
     if (endpoint.id === this.getEndpointId()) return;
-    endpoint.rawMetadata = endpoint.metadata;
-    try {
-      endpoint.metadataParsingError = undefined;
-      endpoint.metadata = this.endpointMetadataParser(endpoint.rawMetadata);
-    } catch (error) {
-      endpoint.metadataParsingError = error;
-      endpoint.metadata = undefined;
-    }
-    this.addEndpoint(endpoint);
 
-    this.webrtc.emit('endpointAdded', endpoint);
+    this.tracks.addRemoteEndpoint(endpoint)
   };
 
   public onEndpointUpdated = (data: any) => {
     if (this.getEndpointId() === data.id) return;
-    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
-      this.idToEndpoint.get(data.id)!;
 
-    try {
-      endpoint.metadata = this.endpointMetadataParser(data.metadata);
-      endpoint.metadataParsingError = undefined;
-    } catch (error) {
-      endpoint.metadata = undefined;
-      endpoint.metadataParsingError = error;
-    }
-    endpoint.rawMetadata = data.metadata;
-    this.addEndpoint(endpoint);
-
-    this.webrtc.emit('endpointUpdated', endpoint);
+    this.tracks.updateRemoteEndpoint(data)
   };
 
   public onEndpointRemoved = (data: any) => {
-    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
-      this.idToEndpoint.get(data.id)!;
-    if (endpoint === undefined) return;
+    if (this.getEndpointId() === data.id) return;
 
-    Array.from(endpoint.tracks.keys()).forEach((trackId) => {
-      this.webrtc.emit('trackRemoved', this.trackIdToTrack.get(trackId)!);
-    });
-
-    this.eraseEndpoint(endpoint);
-
-    this.webrtc.emit('endpointRemoved', endpoint);
+    this.tracks.removeRemoteEndpoint(data.id)
   };
 
   public onTrackUpdated = (data: any) => {
     if (this.getEndpointId() === data.endpointId) return;
 
-    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
-      this.idToEndpoint.get(data.endpointId)!;
-
-    if (endpoint == null)
-      throw `Endpoint with id: ${data.endpointId} doesn't exist`;
-
-    const trackId = data.trackId;
-    const trackMetadata = data.metadata;
-    let newTrack = endpoint.tracks.get(trackId)!;
-    const trackContext = this.trackIdToTrack.get(trackId)!;
-
-    try {
-      const parsedMetadata = this.trackMetadataParser(trackMetadata);
-      newTrack = {
-        ...newTrack,
-        metadata: parsedMetadata,
-        metadataParsingError: undefined,
-      };
-      trackContext.metadata = parsedMetadata;
-      trackContext.metadataParsingError = undefined;
-    } catch (error) {
-      newTrack = {
-        ...newTrack,
-        metadata: undefined,
-        metadataParsingError: error,
-      };
-      trackContext.metadataParsingError = error;
-      trackContext.metadata = undefined;
-    }
-    newTrack = { ...newTrack, rawMetadata: trackMetadata };
-    trackContext.rawMetadata = trackMetadata;
-    endpoint.tracks.set(trackId, newTrack);
-
-    this.webrtc.emit('trackUpdated', trackContext);
+    this.tracks.updateRemoteTrack(data)
   };
 
   public onTrackEncodingDisabled = (data: any) => {
     if (this.getEndpointId() === data.endpointId) return;
 
-    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
-      this.idToEndpoint.get(data.endpointId)!;
-
-    if (endpoint == null)
-      throw `Endpoint with id: ${data.endpointId} doesn't exist`;
-
-    const trackId = data.trackId;
-    const encoding = data.encoding;
-
-    const trackContext = endpoint.tracks.get(trackId)!;
-
-    this.webrtc.emit('trackEncodingDisabled', trackContext, encoding);
+    this.tracks.disableRemoteTrackEncoding(data.trackId, data.encoding)
   };
 
   public onTrackEncodingEnabled = (data: any) => {
     if (this.getEndpointId() === data.endpointId) return;
 
-    const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
-      this.idToEndpoint.get(data.endpointId)!;
-
-    if (endpoint == null)
-      throw `Endpoint with id: ${data.endpointId} doesn't exist`;
-
-    const trackId = data.trackId;
-    const encoding = data.encoding;
-
-    const trackContext = endpoint.tracks.get(trackId)!;
-
-    this.webrtc.emit('trackEncodingEnabled', trackContext, encoding);
+    this.tracks.enableRemoteTrackEncoding(data.trackId, data.encoding)
   };
 
   public onEncodingSwitched = (data: any) => {
-    const trackId = data.trackId;
-    const trackContext = this.trackIdToTrack.get(trackId)!;
-    trackContext.encoding = data.encoding;
-    trackContext.encodingReason = data.reason;
-
-    trackContext.emit('encodingChanged', trackContext);
+    this.tracks.setRemoteTrackEncoding(data.trackId, data.encoding, data.reason)
   };
 
   public onVadNotification = (data: any) => {
-    const trackId = data.trackId;
-    const ctx = this.trackIdToTrack.get(trackId)!;
-    const vadStatus = data.status;
-    if (isVadStatus(vadStatus)) {
-      ctx.vadStatus = vadStatus;
-      ctx.emit('voiceActivityChanged', ctx);
-    } else {
-      console.warn('Received unknown vad status: ', vadStatus);
-    }
+    this.tracks.setRemoteTrackVadStatus(data.trackId, data.status)
   };
 
   public onBandwidthEstimation = (data: any) => {
@@ -427,55 +297,25 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   ) => {
     this.negotiationManager.ongoingRenegotiation = true;
 
-    const trackContext = new TrackContextImpl(
-      this.localEndpoint,
-      trackId,
-      trackMetadata,
-      simulcastConfig,
-      this.trackMetadataParser,
-    );
+    if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
 
-    if (!isTrackKind(track.kind)) throw new Error('Track has no kind');
-
-    trackContext.track = track;
-    trackContext.stream = stream;
-    trackContext.maxBandwidth = maxBandwidth;
-    trackContext.trackKind = track.kind;
-
-    this.localEndpoint.tracks.set(trackId, trackContext);
-
-    this.localTrackIdToTrack.set(trackId, trackContext);
+    const trackManager = this.tracks.addLocalTrack(this.connection, trackId, track, stream, trackMetadata, simulcastConfig, maxBandwidth)
 
     if (this.connection) {
-      addTrackToConnection(
-        trackContext,
-        this.disabledTrackEncodings,
-        this.connection,
-      );
+      trackManager.addTrackToConnection();
 
       setTransceiverDirection(this.connection);
     }
 
-    this.trackIdToSender.set(trackId, {
-      remoteTrackId: trackId,
-      localTrackId: track.id,
-      sender: null,
-    });
     const mediaEvent = generateCustomEvent({ type: 'renegotiateTracks' });
     this.webrtc.sendMediaEvent(mediaEvent);
   };
 
   public removeTrackHandler = (trackId: string) => {
-    const trackContext = this.localTrackIdToTrack.get(trackId)!;
-    const sender = findSender(this.connection, trackContext.track!.id);
-
     this.negotiationManager.ongoingRenegotiation = true;
 
-    this.connection!.removeTrack(sender);
-    const mediaEvent = generateCustomEvent({ type: 'renegotiateTracks' });
-    this.webrtc.sendMediaEvent(mediaEvent);
-    this.localTrackIdToTrack.delete(trackId);
-    this.localEndpoint.tracks.delete(trackId);
+    if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
+    this.tracks.removeLocalTrack(trackId)
   };
 
   public replaceTrackHandler = async (
@@ -483,90 +323,28 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     newTrack: MediaStreamTrack | null,
     newTrackMetadata?: TrackMetadata,
   ): Promise<void> => {
-    // todo add validation to track.kind, you cannot replace video with audio
-
-    const trackContext = this.localTrackIdToTrack.get(trackId)!;
-
-    const track = this.trackIdToSender.get(trackId);
-    const sender = track?.sender ?? null;
-
-    if (!track) throw Error(`There is no track with id: ${trackId}`);
-    if (!sender) throw Error('There is no RTCRtpSender for this track id!');
-
     this.ongoingTrackReplacement = true;
-
-    trackContext.stream?.getTracks().forEach((track) => {
-      trackContext.stream?.removeTrack(track);
-    });
-
-    if (newTrack) {
-      trackContext.stream?.addTrack(newTrack);
-    }
-
-    if (trackContext.track && !newTrack) {
-      const mediaEvent = generateMediaEvent('muteTrack', { trackId: trackId });
-      this.webrtc.sendMediaEvent(mediaEvent);
-      this.webrtc.emit('localTrackMuted', { trackId: trackId });
-    } else if (!trackContext.track && newTrack) {
-      const mediaEvent = generateMediaEvent('unmuteTrack', {
-        trackId: trackId,
-      });
-      this.webrtc.sendMediaEvent(mediaEvent);
-      this.webrtc.emit('localTrackUnmuted', { trackId: trackId });
-    }
-
-    track.localTrackId = newTrack?.id ?? null;
-
     try {
-      await sender.replaceTrack(newTrack);
-      trackContext.track = newTrack;
-
-      if (newTrackMetadata) {
-        this.webrtc.updateTrackMetadata(trackId, newTrackMetadata);
-      }
-    } catch (error) {
-      // ignore
-    } finally {
-      // this.resolvePreviousCommand();
+      await this.tracks.replaceLocalTrack(trackId, newTrack, newTrackMetadata)
+    } catch (e) {
       this.ongoingTrackReplacement = false;
-      // this.processNextCommand();
     }
-  };
-
-  private addEndpoint = (
-    endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
-  ): void => {
-    // #TODO remove this line after fixing deserialization
-    if (Object.prototype.hasOwnProperty.call(endpoint, 'trackIdToMetadata'))
-      endpoint.tracks = new Map(Object.entries(endpoint.tracks));
-    else endpoint.tracks = new Map();
-
-    this.idToEndpoint.set(endpoint.id, endpoint);
-  };
-
-  private eraseEndpoint = (
-    endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
-  ): void => {
-    const tracksId = Array.from(endpoint.tracks.keys());
-    tracksId.forEach((trackId) => this.trackIdToTrack.delete(trackId));
-    Array.from(this.midToTrackId.entries()).forEach(([mid, trackId]) => {
-      if (tracksId.includes(trackId)) this.midToTrackId.delete(mid);
-    });
-    this.idToEndpoint.delete(endpoint.id);
-  };
-
-  private eraseTrack = (trackId: string, endpointId: string) => {
-    this.trackIdToTrack.delete(trackId);
-    const midToTrackId = Array.from(this.midToTrackId.entries());
-    const [mid, _trackId] = midToTrackId.find(
-      ([_mid, mapTrackId]) => mapTrackId === trackId,
-    )!;
-    this.midToTrackId.delete(mid);
-    this.idToEndpoint.get(endpointId)!.tracks.delete(trackId);
-
-    this.deleteLocalTrack(trackId)
-    this.disabledTrackEncodings.delete(trackId);
+    this.ongoingTrackReplacement = false
   };
 
   public getEndpointId = () => this.localEndpoint.id;
+
+  public setLocalEndpoint = (metadata: EndpointMetadata) => {
+    this.tracks.setLocalEndpointMetadata(metadata)
+    const mediaEvent = generateMediaEvent('connect', {
+      metadata: metadata,
+    });
+    this.webrtc.sendMediaEvent(mediaEvent);
+  }
+
+  public setLocalTrackBandwidth = (trackId: string, bandwidth: BandwidthLimit): Promise<void> => {
+    if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
+
+    return this.tracks.setLocalTrackBandwidth(trackId, bandwidth, this.connection)
+  }
 }

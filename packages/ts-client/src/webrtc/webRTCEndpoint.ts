@@ -21,8 +21,7 @@ import type {
 } from './types';
 import type { EndpointWithTrackContext } from './internal';
 import { mapMediaEventTracksToTrackContextImpl } from './internal';
-import { applyBandwidthLimitation } from './bandwidth';
-import { createTrackVariantBitratesEvent, getTrackBitrates } from './bitrate';
+import { getTrackBitrates } from './bitrate';
 import { findSender, findSenderByTrack } from './RTCPeerConnectionUtils';
 import {
   addTrackToConnection,
@@ -42,7 +41,7 @@ export class WebRTCEndpoint<
   EndpointMetadata = any,
   TrackMetadata = any,
 > extends (EventEmitter as {
-  new <EndpointMetadata, TrackMetadata>(): TypedEmitter<
+  new<EndpointMetadata, TrackMetadata>(): TypedEmitter<
     Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>
   >;
 })<EndpointMetadata, TrackMetadata> {
@@ -92,20 +91,7 @@ export class WebRTCEndpoint<
    * ```
    */
   public connect = (metadata: EndpointMetadata): void => {
-    try {
-      this.stateManager.localEndpoint.metadata =
-        this.endpointMetadataParser(metadata);
-      this.stateManager.localEndpoint.metadataParsingError = undefined;
-    } catch (error) {
-      this.stateManager.localEndpoint.metadata = undefined;
-      this.stateManager.localEndpoint.metadataParsingError = error;
-      throw error;
-    }
-    this.stateManager.localEndpoint.rawMetadata = metadata;
-    const mediaEvent = generateMediaEvent('connect', {
-      metadata: this.stateManager.localEndpoint.metadata,
-    });
-    this.sendMediaEvent(mediaEvent);
+    this.stateManager.setLocalEndpoint(metadata)
   };
 
   /**
@@ -220,28 +206,19 @@ export class WebRTCEndpoint<
    *   webRTCEndpoint.setTargetTrackEncoding(trackId, encoding);
    * }
    */
-  public getRemoteTracks(): Record<
-    string,
-    TrackContext<EndpointMetadata, TrackMetadata>
-  > {
-    return Object.fromEntries(this.stateManager.trackIdToTrack.entries());
+  public getRemoteTracks(): Record<string, TrackContext<EndpointMetadata, TrackMetadata>> {
+    return this.stateManager.getTracks().getRemoteTrackContexts()
   }
 
   /**
    * Returns a snapshot of currently received remote endpoints.
    */
-  public getRemoteEndpoints(): Record<
-    string,
-    EndpointWithTrackContext<EndpointMetadata, TrackMetadata>
-  > {
-    return Object.fromEntries(this.stateManager.idToEndpoint.entries());
+  public getRemoteEndpoints(): Record<string, EndpointWithTrackContext<EndpointMetadata, TrackMetadata>> {
+    return this.stateManager.getTracks().getRemoteEndpoints()
   }
 
-  public getLocalEndpoint(): EndpointWithTrackContext<
-    EndpointMetadata,
-    TrackMetadata
-  > {
-    return this.stateManager.localEndpoint;
+  public getLocalEndpoint(): EndpointWithTrackContext<EndpointMetadata, TrackMetadata> {
+    return this.stateManager.getTracks().getLocalEndpoint();
   }
 
   public getBandwidthEstimation(): bigint {
@@ -283,9 +260,7 @@ export class WebRTCEndpoint<
         break;
 
       case 'endpointRemoved':
-        if (
-          deserializedMediaEvent.data.id === this.stateManager.localEndpoint.id
-        ) {
+        if (deserializedMediaEvent.data.id === this.stateManager.getTracks().getLocalEndpoint().id) {
           this.cleanUp();
           this.emit('disconnected');
           return;
@@ -313,19 +288,19 @@ export class WebRTCEndpoint<
         break;
       }
 
-      // todo The event may not be implemented in the Fishjam
-      case 'tracksPriority': {
-        const enabledTracks = (
-          deserializedMediaEvent.data.tracks as string[]
-        ).map((trackId) => this.stateManager.trackIdToTrack.get(trackId)!);
-
-        const disabledTracks = Array.from(
-          this.stateManager.trackIdToTrack.values(),
-        ).filter((track) => !enabledTracks.includes(track));
-
-        this.emit('tracksPriorityChanged', enabledTracks, disabledTracks);
-        break;
-      }
+      // // todo The event may not be implemented in the Fishjam
+      // case 'tracksPriority': {
+      //   const enabledTracks = (
+      //     deserializedMediaEvent.data.tracks as string[]
+      //   ).map((trackId) => this.stateManager.trackIdToTrack.get(trackId)!);
+      //
+      //   const disabledTracks = Array.from(
+      //     this.stateManager.trackIdToTrack.values(),
+      //   ).filter((track) => !enabledTracks.includes(track));
+      //
+      //   this.emit('tracksPriorityChanged', enabledTracks, disabledTracks);
+      //   break;
+      // }
 
       case 'encodingSwitched': {
         this.stateManager.onEncodingSwitched(deserializedMediaEvent.data);
@@ -336,9 +311,7 @@ export class WebRTCEndpoint<
         break;
 
       case 'error':
-        this.emit('signalingError', {
-          message: deserializedMediaEvent.data.message,
-        });
+        this.emit('signalingError', { message: deserializedMediaEvent.data.message, });
 
         this.disconnect();
         break;
@@ -552,46 +525,8 @@ export class WebRTCEndpoint<
    * @param {BandwidthLimit} bandwidth in kbps
    * @returns {Promise<boolean>} success
    */
-  public setTrackBandwidth(
-    trackId: string,
-    bandwidth: BandwidthLimit,
-  ): Promise<boolean> {
-    // FIXME: maxBandwidth in TrackContext is not updated
-    const trackContext = this.stateManager.localTrackIdToTrack.get(trackId);
-
-    if (!trackContext) {
-      return Promise.reject(`Track '${trackId}' doesn't exist`);
-    }
-
-    const sender = findSender(
-      this.stateManager.connection,
-      trackContext.track!.id,
-    );
-    const parameters = sender.getParameters();
-
-    if (parameters.encodings.length === 0) {
-      parameters.encodings = [{}];
-    } else {
-      applyBandwidthLimitation(parameters.encodings, bandwidth);
-    }
-
-    return sender
-      .setParameters(parameters)
-      .then(() => {
-        const mediaEvent = createTrackVariantBitratesEvent(
-          trackId,
-          this.stateManager.connection,
-          this.stateManager.localTrackIdToTrack,
-        );
-        this.sendMediaEvent(mediaEvent);
-
-        this.emit('localTrackBandwidthSet', {
-          trackId,
-          bandwidth,
-        });
-        return true;
-      })
-      .catch((_error) => false);
+  public setTrackBandwidth(trackId: string, bandwidth: BandwidthLimit): Promise<void> {
+    return this.stateManager.setLocalTrackBandwidth(trackId, bandwidth)
   }
 
   /**
@@ -602,11 +537,7 @@ export class WebRTCEndpoint<
    * @param {BandwidthLimit} bandwidth - desired max bandwidth used by the encoding (in kbps)
    * @returns
    */
-  public setEncodingBandwidth(
-    trackId: string,
-    rid: string,
-    bandwidth: BandwidthLimit,
-  ): Promise<boolean> {
+  public setEncodingBandwidth(trackId: string, rid: string, bandwidth: BandwidthLimit,): Promise<boolean> {
     const trackContext = this.stateManager.localTrackIdToTrack.get(trackId)!;
 
     if (!trackContext) {
@@ -762,7 +693,7 @@ export class WebRTCEndpoint<
     );
     const sender = findSenderByTrack(this.stateManager.connection, track);
     const params = sender?.getParameters();
-    params!.encodings.filter((en) => en.rid == encoding)[0].active = true;
+    params!.encodings!.filter((en) => en.rid == encoding)[0]!.active = true;
     sender?.setParameters(params!);
 
     const mediaEvent = generateMediaEvent('enableTrackEncoding', {

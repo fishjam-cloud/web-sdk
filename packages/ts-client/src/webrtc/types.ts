@@ -5,6 +5,8 @@ export type MetadataParser<ParsedMetadata> = (
   rawMetadata: unknown,
 ) => ParsedMetadata;
 export type LocalTrackId = string;
+export type Mid = string;
+export type MediaStreamTrackId = string;
 export type RemoteTrackId = string;
 
 export type TrackKind = 'audio' | 'video';

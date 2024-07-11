@@ -1,7 +1,7 @@
 import type { RemoteTrackId, TrackContext, TrackEncoding } from './types';
-import { simulcastTransceiverConfig } from './const';
 import { applyBandwidthLimitation } from './bandwidth';
 import type { EndpointWithTrackContext, TrackContextImpl } from './internal';
+import { simulcastTransceiverConfig } from "./tracks/LocalTrack";
 
 const getNeededTransceiversTypes = (
   type: string,

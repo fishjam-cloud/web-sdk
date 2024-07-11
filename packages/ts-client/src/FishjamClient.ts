@@ -897,7 +897,7 @@ export class FishjamClient<
   public setTrackBandwidth(
     trackId: string,
     bandwidth: BandwidthLimit,
-  ): Promise<boolean> {
+  ): Promise<void> {
     if (!this.webrtc) throw this.handleWebRTCNotInitialized();
 
     return this.webrtc.setTrackBandwidth(trackId, bandwidth);

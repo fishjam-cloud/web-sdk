@@ -75,7 +75,7 @@ export const getTrackIdToTrackBitrates = <EndpointMetadata, TrackMetadata>(
 };
 
 const isNotSimulcastTrack = (encodings: RTCRtpEncodingParameters[]) =>
-  encodings.length === 1 && !encodings[0].rid;
+  encodings.length === 1 && !encodings[0]!.rid;
 
 export const getTrackBitrates = <EndpointMetadata, TrackMetadata>(
   connection: RTCPeerConnection | undefined,
@@ -104,7 +104,7 @@ export const getTrackBitrates = <EndpointMetadata, TrackMetadata>(
 
   if (isNotSimulcastTrack(encodings)) {
     return (
-      encodings[0].maxBitrate ||
+      encodings[0]!.maxBitrate ||
       (kind ? defaultBitrates[kind] : UNLIMITED_BANDWIDTH)
     );
   } else if (kind === 'audio') {

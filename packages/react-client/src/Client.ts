@@ -397,8 +397,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       },
       screenShare: {
         cleanup: async () => {},
-        muteTrack: () => {},
-        unmuteTrack: () => {},
+        disableTrack: () => {},
+        enableTrack: () => {},
         initialize: async () => {},
         startStreaming: (_trackMetadata?: TrackMetadata, _maxBandwidth?: TrackBandwidthLimit) => Promise.reject(),
         stopStreaming: () => Promise.reject(),
@@ -1005,10 +1005,10 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         cleanup: async () => {
           this?.screenShareManager?.stop("video");
         },
-        muteTrack: () => {
+        disableTrack: () => {
           this.screenShareManager?.setEnable("video", false);
         },
-        unmuteTrack: () => {
+        enableTrack: () => {
           this.screenShareManager?.setEnable("video", true);
         },
         initialize: async (config?: ScreenShareManagerConfig) => {

@@ -113,11 +113,11 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackMa
     await this.tsClient.replaceTrack(prevTrack.trackId, media.track);
   };
 
-  public muteTrack = async () => {
-    this.mediaManager.mute();
+  public disableTrack = async () => {
+    this.mediaManager.disable();
   };
 
-  public unmuteTrack = async () => {
-    this.mediaManager.unmute();
+  public enableTrack = async () => {
+    this.mediaManager.enable();
   };
 }

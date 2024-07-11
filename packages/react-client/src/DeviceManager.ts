@@ -229,7 +229,7 @@ export class DeviceManager
     this.emit("deviceStopped", this.deviceState);
   }
 
-  public mute() {
+  public disable() {
     if (!this.deviceState.media || !this.deviceState.media?.track) {
       return;
     }
@@ -240,7 +240,7 @@ export class DeviceManager
     this.emit("deviceDisabled", this.deviceState);
   }
 
-  public unmute() {
+  public enable() {
     if (!this.deviceState.media || !this.deviceState.media?.track) {
       return;
     }

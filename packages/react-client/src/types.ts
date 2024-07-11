@@ -145,8 +145,8 @@ export type UseSetupMediaResult = {
 export interface GenericMediaManager {
   start: (deviceId?: string | boolean) => Promise<void>;
   stop: () => Promise<void>;
-  mute: () => void;
-  unmute: () => void;
+  disable: () => void;
+  enable: () => void;
   getMedia: () => { stream: MediaStream | null; track: MediaStreamTrack | null; enabled: boolean } | null;
 }
 
@@ -161,25 +161,13 @@ export interface GenericTrackManager<TrackMetadata> {
   stopStreaming: () => Promise<void>;
   pauseStreaming: () => Promise<void>;
   resumeStreaming: () => Promise<void>;
-  muteTrack: () => void;
-  unmuteTrack: () => void;
+  disableTrack: () => void;
+  enableTrack: () => void;
 }
 
-export type CameraAPI<TrackMetadata> = {
+export type UserMediaAPI<TrackMetadata> = {
   broadcast: Track<TrackMetadata> | null;
   status: DevicesStatus | null; // todo how to remove null
-  stream: MediaStream | null;
-  track: MediaStreamTrack | null;
-  enabled: boolean;
-  mediaStatus: MediaStatus | null;
-  deviceInfo: MediaDeviceInfo | null;
-  error: DeviceError | null;
-  devices: MediaDeviceInfo[] | null;
-};
-
-export type MicrophoneAPI<TrackMetadata> = {
-  broadcast: Track<TrackMetadata> | null;
-  status: DevicesStatus | null;
   stream: MediaStream | null;
   track: MediaStreamTrack | null;
   enabled: boolean;
@@ -194,8 +182,8 @@ export type ScreenShareAPI<TrackMetadata> = {
   cleanup: () => Promise<void>;
   startStreaming: (trackMetadata?: TrackMetadata, maxBandwidth?: TrackBandwidthLimit) => Promise<string>;
   stopStreaming: () => Promise<void>;
-  muteTrack: () => void;
-  unmuteTrack: () => void;
+  disableTrack: () => void;
+  enableTrack: () => void;
   broadcast: Track<TrackMetadata> | null;
   status: DevicesStatus | null;
   stream: MediaStream | null;
@@ -207,8 +195,8 @@ export type ScreenShareAPI<TrackMetadata> = {
 };
 
 export type Devices<TrackMetadata> = {
-  camera: CameraAPI<TrackMetadata>;
-  microphone: MicrophoneAPI<TrackMetadata>;
+  camera: UserMediaAPI<TrackMetadata>;
+  microphone: UserMediaAPI<TrackMetadata>;
   screenShare: ScreenShareAPI<TrackMetadata>;
 };
 

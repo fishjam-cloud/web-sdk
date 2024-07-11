@@ -4,8 +4,7 @@ import type { Selector, State, UseReconnection } from "./state.types";
 import type { ConnectConfig, CreateConfig } from "@fishjam-dev/ts-client";
 import type {
   DeviceManagerConfig,
-  CameraAPI,
-  MicrophoneAPI,
+  UserMediaAPI,
   ScreenShareAPI,
   CreateFishjamClient,
   FishjamContextType,
@@ -233,13 +232,13 @@ export const create = <PeerMetadata, TrackMetadata>(
   const useTracks = () => useSelector((s) => s.tracks);
   const useClient = () => useSelector((s) => s.client);
 
-  const useCamera = (): CameraAPI<TrackMetadata> & GenericTrackManager<TrackMetadata> => {
+  const useCamera = (): UserMediaAPI<TrackMetadata> & GenericTrackManager<TrackMetadata> => {
     const { state } = useFishjamContext();
 
     return { ...state.devices.camera, ...state.videoTrackManager };
   };
 
-  const useMicrophone = (): MicrophoneAPI<TrackMetadata> & GenericTrackManager<TrackMetadata> => {
+  const useMicrophone = (): UserMediaAPI<TrackMetadata> & GenericTrackManager<TrackMetadata> => {
     const { state } = useFishjamContext();
 
     return { ...state.devices.microphone, ...state.audioTrackManager };

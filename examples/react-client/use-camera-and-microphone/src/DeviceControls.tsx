@@ -1,7 +1,6 @@
 import type {
   PeerStatus,
-  CameraAPI,
-  MicrophoneAPI,
+  UserMediaAPI,
   ScreenShareAPI,
 } from "@fishjam-dev/react-client";
 import type { TrackMetadata } from "./fishjamSetup";
@@ -12,11 +11,11 @@ type DeviceControlsProps = {
   metadata: TrackMetadata;
 } & (
   | {
-      device: MicrophoneAPI<TrackMetadata> & GenericTrackManager<TrackMetadata>;
+      device: UserMediaAPI<TrackMetadata> & GenericTrackManager<TrackMetadata>;
       type: "audio";
     }
   | {
-      device: CameraAPI<TrackMetadata> & GenericTrackManager<TrackMetadata>;
+      device: UserMediaAPI<TrackMetadata> & GenericTrackManager<TrackMetadata>;
       type: "video";
     }
   | {
@@ -55,7 +54,7 @@ export const DeviceControls = ({
         className="btn btn-success btn-sm"
         disabled={!device?.stream || device?.enabled}
         onClick={() => {
-          device.unmuteTrack();
+          device.enableTrack();
         }}
       >
         Enable {type} track
@@ -64,7 +63,7 @@ export const DeviceControls = ({
         className="btn btn-error btn-sm"
         disabled={!device?.enabled}
         onClick={() => {
-          device?.muteTrack();
+          device?.disableTrack();
         }}
       >
         Disable {type} track

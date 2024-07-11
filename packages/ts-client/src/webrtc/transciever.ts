@@ -34,18 +34,6 @@ export const addTransceiversIfNeeded = (
     );
 };
 
-export const setTransceiverDirection = (connection: RTCPeerConnection) => {
-  connection
-    .getTransceivers()
-    .forEach(
-      (transceiver) =>
-        (transceiver.direction =
-          transceiver.direction === 'sendrecv'
-            ? 'sendonly'
-            : transceiver.direction),
-    );
-};
-
 export const addTrackToConnection = <EndpointMetadata, TrackMetadata>(
   trackContext: TrackContext<EndpointMetadata, TrackMetadata>,
   disabledTrackEncodingsMap: Map<string, Encoding[]>,
@@ -125,35 +113,8 @@ export const setTransceiversToReadOnly = (connection: RTCPeerConnection) => {
 
 type Mid = string;
 type TrackId = string;
-type MidToTrackId = Record<Mid, TrackId>;
+export type MidToTrackId = Record<Mid, TrackId>;
 
-export const getMidToTrackId = <EndpointMetadata, TrackMetadata>(
-  connection: RTCPeerConnection | undefined,
-  localTrackIdToTrack: Map<
-    RemoteTrackId,
-    TrackContextImpl<EndpointMetadata, TrackMetadata>
-  >,
-  midToTrackId: Map<string, string>,
-  localEndpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
-): MidToTrackId | null => {
-  if (!connection) return null;
-
-  // - negotiated unmuted tracks: tracks added in previous negotiation, data is being transmitted
-  // - not yet negotiated tracks: tracks added in this negotiation, data will be transmitted after successful negotiation
-  const mappingFromTransceivers = getTransceiverMapping(
-    connection,
-    localTrackIdToTrack,
-  );
-
-  // - negotiated unmuted tracks: tracks added in previous negotiation, data is being transmitted
-  // - negotiated muted tracks: tracks added in previous negotiation, data is not being transmitted but can be transmitted in the future
-  const mappingFromLocalNegotiatedTracks = getAllNegotiatedLocalTracksMapping(
-    midToTrackId,
-    localEndpoint,
-  );
-
-  return { ...mappingFromTransceivers, ...mappingFromLocalNegotiatedTracks };
-};
 
 const getTrackContext = <EndpointMetadata, TrackMetadata>(
   localTrackIdToTrack: Map<

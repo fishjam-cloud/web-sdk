@@ -6,15 +6,15 @@ import type {
   MetadataParser,
   MLineId,
   Encoding,
-  RemoteTrackId, TrackKind
+  TrackKind
 } from "../types";
 import { applyBandwidthLimitation } from "../bandwidth";
 import type { TrackCommon, TrackEncodings } from "./TrackCommon";
-import { generateMediaEvent } from "../mediaEvent";
+import { generateCustomEvent, generateMediaEvent } from "../mediaEvent";
 import type { WebRTCEndpoint } from "../webRTCEndpoint";
-import { findSender } from "../RTCPeerConnectionUtils";
-import type { TrackId } from "./Tracks";
-import { Bitrate, Bitrates, defaultBitrates, defaultSimulcastBitrates, UNLIMITED_BANDWIDTH } from "../bitrate";
+import type { Bitrate } from "../bitrate";
+import { defaultBitrates, defaultSimulcastBitrates, UNLIMITED_BANDWIDTH } from "../bitrate";
+import type { Connection } from "../Connection";
 
 export const simulcastTransceiverConfig: RTCRtpTransceiverInit = {
   direction: 'sendonly',
@@ -55,11 +55,11 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
   // for compatibility reasons
   public disabledEncodings: Encoding[] = []
   public readonly encodings: TrackEncodings
-  private metadataParser: MetadataParser<TrackMetadata>
+  private readonly metadataParser: MetadataParser<TrackMetadata>
 
-  public connection: RTCPeerConnection | undefined
+  public connection: Connection | undefined
 
-  constructor(connection: RTCPeerConnection | undefined, id: LocalTrackId, trackContext: TrackContextImpl<EndpointMetadata, TrackMetadata>, metadataParser: MetadataParser<TrackMetadata>) {
+  constructor(connection: Connection | undefined, id: LocalTrackId, trackContext: TrackContextImpl<EndpointMetadata, TrackMetadata>, metadataParser: MetadataParser<TrackMetadata>) {
     this.connection = connection;
     this.id = id;
     this.trackContext = trackContext
@@ -259,8 +259,8 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
   }
 
   public updateSender = () => {
-    if (this.mediaStreamTrackId) {
-      this.rtcRtpSender = findSender(this.connection, this.mediaStreamTrackId);
+    if (this.mediaStreamTrackId && this.connection) {
+      this.rtcRtpSender = this.connection.findSender(this.mediaStreamTrackId)
     }
   }
 
@@ -278,16 +278,7 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
     }
   }
 
-  public enableLocalTrackEncoding = (trackId: TrackId, encoding: Encoding) => {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-    // const newDisabledTrackEncodings = this.stateManager.disabledTrackEncodings
-    //   .get(trackId)
-    //   ?.filter((en) => en !== encoding)!;
-    // this.stateManager.disabledTrackEncodings.set(
-    //   trackId,
-    //   newDisabledTrackEncodings,
-    // );
-    // const sender = findSenderByTrack(this.stateManager.connection, track);
+  public enableLocalTrackEncoding = (encoding: Encoding) => {
     const sender = this.rtcRtpSender
     if (!sender) throw new Error(`RTCRtpSender for track ${this.id} not found`)
 
@@ -356,7 +347,17 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
 
   }
 
-  public updateConnection = (connection: RTCPeerConnection) => {
+  public updateConnection = (connection: Connection) => {
     this.connection = connection
   }
+
+  public createTrackVariantBitratesEvent = () => {
+    return generateCustomEvent({
+      type: 'trackVariantBitrates',
+      data: {
+        trackId: this.id,
+        variantBitrates: this.getTrackBitrates(),
+      },
+    });
+  };
 }

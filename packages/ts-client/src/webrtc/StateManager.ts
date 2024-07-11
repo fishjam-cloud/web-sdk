@@ -6,13 +6,12 @@ import type {
   Encoding,
 } from './types';
 import type { EndpointWithTrackContext } from './internal';
-import { isTrackInUse, } from './RTCPeerConnectionUtils';
 import { generateCustomEvent, generateMediaEvent } from './mediaEvent';
 import type { WebRTCEndpoint } from './webRTCEndpoint';
 import type { NegotiationManager } from './NegotiationManager';
-import { setTransceiverDirection } from './transciever';
 import type { TrackId } from "./tracks/Tracks";
 import { Tracks } from "./tracks/Tracks";
+import { Connection } from "./Connection";
 
 // localEndpoint + EndpointWithTrackContext
 
@@ -26,8 +25,7 @@ import { Tracks } from "./tracks/Tracks";
 // mid + trackId from signaling Event
 
 export class StateManager<EndpointMetadata, TrackMetadata> {
-  // master object
-  public connection?: RTCPeerConnection;
+  public connection?: Connection;
 
   private readonly tracks: Tracks<EndpointMetadata, TrackMetadata>;
 
@@ -59,18 +57,16 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   }
 
 
-  private onTrackReady = () => {
-    return (event: RTCTrackEvent) => {
-      const stream = event.streams[0];
-      if (!stream) throw new Error("Cannot find media stream")
+  private onTrackReady = (event: RTCTrackEvent) => {
+    const stream = event.streams[0];
+    if (!stream) throw new Error("Cannot find media stream")
 
-      const mid = event.transceiver.mid!;
-      const remoteTrack = this.tracks.getRemoteTrackByMid(mid)
+    const mid = event.transceiver.mid!;
+    const remoteTrack = this.tracks.getRemoteTrackByMid(mid)
 
-      remoteTrack.setReady(stream, event.track)
+    remoteTrack.setReady(stream, event.track)
 
-      this.webrtc.emit('trackReady', remoteTrack.trackContext);
-    };
+    this.webrtc.emit('trackReady', remoteTrack.trackContext);
   };
 
   public onTracksAdded = (data: any) => {
@@ -120,20 +116,11 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
 
     // probably there is no need to reassign it on every onAnswer
-    // refactor: remove unnecessary `()`
-    this.connection.ontrack = this.onTrackReady();
+    this.connection.setOnTrackReady((event) => this.onTrackReady(event))
 
     try {
-      await this.connection!.setRemoteDescription(data);
-      this.tracks.disableAllLocalTrackEncodings()
-
-      // this.disabledTrackEncodings.forEach(
-      //         (encodings: TrackEncoding[], trackId: string) => {
-      //           encodings.forEach((encoding: TrackEncoding) =>
-      //             this.disableTrackEncoding(trackId, encoding),
-      //           );
-      //         },
-      //       );
+      await this.connection.setRemoteDescription(data);
+      await this.tracks.disableAllLocalTrackEncodings()
     } catch (err) {
       console.error(err);
     }
@@ -204,7 +191,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
       return 'Invalid type of `maxBandwidth` argument for a non-simulcast track, expected: number';
     }
 
-    if (isTrackInUse(this.connection, track)) {
+    if (this.connection?.isTrackInUse(track)) {
       return "This track was already added to peerConnection, it can't be added again!";
     }
 
@@ -225,8 +212,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
 
     if (this.connection) {
       trackManager.addTrackToConnection();
-
-      setTransceiverDirection(this.connection);
+      this.connection.setTransceiverDirection()
     }
 
     const mediaEvent = generateCustomEvent({ type: 'renegotiateTracks' });
@@ -268,7 +254,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   public setLocalTrackBandwidth = (trackId: string, bandwidth: BandwidthLimit): Promise<void> => {
     if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
 
-    return this.tracks.setLocalTrackBandwidth(trackId, bandwidth, this.connection)
+    return this.tracks.setLocalTrackBandwidth(trackId, bandwidth)
   }
 
   public onConnect = (data: any) => {
@@ -332,7 +318,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   }
 
   public setConnection = (rtcConfig: RTCConfiguration) => {
-    this.connection = new RTCPeerConnection(rtcConfig);
+    this.connection = new Connection(rtcConfig);
 
     this.tracks.updateConnection(this.connection)
   }

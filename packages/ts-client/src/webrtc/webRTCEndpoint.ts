@@ -16,8 +16,11 @@ import type {
 } from './types';
 import { isEncoding } from './types';
 import type { EndpointWithTrackContext } from './internal';
-import { addTrackToConnection, addTransceiversIfNeeded, setTransceiversToReadOnly, } from './transciever';
-import { createSdpOfferEvent } from './sdpEvents';
+import {
+  addTrackToConnection,
+  addTransceiversIfNeeded,
+  setTransceiversToReadOnly,
+} from './transciever';
 import { setTurns } from './turn';
 import { StateManager } from './StateManager';
 import { NegotiationManager } from './NegotiationManager';
@@ -125,7 +128,7 @@ export class WebRTCEndpoint<
     selector?: MediaStreamTrack | null,
   ): Promise<RTCStatsReport> {
     return (
-      (await this.stateManager.connection?.getStats(selector)) ?? new Map()
+      (await this.stateManager.connection?.getConnection().getStats(selector)) ?? new Map()
     );
   }
 
@@ -183,7 +186,7 @@ export class WebRTCEndpoint<
         break;
 
       case 'candidate':
-        this.onRemoteCandidate(deserializedMediaEvent.data);
+        await this.onRemoteCandidate(deserializedMediaEvent.data);
         break;
 
       case 'endpointAdded':
@@ -608,7 +611,7 @@ export class WebRTCEndpoint<
   public cleanUp = () => {
     if (this.stateManager.connection) {
       this.clearConnectionCallbacks?.();
-      this.stateManager.connection.close();
+      this.stateManager.connection.getConnection().close();
 
       this.commandsQueue.cleanUp();
 
@@ -634,31 +637,36 @@ export class WebRTCEndpoint<
     if (!connection) return;
 
     try {
-      const offer = await connection.createOffer();
+      const offer = await connection.getConnection().createOffer();
 
       if (!this.stateManager.connection) {
         console.warn('RTCPeerConnection stopped or restarted');
         return;
       }
-      await connection.setLocalDescription(offer);
+      await connection.getConnection().setLocalDescription(offer);
 
       if (!this.stateManager.connection) {
         console.warn('RTCPeerConnection stopped or restarted');
         return;
       }
 
-      const mediaEvent = createSdpOfferEvent(
-        offer,
-        this.stateManager.connection,
-        this.stateManager.getTracks().getLocalTrackIdToTrack(),
-        this.stateManager.getTracks().getLocalEndpoint(),
-        this.stateManager.midToTrackId,
-      );
+      const trackIdToTrackMetadata = this.stateManager.getTracks().getTrackIdToMetadata()
+      const trackIdToTrackBitrates = this.stateManager.getTracks().getTrackIdToTrackBitrates()
+      const midToTrackId = this.stateManager.getTracks().getMidToTrackId(this.stateManager.connection)
+
+      const mediaEvent = generateCustomEvent({
+        type: 'sdpOffer',
+        data: {
+          sdpOffer: offer,
+          trackIdToTrackMetadata,
+          trackIdToTrackBitrates,
+          midToTrackId
+        },
+      });
+
       this.sendMediaEvent(mediaEvent);
 
-      for (const track of this.stateManager.getTracks().getLocalTrackIdToTrack().values()) {
-        track.negotiationStatus = 'offered';
-      }
+      this.stateManager.getTracks().setLocalTrackStatusToOffered()
     } catch (error) {
       console.error(error);
     }
@@ -668,7 +676,7 @@ export class WebRTCEndpoint<
     const connection = this.stateManager.connection
 
     if (connection) {
-      connection.restartIce();
+      connection.getConnection().restartIce();
     } else {
       const turnServers = offerData.data.integratedTurnServers;
       setTurns(turnServers, this.stateManager.rtcConfig);
@@ -688,53 +696,53 @@ export class WebRTCEndpoint<
       if (!connection) throw new Error(`There is no active RTCPeerConnection`)
 
       this.clearConnectionCallbacks = () => {
-        connection?.removeEventListener(
+        connection?.getConnection()?.removeEventListener(
           'icecandidate',
           onIceCandidate,
         );
-        connection?.removeEventListener(
+        connection?.getConnection()?.removeEventListener(
           'icecandidateerror',
           onIceCandidateError,
         );
-        connection?.removeEventListener(
+        connection?.getConnection()?.removeEventListener(
           'connectionstatechange',
           onConnectionStateChange,
         );
-        connection?.removeEventListener(
+        connection?.getConnection()?.removeEventListener(
           'iceconnectionstatechange',
           onIceConnectionStateChange,
         );
       };
 
-      connection.addEventListener(
+      connection.getConnection().addEventListener(
         'icecandidate',
         onIceCandidate,
       );
-      connection.addEventListener(
+      connection.getConnection().addEventListener(
         'icecandidateerror',
         onIceCandidateError,
       );
-      connection.addEventListener(
+      connection.getConnection().addEventListener(
         'connectionstatechange',
         onConnectionStateChange,
       );
-      connection.addEventListener(
+      connection.getConnection().addEventListener(
         'iceconnectionstatechange',
         onIceConnectionStateChange,
       );
 
-      this.commandsQueue.setupEventListeners(connection);
+      this.commandsQueue.setupEventListeners(connection.getConnection());
 
       Array.from(this.stateManager.getTracks().getLocalTrackIdToTrack().values()).forEach(
         (trackContext) =>
           addTrackToConnection(
             trackContext,
             this.stateManager.getDisabledTrackEncodingsMap(),
-            connection,
+            connection.getConnection(),
           ),
       );
 
-      setTransceiversToReadOnly(connection);
+      setTransceiversToReadOnly(connection.getConnection());
     }
 
     this.stateManager.updateSenders()
@@ -743,12 +751,12 @@ export class WebRTCEndpoint<
       Object.entries(offerData.data.tracksTypes),
     );
 
-    addTransceiversIfNeeded(this.stateManager.connection, tracks);
+    addTransceiversIfNeeded(this.stateManager.connection?.getConnection(), tracks);
 
     await this.createAndSendOffer();
   };
 
-  private onRemoteCandidate = (candidate: RTCIceCandidate) => {
+  private onRemoteCandidate = async (candidate: RTCIceCandidate) => {
     try {
       const iceCandidate = new RTCIceCandidate(candidate);
       if (!this.stateManager.connection) {
@@ -756,7 +764,7 @@ export class WebRTCEndpoint<
           'Received new remote candidate but RTCConnection is undefined',
         );
       }
-      this.stateManager.connection.addIceCandidate(iceCandidate);
+      await this.stateManager.connection.addIceCandidate(iceCandidate);
     } catch (error) {
       console.error(error);
     }
@@ -780,7 +788,7 @@ export class WebRTCEndpoint<
   };
 
   private onConnectionStateChange = (event: Event) => {
-    switch (this.stateManager.connection?.connectionState) {
+    switch (this.stateManager.connection?.getConnection().connectionState) {
       case 'failed':
         this.emit('connectionError', {
           message: 'RTCPeerConnection failed',
@@ -791,7 +799,7 @@ export class WebRTCEndpoint<
   };
 
   private onIceConnectionStateChange = (event: Event) => {
-    switch (this.stateManager.connection?.iceConnectionState) {
+    switch (this.stateManager.connection?.getConnection().iceConnectionState) {
       case 'disconnected':
         console.warn('ICE connection: disconnected');
         // Requesting renegotiation on ICE connection state failed fixes RTCPeerConnection

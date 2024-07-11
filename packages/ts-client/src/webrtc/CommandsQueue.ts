@@ -19,7 +19,7 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
 
   public setupEventListeners = (connection: RTCPeerConnection) => {
     const onSignalingStateChange = () => {
-      switch (this.stateManager.connection?.signalingState) {
+      switch (this.stateManager.connection?.getConnection().signalingState) {
         case 'stable':
           this.processNextCommand();
           break;
@@ -27,7 +27,7 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
     };
 
     const onIceGatheringStateChange = () => {
-      switch (this.stateManager.connection?.iceGatheringState) {
+      switch (this.stateManager.connection?.getConnection().iceGatheringState) {
         case 'complete':
           this.processNextCommand();
           break;
@@ -42,7 +42,7 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
       }
     };
     const onIceConnectionStateChange = () => {
-      switch (this.stateManager.connection?.iceConnectionState) {
+      switch (this.stateManager.connection?.getConnection().iceConnectionState) {
         case 'connected':
           this.processNextCommand();
           break;
@@ -95,9 +95,9 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
     const connection = this.stateManager.connection;
     if (connection === undefined) return false;
 
-    const isSignalingUnstable = connection.signalingState !== 'stable';
-    const isConnectionNotConnected = connection.connectionState !== 'connected';
-    const isIceNotConnected = connection.iceConnectionState !== 'connected';
+    const isSignalingUnstable = connection.getConnection().signalingState !== 'stable';
+    const isConnectionNotConnected = connection.getConnection().connectionState !== 'connected';
+    const isIceNotConnected = connection.getConnection().iceConnectionState !== 'connected';
 
     return isSignalingUnstable && isConnectionNotConnected && isIceNotConnected;
   };

@@ -1,8 +1,8 @@
-import type { Mid, Encoding } from "../types";
+import type { MLineId, Encoding } from "../types";
 
 export type TrackEncodings = Record<Encoding, boolean>
 
 export interface TrackCommon {
-  mid: Mid | null;
+  mLineId: MLineId | null;
   encodings: TrackEncodings
 }

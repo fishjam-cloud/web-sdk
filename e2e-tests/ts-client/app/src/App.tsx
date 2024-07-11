@@ -58,7 +58,8 @@ class RemoteStore {
 
   constructor(
     private webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
-  ) {}
+  ) {
+  }
 
   subscribe(callback: () => void) {
     const cb = () => {
@@ -285,18 +286,26 @@ export function App() {
           </button>
         </div>
         <div id="connection-status">{connected ? "true" : "false"}</div>
+        <button onClick={() => {
+          const tracks = webrtc.stateManager.getTracks()
+          const localEndpoint = tracks.getLocalEndpoint()
+          const remoteEndpoint = tracks.getRemoteEndpoints()
+
+          console.log({ tracks, localEndpoint, remoteEndpoint })
+        }}>Console
+        </button>
         <hr />
         <MockComponent webrtc={webrtc} />
         <div style={{ width: "100%" }}>
           {Object.values(remoteTracks).map(
             ({
-              stream,
-              trackId,
-              endpoint,
-              metadata,
-              rawMetadata,
-              metadataParsingError,
-            }) => (
+               stream,
+               trackId,
+               endpoint,
+               metadata,
+               rawMetadata,
+               metadataParsingError,
+             }) => (
               <div
                 key={trackId}
                 data-endpoint-id={endpoint.id}

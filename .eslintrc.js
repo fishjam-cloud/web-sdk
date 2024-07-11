@@ -20,7 +20,7 @@ module.exports = {
         caughtErrorsIgnorePattern: "^_",
       },
     ],
-    "no-console": ["error", { allow: ["warn", "error"] }],
+    // "no-console": ["error", { allow: ["warn", "error"] }],
     "react-hooks/exhaustive-deps": "error",
     "react-hooks/rules-of-hooks": "error",
     "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],

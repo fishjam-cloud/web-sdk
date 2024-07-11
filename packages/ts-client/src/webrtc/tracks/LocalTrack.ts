@@ -1,11 +1,20 @@
 import type { TrackContextImpl } from "../internal";
-import type { BandwidthLimit, LocalTrackId, MediaStreamTrackId, MetadataParser, Mid, Encoding } from "../types";
+import type {
+  BandwidthLimit,
+  LocalTrackId,
+  MediaStreamTrackId,
+  MetadataParser,
+  MLineId,
+  Encoding,
+  RemoteTrackId, TrackKind
+} from "../types";
 import { applyBandwidthLimitation } from "../bandwidth";
 import type { TrackCommon, TrackEncodings } from "./TrackCommon";
 import { generateMediaEvent } from "../mediaEvent";
 import type { WebRTCEndpoint } from "../webRTCEndpoint";
 import { findSender } from "../RTCPeerConnectionUtils";
 import type { TrackId } from "./Tracks";
+import { Bitrate, Bitrates, defaultBitrates, defaultSimulcastBitrates, UNLIMITED_BANDWIDTH } from "../bitrate";
 
 export const simulcastTransceiverConfig: RTCRtpTransceiverInit = {
   direction: 'sendonly',
@@ -39,7 +48,7 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
   // its not local track id
   public readonly id: LocalTrackId;
   public mediaStreamTrackId: MediaStreamTrackId | null = null;
-  public mid: Mid | null = null;
+  public mLineId: MLineId | null = null;
   public readonly trackContext: TrackContextImpl<EndpointMetadata, TrackMetadata>
   private rtcRtpSender: RTCRtpSender | null = null
   // todo change to { h: boolean, m: boolean, l: boolean }
@@ -48,9 +57,9 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
   public readonly encodings: TrackEncodings
   private metadataParser: MetadataParser<TrackMetadata>
 
-  public connection: RTCPeerConnection
+  public connection: RTCPeerConnection | undefined
 
-  constructor(connection: RTCPeerConnection, id: LocalTrackId, trackContext: TrackContextImpl<EndpointMetadata, TrackMetadata>, metadataParser: MetadataParser<TrackMetadata>) {
+  constructor(connection: RTCPeerConnection | undefined, id: LocalTrackId, trackContext: TrackContextImpl<EndpointMetadata, TrackMetadata>, metadataParser: MetadataParser<TrackMetadata>) {
     this.connection = connection;
     this.id = id;
     this.trackContext = trackContext
@@ -86,9 +95,10 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
   }
 
   public addTrackToConnection = () => {
-    const transceiverConfig = this.createTransceiverConfig()
-
     if (!this.trackContext.track) throw Error(`MediaStreamTrack for track ${this.id} does not exist`)
+    if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
+
+    const transceiverConfig = this.createTransceiverConfig()
 
     this.connection.addTransceiver(this.trackContext.track, transceiverConfig);
   };
@@ -158,10 +168,10 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
   public removeFromConnection = () => {
     // const sender = findSender(this.connection, trackContext.track!.id);
 
-    // todo check if isLocal
     const sender = this.rtcRtpSender;
 
     if (!sender) throw new Error(`RTCRtpSender for track ${this.id} not found`)
+    if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
 
     this.connection.removeTrack(sender);
   }
@@ -296,5 +306,57 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
       .filter(([_, value]) => value)
       .map(([encoding]) => encoding as Encoding)
       .reduce((acc, encoding) => [...acc, encoding], [] as Encoding[])
+  }
+
+  public setMLineId = (mLineId: MLineId) => {
+    this.mLineId = mLineId
+  }
+
+  private isNotSimulcastTrack = (encodings: RTCRtpEncodingParameters[]) =>
+    encodings.length === 1 && !encodings[0]!.rid;
+
+
+  public getTrackBitrates = () => {
+    const trackContext = this.trackContext
+    const kind = this.trackContext.track?.kind as TrackKind | undefined;
+
+    if (!trackContext.track) {
+      if (!trackContext.trackKind) {
+        throw new Error('trackContext.trackKind is empty');
+      }
+
+      return defaultBitrates[trackContext.trackKind];
+    }
+
+    // const sender = findSender(connection, trackContext.track!.id);
+    const sender = this.rtcRtpSender
+    if (!sender) throw new Error(`RTCRtpSender for track ${this.id} not found`)
+
+    const encodings = sender.getParameters().encodings;
+
+    if (this.isNotSimulcastTrack(encodings)) {
+      return (
+        encodings[0]!.maxBitrate ||
+        (kind ? defaultBitrates[kind] : UNLIMITED_BANDWIDTH)
+      );
+    } else if (kind === 'audio') {
+      throw 'Audio track cannot have multiple encodings';
+    }
+
+    const bitrates: Record<string, Bitrate> = {};
+
+    encodings
+      .filter((encoding) => encoding.rid)
+      .forEach((encoding) => {
+        const rid = encoding.rid! as Encoding;
+        bitrates[rid] = encoding.maxBitrate || defaultSimulcastBitrates[rid];
+      });
+
+    return bitrates;
+
+  }
+
+  public updateConnection = (connection: RTCPeerConnection) => {
+    this.connection = connection
   }
 }

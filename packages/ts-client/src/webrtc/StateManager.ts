@@ -76,29 +76,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   public onTracksAdded = (data: any) => {
     if (this.getEndpointId() === data.endpointId) return;
 
-    this.tracks.addRemoteTracks(data)
-
-    // data.tracks = new Map<string, any>(Object.entries(data.tracks));
-    // const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> =
-    //   this.idToEndpoint.get(data.endpointId)!;
-    // const oldTracks = endpoint.tracks;
-    //
-    // data.tracks = mapMediaEventTracksToTrackContextImpl(
-    //   data.tracks,
-    //   endpoint,
-    //   this.trackMetadataParser,
-    // );
-    //
-    // endpoint.tracks = new Map([...endpoint.tracks, ...data.tracks]);
-    //
-    // this.idToEndpoint.set(endpoint.id, endpoint);
-    // Array.from(endpoint.tracks.entries()).forEach(([trackId, ctx]) => {
-    //   if (!oldTracks.has(trackId)) {
-    //     this.trackIdToTrack.set(trackId, ctx);
-    //
-    //     this.webrtc.emit('trackAdded', ctx);
-    //   }
-    // });
+    this.tracks.addRemoteTracks(data.endpointId, data.tracks, data.trackIdToMetadata)
   };
 
   public onTracksRemoved = (data: any) => {
@@ -109,6 +87,9 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   };
 
   public onSdpAnswer = async (data: any) => {
+    this.tracks.updateMLineIds(data.midToTrackId)
+
+    console.log({ midToTrackId: data.midToTrackId })
     this.midToTrackId = new Map(Object.entries(data.midToTrackId));
 
     Object.values(data.midToTrackId)
@@ -240,8 +221,6 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   ) => {
     this.negotiationManager.ongoingRenegotiation = true;
 
-    if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
-
     const trackManager = this.tracks.addLocalTrack(this.connection, trackId, track, stream, trackMetadata, simulcastConfig, maxBandwidth)
 
     if (this.connection) {
@@ -258,6 +237,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     this.negotiationManager.ongoingRenegotiation = true;
 
     if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
+
     this.tracks.removeLocalTrack(trackId)
   };
 
@@ -320,7 +300,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   public setLocalEncodingBandwidth = async (trackId: TrackId, rid: Encoding, bandwidth: BandwidthLimit): Promise<void> => {
     if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
 
-    return await this.tracks.setLocalEncodingBandwidth(trackId, rid, bandwidth, this.connection)
+    return await this.tracks.setLocalEncodingBandwidth(trackId, rid, bandwidth)
   }
 
   public updateSenders = () => {
@@ -349,5 +329,11 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
 
   public getDisabledTrackEncodingsMap = (): Map<string, Encoding[]> => {
     return this.tracks.getDisabledLocalTrackEncodings()
+  }
+
+  public setConnection = (rtcConfig: RTCConfiguration) => {
+    this.connection = new RTCPeerConnection(rtcConfig);
+
+    this.tracks.updateConnection(this.connection)
   }
 }

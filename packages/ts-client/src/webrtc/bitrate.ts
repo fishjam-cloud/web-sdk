@@ -85,9 +85,9 @@ export const getTrackBitrates = <EndpointMetadata, TrackMetadata>(
   >,
   trackId: string,
 ): Bitrates => {
+  console.log({ localTrackIdToTrack })
   const trackContext = localTrackIdToTrack.get(trackId);
-  if (!trackContext)
-    throw "Track with id ${trackId} not present in 'localTrackIdToTrack'";
+  if (!trackContext) throw new Error(`Track with id ${trackId} not present in 'localTrackIdToTrack'`);
 
   const kind = trackContext.track?.kind as TrackKind | undefined;
 

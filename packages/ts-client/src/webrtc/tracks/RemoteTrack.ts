@@ -1,15 +1,15 @@
 import type { TrackCommon, TrackEncodings } from "./TrackCommon";
-import type { LocalTrackId, Mid, Encoding } from "../types";
+import type { LocalTrackId, MLineId, Encoding } from "../types";
 import type { TrackContextImpl } from "../internal";
 import { isTrackKind } from "../internal";
 import type { TrackId } from "./Tracks";
 
 export class RemoteTrack<EndpointMetadata, TrackMetadata> implements TrackCommon {
-  public id: TrackId | null = null;
-  public mid: Mid | null = null;
+  public id: TrackId;
+  public mLineId: MLineId | null = null;
   public readonly trackContext: TrackContextImpl<EndpointMetadata, TrackMetadata>;
   // todo starts with true or false?
-  public readonly encodings: TrackEncodings = { h: false, m: false, l: false}
+  public readonly encodings: TrackEncodings = { h: false, m: false, l: false }
   private targetEncoding: Encoding | null = null
 
   constructor(id: LocalTrackId, trackContext: TrackContextImpl<EndpointMetadata, TrackMetadata>) {
@@ -39,7 +39,7 @@ export class RemoteTrack<EndpointMetadata, TrackMetadata> implements TrackCommon
 
     const trackContext = this.trackContext
 
-    if(!trackContext.simulcastConfig?.enabled) {
+    if (!trackContext.simulcastConfig?.enabled) {
       throw new Error('The track does not support changing its target variant');
     }
 
@@ -48,5 +48,8 @@ export class RemoteTrack<EndpointMetadata, TrackMetadata> implements TrackCommon
     if (isValidTargetEncoding) {
       throw new Error(`The track does not support variant ${variant}`);
     }
+  }
+  public setMLineId = (mLineId: MLineId) => {
+    this.mLineId = mLineId
   }
 }

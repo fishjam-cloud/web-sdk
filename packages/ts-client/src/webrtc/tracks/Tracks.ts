@@ -1,24 +1,31 @@
 import { LocalTrack } from "./LocalTrack";
 import type {
   BandwidthLimit,
+  Encoding,
   EncodingReason,
-  MetadataParser,
+  MetadataParser, MLineId,
   RemoteTrackId,
   SimulcastConfig,
   TrackBandwidthLimit,
   TrackContext,
-  Encoding
 } from "../types";
-import type { RemoteTrack } from "./RemoteTrack";
+import { RemoteTrack } from "./RemoteTrack";
 import type { EndpointWithTrackContext } from "../internal";
 import { isTrackKind, TrackContextImpl } from "../internal";
 import type { WebRTCEndpoint } from "../webRTCEndpoint";
 import { isVadStatus } from "../voiceActivityDetection";
 import { generateCustomEvent, generateMediaEvent } from "../mediaEvent";
-import { createTrackVariantBitratesEvent, getTrackBitrates } from "../bitrate";
+import { createTrackVariantBitratesEvent } from "../bitrate";
 
 export type TrackId = string
 export type EndpointId = string
+
+
+type SDPTrack = {
+  "metadata": null,
+  "simulcastConfig": SimulcastConfig
+}
+
 
 export class Tracks<EndpointMetadata, TrackMetadata> {
   private readonly localTracks: Record<TrackId, LocalTrack<EndpointMetadata, TrackMetadata>> = {}
@@ -49,7 +56,7 @@ export class Tracks<EndpointMetadata, TrackMetadata> {
   }
 
   public addLocalTrack = (
-    connection: RTCPeerConnection,
+    connection: RTCPeerConnection | undefined,
     trackId: string,
     track: MediaStreamTrack,
     stream: MediaStream,
@@ -76,6 +83,7 @@ export class Tracks<EndpointMetadata, TrackMetadata> {
 
     const trackManager = new LocalTrack<EndpointMetadata, TrackMetadata>(connection, trackId, trackContext, this.trackMetadataParser)
     this.localTracks[trackId] = trackManager
+    console.log({ name: "Local track added", localTrackLength: this.localTracks.length })
     return trackManager
   }
 
@@ -91,45 +99,41 @@ export class Tracks<EndpointMetadata, TrackMetadata> {
   }
 
   private getLocalTrackByMid = (mid: string): LocalTrack<EndpointMetadata, TrackMetadata> => {
-    const localTrack = Object.values(this.localTracks).find(track => track.mid === mid)
+    const localTrack = Object.values(this.localTracks).find(track => track.mLineId === mid)
     if (!localTrack) throw new Error(`Local track with ${mid} not found`)
     return localTrack;
   }
 
   public getLocalTrackByMidOrNull = (mid: string): LocalTrack<EndpointMetadata, TrackMetadata> | null => {
-    return Object.values(this.localTracks).find(track => track.mid === mid) ?? null;
+    return Object.values(this.localTracks).find(track => track.mLineId === mid) ?? null;
   }
 
   public getRemoteTrackByMid = (mid: string): RemoteTrack<EndpointMetadata, TrackMetadata> => {
-    const remoteTrack = Object.values(this.remoteTracks).find(remote => remote.mid === mid)
+    const remoteTrack = Object.values(this.remoteTracks).find(remote => remote.mLineId === mid)
     if (!remoteTrack) throw new Error(`Remote track with ${mid} not found`)
     return remoteTrack;
   }
 
-  public addRemoteTracks = (data: any) => {
-    // const rawTracks = new Map<string, any>(Object.entries(data.tracks));
-    const endpointId: EndpointId = data.endpointId
-
+  public addRemoteTracks = (
+    endpointId: EndpointId,
+    tracks: Record<TrackId, SDPTrack>,
+    trackIdToMetadata: Record<TrackId, any>
+  ) => {
     const endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> | undefined = this.remoteEndpoints[endpointId];
 
     if (!endpoint) throw new Error(`Endpoint ${endpointId} not found`)
 
-    // const oldTracks = endpoint.tracks;
+    Object.entries(tracks)
+      .map(([trackId, { simulcastConfig }]) => {
+        const trackContext = new TrackContextImpl(endpoint, trackId, trackIdToMetadata[trackId], simulcastConfig, this.trackMetadataParser)
 
-    // all tracks or only new tracks?
-
-    throw new Error("Fix me!")
-    // const trackContextRecord = this.mapToTrackContext(rawTracks, endpoint);
-
-    // endpoint.tracks = new Map([...endpoint.tracks, ...trackContextRecord]);
-
-    // Array.from(endpoint.tracks.entries()).forEach(([trackId, ctx]) => {
-    //   if (!oldTracks.has(trackId)) {
-    //     this.trackIdToTrack.set(trackId, ctx);
-    //
-    //     this.webrtc.emit('trackAdded', ctx);
-    //   }
-    // });
+        return new RemoteTrack<EndpointMetadata, TrackMetadata>(trackId, trackContext)
+      })
+      .forEach((remoteTrack) => {
+        this.remoteTracks[remoteTrack.id] = remoteTrack
+        endpoint.tracks.set(remoteTrack.id, remoteTrack.trackContext)
+        this.webrtc.emit('trackAdded', remoteTrack.trackContext);
+      })
   };
 
   private mapToTrackContext = (
@@ -171,12 +175,22 @@ export class Tracks<EndpointMetadata, TrackMetadata> {
     this.webrtc.emit('trackRemoved', remoteTrack.trackContext);
   }
 
-  public addRemoteEndpoint = (endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>) => {
-    // todo create deep copy of endpoint
+  public addRemoteEndpoint = (endpoint: any) => {
+
+    const newEndpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> = {
+      id: endpoint.id,
+      type: endpoint.type,
+      metadata: undefined,
+      rawMetadata: undefined,
+      metadataParsingError: undefined,
+      tracks: new Map()
+    }
+
     // mutation in place
     this.updateEndpointMetadata(endpoint, endpoint.metadata)
 
-    this.addEndpoint(endpoint);
+    this.addEndpoint(newEndpoint);
+    this.addRemoteTracks(newEndpoint.id, endpoint.tracks, endpoint.trackIdToMetadata)
 
     this.webrtc.emit('endpointAdded', endpoint);
   }
@@ -301,6 +315,7 @@ export class Tracks<EndpointMetadata, TrackMetadata> {
     const mediaEvent = generateCustomEvent({ type: 'renegotiateTracks' });
     this.webrtc.sendMediaEvent(mediaEvent);
 
+    this.localEndpoint.tracks.delete(trackId)
     delete this.localTracks[trackId]
   }
 
@@ -369,15 +384,19 @@ export class Tracks<EndpointMetadata, TrackMetadata> {
   }
 
   public getLocalTrackIdToTrack = (): Map<RemoteTrackId, TrackContextImpl<EndpointMetadata, TrackMetadata>> => {
-    const map = Object.values(this.localTracks).map((track) => [track.id, track.trackContext] as const);
-    return new Map(map)
+    console.log({ length: this.localTracks })
+
+    const map: readonly [string, TrackContextImpl<EndpointMetadata, TrackMetadata>][] = Object.values(this.localTracks).map((track) => [track.id, track.trackContext] as const);
+    const map1: Map<string, TrackContextImpl<EndpointMetadata, TrackMetadata>> = new Map(map);
+    console.log({ localTracks: this.localEndpoint, map1 })
+    return map1
   }
 
   public setLocalEndpointId = (endpointId: EndpointId) => {
     this.localEndpoint.id = endpointId;
   }
 
-  public setLocalEncodingBandwidth = (trackId: TrackId, rid: Encoding, bandwidth: BandwidthLimit, connection: RTCPeerConnection): Promise<void> => {
+  public setLocalEncodingBandwidth = (trackId: TrackId, rid: Encoding, bandwidth: BandwidthLimit): Promise<void> => {
     const trackManager = this.localTracks[trackId]
     if (!trackManager) throw new Error(`Cannot find ${trackId}`)
 
@@ -387,11 +406,7 @@ export class Tracks<EndpointMetadata, TrackMetadata> {
           type: 'trackVariantBitrates',
           data: {
             trackId: trackId,
-            variantBitrates: getTrackBitrates(
-              connection,
-              this.getLocalTrackIdToTrack(),
-              trackId,
-            ),
+            variantBitrates: trackManager.getTrackBitrates(),
           },
         });
         this.webrtc.sendMediaEvent(mediaEvent);
@@ -521,5 +536,25 @@ export class Tracks<EndpointMetadata, TrackMetadata> {
       .map(track => [track.id, track.getDisabledEncodings()] as const)
 
     return new Map(entries)
+  }
+
+  public updateMLineIds = (midToTrackId: Record<MLineId, TrackId>) => {
+    Object.entries(midToTrackId)
+      .forEach(([mLineId, trackId]) => {
+        const localTrack = this.localTracks[trackId]
+        if (localTrack) {
+          localTrack.setMLineId(mLineId)
+        }
+        const remoteTrack = this.remoteTracks[trackId]
+        if (remoteTrack) {
+          remoteTrack.setMLineId(mLineId)
+        }
+      })
+  }
+
+  public updateConnection = (connection: RTCPeerConnection) => {
+    Object.values(this.localTracks).forEach((track) => {
+      track.updateConnection(connection)
+    })
   }
 }

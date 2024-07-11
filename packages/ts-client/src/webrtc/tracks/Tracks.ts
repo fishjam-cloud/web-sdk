@@ -2,11 +2,12 @@ import { LocalTrack } from "./LocalTrack";
 import type {
   BandwidthLimit,
   EncodingReason,
-  LocalTrackId,
-  MetadataParser, RemoteTrackId,
+  MetadataParser,
+  RemoteTrackId,
   SimulcastConfig,
-  TrackBandwidthLimit, TrackContext,
-  TrackEncoding,
+  TrackBandwidthLimit,
+  TrackContext,
+  Encoding
 } from "../types";
 import type { RemoteTrack } from "./RemoteTrack";
 import type { EndpointWithTrackContext } from "../internal";
@@ -15,7 +16,6 @@ import type { WebRTCEndpoint } from "../webRTCEndpoint";
 import { isVadStatus } from "../voiceActivityDetection";
 import { generateCustomEvent, generateMediaEvent } from "../mediaEvent";
 import { createTrackVariantBitratesEvent, getTrackBitrates } from "../bitrate";
-import type { Rid } from "./TrackCommon";
 
 export type TrackId = string
 export type EndpointId = string
@@ -46,10 +46,6 @@ export class Tracks<EndpointMetadata, TrackMetadata> {
     this.webrtc = webrtc;
     this.endpointMetadataParser = endpointMetadataParser;
     this.trackMetadataParser = trackMetadataParser;
-  }
-
-  public deleteLocalTrack = (trackId: LocalTrackId) => {
-    delete this.localTracks[trackId]
   }
 
   public addLocalTrack = (
@@ -256,7 +252,7 @@ export class Tracks<EndpointMetadata, TrackMetadata> {
     trackContext.rawMetadata = trackMetadata;
   }
 
-  public disableRemoteTrackEncoding = (trackId: TrackId, encoding: TrackEncoding) => {
+  public disableRemoteTrackEncoding = (trackId: TrackId, encoding: Encoding) => {
     const remoteTrack = this.remoteTracks[trackId]
     if (!remoteTrack) throw new Error(`Track ${trackId} not found`)
 
@@ -265,7 +261,7 @@ export class Tracks<EndpointMetadata, TrackMetadata> {
     this.webrtc.emit('trackEncodingDisabled', remoteTrack.trackContext, encoding);
   }
 
-  public enableRemoteTrackEncoding = (trackId: TrackId, encoding: TrackEncoding) => {
+  public enableRemoteTrackEncoding = (trackId: TrackId, encoding: Encoding) => {
     const remoteTrack = this.remoteTracks[trackId]
     if (!remoteTrack) throw new Error(`Track ${trackId} not found`)
 
@@ -274,7 +270,7 @@ export class Tracks<EndpointMetadata, TrackMetadata> {
     this.webrtc.emit('trackEncodingEnabled', remoteTrack.trackContext, encoding);
   }
 
-  public setRemoteTrackEncoding = (trackId: TrackId, encoding: TrackEncoding, reason: EncodingReason) => {
+  public setRemoteTrackEncoding = (trackId: TrackId, encoding: Encoding, reason: EncodingReason) => {
     const remoteTrack = this.remoteTracks[trackId]
     if (!remoteTrack) throw new Error(`Track ${trackId} not found`)
 
@@ -373,14 +369,15 @@ export class Tracks<EndpointMetadata, TrackMetadata> {
   }
 
   public getLocalTrackIdToTrack = (): Map<RemoteTrackId, TrackContextImpl<EndpointMetadata, TrackMetadata>> => {
-    return new Map(Object.values(this.localTracks).map((track) => [track.id, track.trackContext]))
+    const map = Object.values(this.localTracks).map((track) => [track.id, track.trackContext] as const);
+    return new Map(map)
   }
 
   public setLocalEndpointId = (endpointId: EndpointId) => {
     this.localEndpoint.id = endpointId;
   }
 
-  public setLocalEncodingBandwidth = (trackId: TrackId, rid: Rid, bandwidth: BandwidthLimit, connection: RTCPeerConnection): Promise<void> => {
+  public setLocalEncodingBandwidth = (trackId: TrackId, rid: Encoding, bandwidth: BandwidthLimit, connection: RTCPeerConnection): Promise<void> => {
     const trackManager = this.localTracks[trackId]
     if (!trackManager) throw new Error(`Cannot find ${trackId}`)
 
@@ -457,7 +454,7 @@ export class Tracks<EndpointMetadata, TrackMetadata> {
     }
   }
 
-  public disableLocalTrackEncoding = async (trackId: string, encoding: TrackEncoding) => {
+  public disableLocalTrackEncoding = async (trackId: string, encoding: Encoding) => {
     const localTrack = this.localTracks[trackId];
     if (!localTrack) throw new Error(`Track ${trackId} not found`)
 
@@ -475,7 +472,7 @@ export class Tracks<EndpointMetadata, TrackMetadata> {
     });
   };
 
-  public enableLocalTrackEncoding = async (trackId: TrackId, encoding: TrackEncoding) => {
+  public enableLocalTrackEncoding = async (trackId: TrackId, encoding: Encoding) => {
     const trackManager = this.localTracks[trackId]
     if (!trackManager) throw new Error(`Cannot find ${trackId}`)
 
@@ -491,5 +488,38 @@ export class Tracks<EndpointMetadata, TrackMetadata> {
       trackId,
       encoding,
     });
+  }
+
+  public setTargetRemoteTrackEncoding = (trackId: TrackId, variant: Encoding) => {
+    const remoteTrack = this.remoteTracks[trackId]
+    if (!remoteTrack) throw new Error(`Track ${trackId} not found`)
+
+    try {
+      remoteTrack.setTargetTrackEncoding(variant)
+
+      const mediaEvent = generateCustomEvent({
+        type: 'setTargetTrackVariant',
+        data: {
+          trackId: trackId,
+          variant,
+        },
+      });
+
+      this.webrtc.sendMediaEvent(mediaEvent);
+      this.webrtc.emit('targetTrackEncodingRequested', {
+        trackId,
+        variant,
+      });
+
+    } catch (e) {
+      console.warn(e)
+    }
+  }
+
+  public getDisabledLocalTrackEncodings = (): Map<TrackId, Encoding[]> => {
+    const entries = Object.values(this.localTracks)
+      .map(track => [track.id, track.getDisabledEncodings()] as const)
+
+    return new Map(entries)
   }
 }

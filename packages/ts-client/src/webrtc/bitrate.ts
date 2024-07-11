@@ -1,7 +1,7 @@
 import type {
   RemoteTrackId,
   TrackContext,
-  TrackEncoding,
+  Encoding,
   TrackKind,
 } from './types';
 import { type BandwidthLimit } from './types';
@@ -10,7 +10,7 @@ import { findSender } from './RTCPeerConnectionUtils';
 import { generateCustomEvent } from './mediaEvent';
 
 export type Bitrate = number;
-export type Bitrates = Record<TrackEncoding, Bitrate> | Bitrate;
+export type Bitrates = Record<Encoding, Bitrate> | Bitrate;
 
 // The suggested bitrate values are based on our internal tests.
 export const defaultBitrates = {
@@ -22,7 +22,7 @@ export const UNLIMITED_BANDWIDTH: Bitrate = 0 as Bitrate;
 
 // The suggested bitrate values are based on our internal tests.
 export const defaultSimulcastBitrates: {
-  [key in TrackEncoding]: BandwidthLimit;
+  [key in Encoding]: BandwidthLimit;
 } = {
   h: 2_500_000,
   m: 500_000,
@@ -116,7 +116,7 @@ export const getTrackBitrates = <EndpointMetadata, TrackMetadata>(
   encodings
     .filter((encoding) => encoding.rid)
     .forEach((encoding) => {
-      const rid = encoding.rid! as TrackEncoding;
+      const rid = encoding.rid! as Encoding;
       bitrates[rid] = encoding.maxBitrate || defaultSimulcastBitrates[rid];
     });
 

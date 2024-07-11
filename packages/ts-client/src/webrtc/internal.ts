@@ -8,7 +8,7 @@ import type {
   TrackBandwidthLimit,
   TrackContext,
   TrackContextEvents,
-  TrackEncoding,
+  Encoding,
   TrackKind,
   TrackNegotiationStatus,
   VadStatus,
@@ -35,7 +35,7 @@ export class TrackContextImpl<EndpointMetadata, ParsedMetadata>
   metadataParsingError?: any;
   simulcastConfig?: SimulcastConfig;
   maxBandwidth: TrackBandwidthLimit = 0;
-  encoding?: TrackEncoding;
+  encoding?: Encoding;
   encodingReason?: EncodingReason;
   vadStatus: VadStatus = 'silence';
   negotiationStatus: TrackNegotiationStatus = 'awaiting';

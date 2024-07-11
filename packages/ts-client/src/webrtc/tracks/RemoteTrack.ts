@@ -1,5 +1,5 @@
 import type { TrackCommon, TrackEncodings } from "./TrackCommon";
-import type { LocalTrackId, Mid, TrackEncoding } from "../types";
+import type { LocalTrackId, Mid, Encoding } from "../types";
 import type { TrackContextImpl } from "../internal";
 import { isTrackKind } from "../internal";
 import type { TrackId } from "./Tracks";
@@ -10,6 +10,7 @@ export class RemoteTrack<EndpointMetadata, TrackMetadata> implements TrackCommon
   public readonly trackContext: TrackContextImpl<EndpointMetadata, TrackMetadata>;
   // todo starts with true or false?
   public readonly encodings: TrackEncodings = { h: false, m: false, l: false}
+  private targetEncoding: Encoding | null = null
 
   constructor(id: LocalTrackId, trackContext: TrackContextImpl<EndpointMetadata, TrackMetadata>) {
     this.id = id;
@@ -24,11 +25,28 @@ export class RemoteTrack<EndpointMetadata, TrackMetadata> implements TrackCommon
     this.trackContext.trackKind = track.kind;
   }
 
-  public disableTrackEncoding = (encoding: TrackEncoding) => {
+  public disableTrackEncoding = (encoding: Encoding) => {
     this.encodings[encoding] = false
   }
 
-  public enableTrackEncoding = (encoding: TrackEncoding) => {
+  public enableTrackEncoding = (encoding: Encoding) => {
     this.encodings[encoding] = true
+  }
+
+  public setTargetTrackEncoding = (variant: Encoding) => {
+    // todo implement validation
+    this.targetEncoding = variant
+
+    const trackContext = this.trackContext
+
+    if(!trackContext.simulcastConfig?.enabled) {
+      throw new Error('The track does not support changing its target variant');
+    }
+
+    const isValidTargetEncoding = !trackContext.simulcastConfig.activeEncodings.includes(variant);
+
+    if (isValidTargetEncoding) {
+      throw new Error(`The track does not support variant ${variant}`);
+    }
   }
 }

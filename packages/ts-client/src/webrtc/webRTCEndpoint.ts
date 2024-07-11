@@ -16,11 +16,11 @@ import type {
   SimulcastConfig,
   TrackBandwidthLimit,
   TrackContext,
-  TrackEncoding,
-  WebRTCEndpointEvents,
+  Encoding,
+  WebRTCEndpointEvents
 } from './types';
+import { isEncoding } from './types';
 import type { EndpointWithTrackContext } from './internal';
-import { findSenderByTrack } from './RTCPeerConnectionUtils';
 import {
   addTrackToConnection,
   addTransceiversIfNeeded,
@@ -31,7 +31,6 @@ import { setTurns } from './turn';
 import { StateManager } from './StateManager';
 import { NegotiationManager } from './NegotiationManager';
 import { CommandsQueue } from './CommandsQueue';
-import { isRid } from "./tracks/TrackCommon";
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -47,7 +46,7 @@ export class WebRTCEndpoint<
   private readonly endpointMetadataParser: MetadataParser<EndpointMetadata>;
   private readonly trackMetadataParser: MetadataParser<TrackMetadata>;
 
-  private readonly stateManager: StateManager<EndpointMetadata, TrackMetadata>;
+  public readonly stateManager: StateManager<EndpointMetadata, TrackMetadata>;
   private readonly negotiationManager: NegotiationManager;
   private readonly commandsQueue: CommandsQueue<
     EndpointMetadata,
@@ -479,7 +478,7 @@ export class WebRTCEndpoint<
    * @returns
    */
   public async setEncodingBandwidth(trackId: string, rid: string, bandwidth: BandwidthLimit): Promise<void> {
-    if (!isRid(rid)) throw new Error(`Rid is invalid ${rid}`)
+    if (!isEncoding(rid)) throw new Error(`Rid is invalid ${rid}`)
 
     return await this.stateManager.setLocalEncodingBandwidth(trackId, rid, bandwidth)
   }
@@ -537,40 +536,20 @@ export class WebRTCEndpoint<
    * will be sent until the chosen variant becomes active again.
    *
    * @param {string} trackId - id of track
-   * @param {TrackEncoding} variant - variant to receive
+   * @param {Encoding} variant - variant to receive
    * @example
    * ```ts
    * webrtc.setTargetTrackEncoding(incomingTrackCtx.trackId, "l")
    * ```
    */
-  public setTargetTrackEncoding(trackId: string, variant: TrackEncoding) {
-    const trackContext = this.stateManager.trackIdToTrack.get(trackId);
-    if (
-      !trackContext?.simulcastConfig?.enabled ||
-      !trackContext.simulcastConfig.activeEncodings.includes(variant)
-    ) {
-      console.warn('The track does not support changing its target variant');
-      return;
-    }
-    const mediaEvent = generateCustomEvent({
-      type: 'setTargetTrackVariant',
-      data: {
-        trackId: trackId,
-        variant,
-      },
-    });
-
-    this.sendMediaEvent(mediaEvent);
-    this.emit('targetTrackEncodingRequested', {
-      trackId,
-      variant,
-    });
+  public setTargetTrackEncoding(trackId: string, variant: Encoding) {
+    this.stateManager.setTargetRemoteTrackEncoding(trackId, variant)
   }
 
   /**
    * Enables track encoding so that it will be sent to the server.
    * @param {string} trackId - id of track
-   * @param {TrackEncoding} encoding - encoding that will be enabled
+   * @param {Encoding} encoding - encoding that will be enabled
    * @example
    * ```ts
    * const trackId = webrtc.addTrack(track, stream, {}, {enabled: true, activeEncodings: ["l", "m", "h"]});
@@ -579,21 +558,21 @@ export class WebRTCEndpoint<
    * webrtc.enableTrackEncoding(trackId, "l");
    * ```
    */
-  public enableTrackEncoding(trackId: string, encoding: TrackEncoding) {
+  public enableTrackEncoding(trackId: string, encoding: Encoding) {
     this.stateManager.enableLocalTrackEncoding(trackId, encoding)
   }
 
   /**
    * Disables track encoding so that it will be no longer sent to the server.
    * @param {string} trackId - id of track
-   * @param {TrackEncoding} encoding - encoding that will be disabled
+   * @param {Encoding} encoding - encoding that will be disabled
    * @example
    * ```ts
    * const trackId = webrtc.addTrack(track, stream, {}, {enabled: true, activeEncodings: ["l", "m", "h"]});
    * webrtc.disableTrackEncoding(trackId, "l");
    * ```
    */
-  public disableTrackEncoding(trackId: string, encoding: TrackEncoding) {
+  public disableTrackEncoding(trackId: string, encoding: Encoding) {
     this.stateManager.disableLocalTrackEncoding(trackId, encoding);
   }
 
@@ -682,13 +661,13 @@ export class WebRTCEndpoint<
       const mediaEvent = createSdpOfferEvent(
         offer,
         this.stateManager.connection,
-        this.stateManager.localTrackIdToTrack,
+        this.stateManager.getTracks().getLocalTrackIdToTrack(),
         this.stateManager.getTracks().getLocalEndpoint(),
         this.stateManager.midToTrackId,
       );
       this.sendMediaEvent(mediaEvent);
 
-      for (const track of this.stateManager.localTrackIdToTrack.values()) {
+      for (const track of this.stateManager.getTracks().getLocalTrackIdToTrack().values()) {
         track.negotiationStatus = 'offered';
       }
     } catch (error) {
@@ -752,11 +731,11 @@ export class WebRTCEndpoint<
 
       this.commandsQueue.setupEventListeners(this.stateManager.connection);
 
-      Array.from(this.stateManager.localTrackIdToTrack.values()).forEach(
+      Array.from(this.stateManager.getTracks().getLocalTrackIdToTrack().values()).forEach(
         (trackContext) =>
           addTrackToConnection(
             trackContext,
-            this.stateManager.disabledTrackEncodings,
+            this.stateManager.getDisabledTrackEncodingsMap(),
             this.stateManager.connection,
           ),
       );

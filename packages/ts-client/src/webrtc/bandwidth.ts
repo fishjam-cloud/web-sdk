@@ -1,7 +1,7 @@
 import type {
   SimulcastBandwidthLimit,
   TrackBandwidthLimit,
-  TrackEncoding,
+  Encoding,
 } from './types';
 
 export const applyBandwidthLimitation = (
@@ -18,7 +18,7 @@ export const applyBandwidthLimitation = (
       .forEach((encoding) => {
         const limit =
           (maxBandwidth as SimulcastBandwidthLimit).get(
-            encoding.rid! as TrackEncoding,
+            encoding.rid! as Encoding,
           ) || 0;
 
         if (limit > 0) {

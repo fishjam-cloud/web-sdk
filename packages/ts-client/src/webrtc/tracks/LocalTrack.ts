@@ -1,13 +1,11 @@
 import type { TrackContextImpl } from "../internal";
-import type { BandwidthLimit, LocalTrackId, MediaStreamTrackId, MetadataParser, Mid, TrackEncoding } from "../types";
+import type { BandwidthLimit, LocalTrackId, MediaStreamTrackId, MetadataParser, Mid, Encoding } from "../types";
 import { applyBandwidthLimitation } from "../bandwidth";
-import type { Rid, TrackCommon, TrackEncodings } from "./TrackCommon";
-import { generateCustomEvent, generateMediaEvent } from "../mediaEvent";
+import type { TrackCommon, TrackEncodings } from "./TrackCommon";
+import { generateMediaEvent } from "../mediaEvent";
 import type { WebRTCEndpoint } from "../webRTCEndpoint";
 import { findSender } from "../RTCPeerConnectionUtils";
-import { getTrackBitrates } from "../bitrate";
-import { meta } from "@typescript-eslint/eslint-plugin";
-import { TrackId } from "./Tracks";
+import type { TrackId } from "./Tracks";
 
 export const simulcastTransceiverConfig: RTCRtpTransceiverInit = {
   direction: 'sendonly',
@@ -46,7 +44,7 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
   private rtcRtpSender: RTCRtpSender | null = null
   // todo change to { h: boolean, m: boolean, l: boolean }
   // for compatibility reasons
-  public disabledEncodings: TrackEncoding[] = []
+  public disabledEncodings: Encoding[] = []
   public readonly encodings: TrackEncodings
   private metadataParser: MetadataParser<TrackMetadata>
 
@@ -63,11 +61,7 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
     this.metadataParser = metadataParser
   }
 
-  public getTrackId = () => {
-    return this.id
-  }
-
-  public disableTrackEncoding = async (encoding: TrackEncoding) => {
+  public disableTrackEncoding = async (encoding: Encoding) => {
     // maybe we could remove this object and use sender.getParameters().encodings.encodingParameter.active instead
     this.encodings[encoding] = false
     if (!this.disabledEncodings.find(e => e === encoding)) {
@@ -134,7 +128,7 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
       const activeEncodings = this.trackContext.simulcastConfig.activeEncodings;
 
       transceiverConfig.sendEncodings?.forEach((encoding) => {
-        const rid = encoding.rid as TrackEncoding
+        const rid = encoding.rid as Encoding
 
         if (activeEncodings.includes(rid)) {
           encoding.active = true;
@@ -230,7 +224,7 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
     return sender.setParameters(parameters)
   }
 
-  public setLocalEncodingBandwidth(rid: Rid, bandwidth: BandwidthLimit): Promise<void> {
+  public setLocalEncodingBandwidth(rid: Encoding, bandwidth: BandwidthLimit): Promise<void> {
     // const sender = findSender(
     //   this.stateManager.connection,
     //   trackContext.track!.id,
@@ -274,7 +268,7 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
     }
   }
 
-  public enableLocalTrackEncoding = (trackId: TrackId, encoding: TrackEncoding) => {
+  public enableLocalTrackEncoding = (trackId: TrackId, encoding: Encoding) => {
     // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
     // const newDisabledTrackEncodings = this.stateManager.disabledTrackEncodings
     //   .get(trackId)
@@ -295,5 +289,12 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
     encodingParameters.active = true;
 
     return sender.setParameters(params);
+  }
+
+  public getDisabledEncodings = (): Encoding[] => {
+    return Object.entries(this.encodings)
+      .filter(([_, value]) => value)
+      .map(([encoding]) => encoding as Encoding)
+      .reduce((acc, encoding) => [...acc, encoding], [] as Encoding[])
   }
 }

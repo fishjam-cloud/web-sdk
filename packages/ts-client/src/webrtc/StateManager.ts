@@ -1,13 +1,11 @@
 import type {
   BandwidthLimit,
   MetadataParser,
-  RemoteTrackId,
   SimulcastConfig,
   TrackBandwidthLimit,
-  TrackEncoding,
+  Encoding,
 } from './types';
 import type { EndpointWithTrackContext } from './internal';
-import type { TrackContextImpl } from './internal';
 import { isTrackInUse, } from './RTCPeerConnectionUtils';
 import { generateCustomEvent, generateMediaEvent } from './mediaEvent';
 import type { WebRTCEndpoint } from './webRTCEndpoint';
@@ -15,7 +13,6 @@ import type { NegotiationManager } from './NegotiationManager';
 import { setTransceiverDirection } from './transciever';
 import type { TrackId } from "./tracks/Tracks";
 import { Tracks } from "./tracks/Tracks";
-import type { Rid } from "./tracks/TrackCommon";
 
 // localEndpoint + EndpointWithTrackContext
 
@@ -37,16 +34,6 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   public getTracks = (): Tracks<EndpointMetadata, TrackMetadata> => {
     return this.tracks;
   }
-
-  // locally generated track id (uuid) + TrackContextImpl
-  public localTrackIdToTrack: Map<RemoteTrackId, TrackContextImpl<EndpointMetadata, TrackMetadata>> = new Map();
-
-  // locally generated track id (uuid) + TrackEncoding
-  public disabledTrackEncodings: Map<string, TrackEncoding[]> = new Map();
-
-
-  // trackId from signaling Event + TrackContextImpl
-  public trackIdToTrack: Map<string, TrackContextImpl<EndpointMetadata, TrackMetadata>> = new Map();
 
   // mid + trackId from signaling Event
   public midToTrackId: Map<string, string> = new Map();
@@ -330,7 +317,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     //   });
   }
 
-  public setLocalEncodingBandwidth = async (trackId: TrackId, rid: Rid, bandwidth: BandwidthLimit): Promise<void> => {
+  public setLocalEncodingBandwidth = async (trackId: TrackId, rid: Encoding, bandwidth: BandwidthLimit): Promise<void> => {
     if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
 
     return await this.tracks.setLocalEncodingBandwidth(trackId, rid, bandwidth, this.connection)
@@ -348,11 +335,19 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     this.tracks.updateLocalTrackMetadata(trackId, metadata)
   }
 
-  public enableLocalTrackEncoding = async (trackId: TrackId, encoding: TrackEncoding) => {
+  public enableLocalTrackEncoding = async (trackId: TrackId, encoding: Encoding) => {
     await this.tracks.enableLocalTrackEncoding(trackId, encoding)
   }
 
-  public disableLocalTrackEncoding = async (trackId: string, encoding: TrackEncoding) => {
+  public disableLocalTrackEncoding = async (trackId: string, encoding: Encoding) => {
     await this.tracks.disableLocalTrackEncoding(trackId, encoding)
   };
+
+  public setTargetRemoteTrackEncoding = (trackId: TrackId, variant: Encoding) => {
+    this.tracks.setTargetRemoteTrackEncoding(trackId, variant)
+  }
+
+  public getDisabledTrackEncodingsMap = (): Map<string, Encoding[]> => {
+    return this.tracks.getDisabledLocalTrackEncodings()
+  }
 }

@@ -30,7 +30,7 @@ import {
   TracksRemovedEventSchema,
 } from './schema';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
-import type { TrackEncoding, VadStatus } from '../src';
+import type { Encoding, VadStatus } from '../src';
 import { vi } from 'vitest';
 
 export const endpointId = 'exampleEndpointId';
@@ -77,7 +77,7 @@ export const createConnectedEvent = (
 export const createEncodingSwitchedEvent = (
   endpointId: string,
   trackId: string,
-  encoding: TrackEncoding,
+  encoding: Encoding,
 ): CustomEncodingUpdatedEvent =>
   CustomEncodingSwitchedEventSchema.parse({
     data: {

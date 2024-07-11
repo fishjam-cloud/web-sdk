@@ -1,4 +1,4 @@
-import type { RemoteTrackId, TrackContext, TrackEncoding } from './types';
+import type { RemoteTrackId, TrackContext, Encoding } from './types';
 import { applyBandwidthLimitation } from './bandwidth';
 import type { EndpointWithTrackContext, TrackContextImpl } from './internal';
 import { simulcastTransceiverConfig } from "./tracks/LocalTrack";
@@ -48,7 +48,7 @@ export const setTransceiverDirection = (connection: RTCPeerConnection) => {
 
 export const addTrackToConnection = <EndpointMetadata, TrackMetadata>(
   trackContext: TrackContext<EndpointMetadata, TrackMetadata>,
-  disabledTrackEncodingsMap: Map<string, TrackEncoding[]>,
+  disabledTrackEncodingsMap: Map<string, Encoding[]>,
   connection: RTCPeerConnection | undefined,
 ) => {
   const transceiverConfig = createTransceiverConfig(
@@ -61,7 +61,7 @@ export const addTrackToConnection = <EndpointMetadata, TrackMetadata>(
 
 const createTransceiverConfig = <EndpointMetadata, TrackMetadata>(
   trackContext: TrackContext<EndpointMetadata, TrackMetadata>,
-  disabledTrackEncodingsMap: Map<string, TrackEncoding[]>,
+  disabledTrackEncodingsMap: Map<string, Encoding[]>,
 ): RTCRtpTransceiverInit => {
   if (trackContext.track!.kind === 'audio') {
     return createAudioTransceiverConfig(trackContext);
@@ -81,18 +81,18 @@ const createAudioTransceiverConfig = <EndpointMetadata, TrackMetadata>(
 
 const createVideoTransceiverConfig = <EndpointMetadata, TrackMetadata>(
   trackContext: TrackContext<EndpointMetadata, TrackMetadata>,
-  disabledTrackEncodingsMap: Map<string, TrackEncoding[]>,
+  disabledTrackEncodingsMap: Map<string, Encoding[]>,
 ): RTCRtpTransceiverInit => {
   let transceiverConfig: RTCRtpTransceiverInit;
   if (trackContext.simulcastConfig!.enabled) {
     transceiverConfig = simulcastTransceiverConfig;
     const trackActiveEncodings = trackContext.simulcastConfig!.activeEncodings;
-    const disabledTrackEncodings: TrackEncoding[] = [];
+    const disabledTrackEncodings: Encoding[] = [];
     transceiverConfig.sendEncodings?.forEach((encoding) => {
-      if (trackActiveEncodings.includes(encoding.rid! as TrackEncoding)) {
+      if (trackActiveEncodings.includes(encoding.rid! as Encoding)) {
         encoding.active = true;
       } else {
-        disabledTrackEncodings.push(encoding.rid! as TrackEncoding);
+        disabledTrackEncodings.push(encoding.rid! as Encoding);
       }
     });
     disabledTrackEncodingsMap.set(trackContext.trackId, disabledTrackEncodings);

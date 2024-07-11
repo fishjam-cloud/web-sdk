@@ -79,6 +79,7 @@ export const mapMediaEventTracksToTrackContextImpl = <
   endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
   trackMetadataParser: MetadataParser<TrackMetadata>,
 ): Map<string, TrackContextImpl<EndpointMetadata, TrackMetadata>> => {
+
   const mappedTracks: Array<
     [string, TrackContextImpl<EndpointMetadata, TrackMetadata>]
   > = Array.from(tracks).map(([trackId, track]) => [

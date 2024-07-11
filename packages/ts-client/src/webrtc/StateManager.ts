@@ -1,6 +1,5 @@
 import type {
   BandwidthLimit,
-  LocalTrackId,
   MetadataParser,
   RemoteTrackId,
   SimulcastConfig,
@@ -14,7 +13,9 @@ import { generateCustomEvent, generateMediaEvent } from './mediaEvent';
 import type { WebRTCEndpoint } from './webRTCEndpoint';
 import type { NegotiationManager } from './NegotiationManager';
 import { setTransceiverDirection } from './transciever';
+import type { TrackId } from "./tracks/Tracks";
 import { Tracks } from "./tracks/Tracks";
+import type { Rid } from "./tracks/TrackCommon";
 
 // localEndpoint + EndpointWithTrackContext
 
@@ -39,34 +40,13 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
 
   // locally generated track id (uuid) + TrackContextImpl
   public localTrackIdToTrack: Map<RemoteTrackId, TrackContextImpl<EndpointMetadata, TrackMetadata>> = new Map();
-  // locally generated track id (uuid) + RTCRtpSender
-  public trackIdToSender: Map<RemoteTrackId, {
 
-    // locally generated track id (uuid)
-    remoteTrackId: RemoteTrackId;
-
-    // MediaStreamTrack id
-    localTrackId: LocalTrackId | null;
-    sender: RTCRtpSender | null;
-  }> = new Map();
   // locally generated track id (uuid) + TrackEncoding
   public disabledTrackEncodings: Map<string, TrackEncoding[]> = new Map();
 
 
   // trackId from signaling Event + TrackContextImpl
   public trackIdToTrack: Map<string, TrackContextImpl<EndpointMetadata, TrackMetadata>> = new Map();
-
-  // endpointId from signaling Event + EndpointWithTrackContext
-  public idToEndpoint: Map<string, EndpointWithTrackContext<EndpointMetadata, TrackMetadata>> = new Map();
-
-  // localEndpoint + EndpointWithTrackContext
-  public localEndpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> = {
-    id: '',
-    type: 'webrtc',
-    metadata: undefined,
-    rawMetadata: undefined,
-    tracks: new Map(),
-  };
 
   // mid + trackId from signaling Event
   public midToTrackId: Map<string, string> = new Map();
@@ -90,30 +70,6 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
 
     this.tracks = new Tracks<EndpointMetadata, TrackMetadata>(webrtc, endpointMetadataParser, trackMetadataParser)
   }
-
-  /**
-   * Disables track encoding so that it will be no longer sent to the server.
-   * @param {string} trackId - id of track
-   * @param {TrackEncoding} encoding - encoding that will be disabled
-   * @example
-   * ```ts
-   * const trackId = webrtc.addTrack(track, stream, {}, {enabled: true, activeEncodings: ["l", "m", "h"]});
-   * webrtc.disableTrackEncoding(trackId, "l");
-   * ```
-   */
-  public disableTrackEncoding = (trackId: string, encoding: TrackEncoding) => {
-    this.tracks.disableTrackEncoding(trackId, encoding)
-
-    const mediaEvent = generateMediaEvent('disableTrackEncoding', {
-      trackId: trackId,
-      encoding: encoding,
-    });
-    this.webrtc.sendMediaEvent(mediaEvent);
-    this.webrtc.emit('localTrackEncodingDisabled', {
-      trackId,
-      encoding,
-    });
-  };
 
 
   private onTrackReady = () => {
@@ -332,9 +288,9 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     this.ongoingTrackReplacement = false
   };
 
-  public getEndpointId = () => this.localEndpoint.id;
+  public getEndpointId = () => this.tracks.getLocalEndpoint().id;
 
-  public setLocalEndpoint = (metadata: EndpointMetadata) => {
+  public setLocalEndpointMetadata = (metadata: EndpointMetadata) => {
     this.tracks.setLocalEndpointMetadata(metadata)
     const mediaEvent = generateMediaEvent('connect', {
       metadata: metadata,
@@ -347,4 +303,56 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
 
     return this.tracks.setLocalTrackBandwidth(trackId, bandwidth, this.connection)
   }
+
+  public onConnect = (data: any) => {
+    this.tracks.setLocalEndpointId(data.id)
+
+    const endpoints = data.otherEndpoints as EndpointWithTrackContext<EndpointMetadata, TrackMetadata>[]
+
+    // todo implement track mapping (+ validate metadata)
+    // todo implement endpoint metadata mapping
+    endpoints.forEach((endpoint) => {
+      this.tracks.addRemoteEndpoint(endpoint)
+    })
+
+    // this.webrtc.emit('connected', data.id, otherEndpoints);
+
+    //   otherEndpoints.forEach((endpoint) =>
+    //     this.stateManager.idToEndpoint.set(endpoint.id, endpoint),
+    //   );
+    //
+    //   otherEndpoints.forEach((endpoint) => {
+    //     endpoint.tracks.forEach((ctx, trackId) => {
+    //       this.stateManager.trackIdToTrack.set(trackId, ctx);
+    //
+    //       this.emit('trackAdded', ctx);
+    //     });
+    //   });
+  }
+
+  public setLocalEncodingBandwidth = async (trackId: TrackId, rid: Rid, bandwidth: BandwidthLimit): Promise<void> => {
+    if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
+
+    return await this.tracks.setLocalEncodingBandwidth(trackId, rid, bandwidth, this.connection)
+  }
+
+  public updateSenders = () => {
+    this.tracks.updateSenders()
+  }
+
+  public updateLocalEndpointMetadata = (metadata: unknown) => {
+    this.tracks.updateLocalEndpointMetadata(metadata)
+  }
+
+  public updateLocalTrackMetadata = (trackId: TrackId, metadata: unknown) => {
+    this.tracks.updateLocalTrackMetadata(trackId, metadata)
+  }
+
+  public enableLocalTrackEncoding = async (trackId: TrackId, encoding: TrackEncoding) => {
+    await this.tracks.enableLocalTrackEncoding(trackId, encoding)
+  }
+
+  public disableLocalTrackEncoding = async (trackId: string, encoding: TrackEncoding) => {
+    await this.tracks.disableLocalTrackEncoding(trackId, encoding)
+  };
 }

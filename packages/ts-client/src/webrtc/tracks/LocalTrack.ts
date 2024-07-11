@@ -1,10 +1,13 @@
 import type { TrackContextImpl } from "../internal";
-import type { BandwidthLimit, LocalTrackId, MediaStreamTrackId, Mid, TrackEncoding } from "../types";
+import type { BandwidthLimit, LocalTrackId, MediaStreamTrackId, MetadataParser, Mid, TrackEncoding } from "../types";
 import { applyBandwidthLimitation } from "../bandwidth";
-import type { TrackCommon, TrackEncodings } from "./TrackCommon";
-import { generateMediaEvent } from "../mediaEvent";
+import type { Rid, TrackCommon, TrackEncodings } from "./TrackCommon";
+import { generateCustomEvent, generateMediaEvent } from "../mediaEvent";
 import type { WebRTCEndpoint } from "../webRTCEndpoint";
-import { createTrackVariantBitratesEvent } from "../bitrate";
+import { findSender } from "../RTCPeerConnectionUtils";
+import { getTrackBitrates } from "../bitrate";
+import { meta } from "@typescript-eslint/eslint-plugin";
+import { TrackId } from "./Tracks";
 
 export const simulcastTransceiverConfig: RTCRtpTransceiverInit = {
   direction: 'sendonly',
@@ -45,10 +48,11 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
   // for compatibility reasons
   public disabledEncodings: TrackEncoding[] = []
   public readonly encodings: TrackEncodings
+  private metadataParser: MetadataParser<TrackMetadata>
 
   public connection: RTCPeerConnection
 
-  constructor(connection: RTCPeerConnection, id: LocalTrackId, trackContext: TrackContextImpl<EndpointMetadata, TrackMetadata>) {
+  constructor(connection: RTCPeerConnection, id: LocalTrackId, trackContext: TrackContextImpl<EndpointMetadata, TrackMetadata>, metadataParser: MetadataParser<TrackMetadata>) {
     this.connection = connection;
     this.id = id;
     this.trackContext = trackContext
@@ -56,6 +60,7 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
     if (trackContext.track?.id) {
       this.mediaStreamTrackId = trackContext.track?.id
     }
+    this.metadataParser = metadataParser
   }
 
   public getTrackId = () => {
@@ -223,5 +228,72 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
     }
 
     return sender.setParameters(parameters)
+  }
+
+  public setLocalEncodingBandwidth(rid: Rid, bandwidth: BandwidthLimit): Promise<void> {
+    // const sender = findSender(
+    //   this.stateManager.connection,
+    //   trackContext.track!.id,
+    // );
+    const sender = this.rtcRtpSender
+    if (!sender) throw new Error(`RTCRtpSender for track ${this.id} not found`)
+
+    const parameters = sender.getParameters();
+    const encoding = parameters.encodings.find(
+      (encoding) => encoding.rid === rid,
+    );
+
+    if (!encoding) {
+      return Promise.reject(`Encoding with rid '${rid}' doesn't exist`);
+    } else if (bandwidth === 0) {
+      delete encoding.maxBitrate;
+    } else {
+      encoding.maxBitrate = bandwidth * 1024;
+    }
+
+    return sender.setParameters(parameters)
+  }
+
+  public updateSender = () => {
+    if (this.mediaStreamTrackId) {
+      this.rtcRtpSender = findSender(this.connection, this.mediaStreamTrackId);
+    }
+  }
+
+  public updateTrackMetadata = (metadata: unknown) => {
+    const trackContext = this.trackContext
+
+    try {
+      trackContext.metadata = this.metadataParser(metadata);
+      trackContext.rawMetadata = metadata;
+      trackContext.metadataParsingError = undefined;
+    } catch (error) {
+      trackContext.metadata = undefined;
+      trackContext.metadataParsingError = error;
+      throw error;
+    }
+  }
+
+  public enableLocalTrackEncoding = (trackId: TrackId, encoding: TrackEncoding) => {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+    // const newDisabledTrackEncodings = this.stateManager.disabledTrackEncodings
+    //   .get(trackId)
+    //   ?.filter((en) => en !== encoding)!;
+    // this.stateManager.disabledTrackEncodings.set(
+    //   trackId,
+    //   newDisabledTrackEncodings,
+    // );
+    // const sender = findSenderByTrack(this.stateManager.connection, track);
+    const sender = this.rtcRtpSender
+    if (!sender) throw new Error(`RTCRtpSender for track ${this.id} not found`)
+
+    const params = sender.getParameters();
+    const encodingParameters = params.encodings.find((en) => en.rid == encoding);
+
+    if (!encodingParameters) throw new Error(`RTCRtEncodingParameters ${encoding} for track ${this.id} not found`)
+
+    encodingParameters.active = true;
+
+    return sender.setParameters(params);
   }
 }

@@ -894,13 +894,13 @@ export class FishjamClient<
    * @param {BandwidthLimit} bandwidth In kbps
    * @returns {Promise<boolean>} Success
    */
-  public setTrackBandwidth(
+  public async setTrackBandwidth(
     trackId: string,
     bandwidth: BandwidthLimit,
-  ): Promise<void> {
+  ): Promise<boolean> {
     if (!this.webrtc) throw this.handleWebRTCNotInitialized();
-
-    return this.webrtc.setTrackBandwidth(trackId, bandwidth);
+    await this.webrtc.setTrackBandwidth(trackId, bandwidth);
+    return true;
   }
 
   /**
@@ -911,14 +911,14 @@ export class FishjamClient<
    * @param {BandwidthLimit} bandwidth - Desired max bandwidth used by the encoding (in kbps)
    * @returns
    */
-  public setEncodingBandwidth(
+  public async setEncodingBandwidth(
     trackId: string,
     rid: string,
     bandwidth: BandwidthLimit,
   ): Promise<boolean> {
     if (!this.webrtc) throw this.handleWebRTCNotInitialized();
-
-    return this.webrtc.setEncodingBandwidth(trackId, rid, bandwidth);
+    await this.webrtc.setEncodingBandwidth(trackId, rid, bandwidth);
+    return true;
   }
 
   /**

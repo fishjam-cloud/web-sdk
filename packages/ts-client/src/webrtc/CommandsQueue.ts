@@ -1,7 +1,13 @@
-import type { Command } from './commands';
 import type { Deferred } from './deferred';
 import type { StateManager } from './StateManager';
 import type { NegotiationManager } from './NegotiationManager';
+
+export type Command = {
+  handler: () => void;
+  validate?: () => string | null;
+  resolutionNotifier: Deferred<void>;
+  resolve: 'after-renegotiation' | 'immediately';
+};
 
 export class CommandsQueue<EndpointMetadata, TrackMetadata> {
   private readonly stateManager: StateManager<EndpointMetadata, TrackMetadata>;

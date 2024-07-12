@@ -1,6 +1,5 @@
-import type { RemoteTrackId, TrackContext, Encoding } from './types';
+import type { TrackContext, Encoding } from './types';
 import { applyBandwidthLimitation } from './bandwidth';
-import type { EndpointWithTrackContext, TrackContextImpl } from './internal';
 import { simulcastTransceiverConfig } from "./tracks/LocalTrack";
 
 const getNeededTransceiversTypes = (
@@ -114,48 +113,3 @@ export const setTransceiversToReadOnly = (connection: RTCPeerConnection) => {
 type Mid = string;
 type TrackId = string;
 export type MidToTrackId = Record<Mid, TrackId>;
-
-
-const getTrackContext = <EndpointMetadata, TrackMetadata>(
-  localTrackIdToTrack: Map<
-    RemoteTrackId,
-    TrackContextImpl<EndpointMetadata, TrackMetadata>
-  >,
-  localTrackId: string,
-) =>
-  Array.from(localTrackIdToTrack.values()).find(
-    (trackContext) => trackContext?.track?.id === localTrackId,
-  )!;
-
-const getTransceiverMapping = <EndpointMetadata, TrackMetadata>(
-  connection: RTCPeerConnection,
-  localTrackIdToTrack: Map<
-    RemoteTrackId,
-    TrackContextImpl<EndpointMetadata, TrackMetadata>
-  >,
-): MidToTrackId =>
-  connection
-    .getTransceivers()
-    .filter((transceiver) => transceiver.sender.track?.id && transceiver.mid)
-    .reduce((acc, transceiver) => {
-      const localTrackId = transceiver.sender.track!.id;
-      const mid = transceiver!.mid!;
-
-      const trackContext = getTrackContext(localTrackIdToTrack, localTrackId);
-
-      acc[mid] = trackContext.trackId;
-
-      return acc;
-    }, {} as MidToTrackId);
-
-const getAllNegotiatedLocalTracksMapping = <EndpointMetadata, TrackMetadata>(
-  midToTrackId: Map<string, string> = new Map(),
-  localEndpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
-): MidToTrackId => {
-  return [...midToTrackId.entries()]
-    .filter(([_mid, trackId]) => localEndpoint.tracks.get(trackId))
-    .reduce(
-      (acc, [mid, trackId]) => ({ ...acc, [mid]: trackId }),
-      {} as MidToTrackId,
-    );
-};

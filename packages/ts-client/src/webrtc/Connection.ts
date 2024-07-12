@@ -18,6 +18,16 @@ export class Connection {
     this.connection = new RTCPeerConnection(this.rtcConfig)
   }
 
+  public isConnectionUnstable = () => {
+    if (!this.connection) return false;
+
+    const isSignalingUnstable = this.connection.signalingState !== 'stable';
+    const isConnectionNotConnected = this.connection.connectionState !== 'connected';
+    const isIceNotConnected = this.connection.iceConnectionState !== 'connected';
+
+    return isSignalingUnstable && isConnectionNotConnected && isIceNotConnected;
+  };
+
   /**
    * Configures TURN servers for WebRTC connections by adding them to the provided RTCConfiguration object.
    */

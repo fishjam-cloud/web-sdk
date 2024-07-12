@@ -235,10 +235,6 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
   }
 
   public setEncodingBandwidth(rid: Encoding, bandwidth: BandwidthLimit): Promise<void> {
-    // const sender = findSender(
-    //   this.stateManager.connection,
-    //   trackContext.track!.id,
-    // );
     const sender = this.rtcRtpSender
     if (!sender) throw new Error(`RTCRtpSender for track ${this.id} not found`)
 

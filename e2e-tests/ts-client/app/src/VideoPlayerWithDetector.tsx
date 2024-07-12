@@ -46,7 +46,7 @@ export const VideoPlayerWithDetector = ({ stream, id, webrtc }: Props) => {
   }, [stream]);
 
   const getDecodedFrames = useCallback(async () => {
-    const connection = webrtc["stateManager"]["connection"];
+    const connection = webrtc["connection"];
     if (!connection) return 0;
 
     const inbound = getTrackIdentifierToInboundRtp(await connection.getConnection().getStats());

@@ -1,6 +1,6 @@
 import type { Deferred } from './deferred';
-import type { StateManager } from './StateManager';
-import type { NegotiationManager } from './NegotiationManager';
+import type { LocalTrackManager } from './LocalTrackManager';
+import { Connection } from "./Connection";
 
 export type Command = {
   handler: () => void;
@@ -10,22 +10,19 @@ export type Command = {
 };
 
 export class CommandsQueue<EndpointMetadata, TrackMetadata> {
-  private readonly stateManager: StateManager<EndpointMetadata, TrackMetadata>;
-  private readonly negotiationManager: NegotiationManager;
-
+  private readonly localTrackManager: LocalTrackManager<EndpointMetadata, TrackMetadata>;
+  private connection: Connection | null = null
   private clearConnectionCallbacks: (() => void) | null = null;
 
-  constructor(
-    stateManager: StateManager<EndpointMetadata, TrackMetadata>,
-    negotiationManager: NegotiationManager,
-  ) {
-    this.stateManager = stateManager;
-    this.negotiationManager = negotiationManager;
+  constructor(localTrackManager: LocalTrackManager<EndpointMetadata, TrackMetadata>) {
+    this.localTrackManager = localTrackManager;
   }
 
-  public setupEventListeners = (connection: RTCPeerConnection) => {
+  public initConnection = (connection: Connection) => {
+    this.connection = connection
+
     const onSignalingStateChange = () => {
-      switch (this.stateManager.connection?.getConnection().signalingState) {
+      switch (connection.getConnection().signalingState) {
         case 'stable':
           this.processNextCommand();
           break;
@@ -33,7 +30,7 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
     };
 
     const onIceGatheringStateChange = () => {
-      switch (this.stateManager.connection?.getConnection().iceGatheringState) {
+      switch (connection.getConnection().iceGatheringState) {
         case 'complete':
           this.processNextCommand();
           break;
@@ -41,14 +38,14 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
     };
 
     const onConnectionStateChange = () => {
-      switch (connection.connectionState) {
+      switch (connection.getConnection().connectionState) {
         case 'connected':
           this.processNextCommand();
           break;
       }
     };
     const onIceConnectionStateChange = () => {
-      switch (this.stateManager.connection?.getConnection().iceConnectionState) {
+      switch (connection.getConnection().iceConnectionState) {
         case 'connected':
           this.processNextCommand();
           break;
@@ -56,37 +53,37 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
     };
 
     this.clearConnectionCallbacks = () => {
-      connection.removeEventListener(
+      connection.getConnection().removeEventListener(
         'signalingstatechange',
         onSignalingStateChange,
       );
-      connection.removeEventListener(
+      connection.getConnection().removeEventListener(
         'icegatheringstatechange',
         onIceGatheringStateChange,
       );
-      connection.removeEventListener(
+      connection.getConnection().removeEventListener(
         'connectionstatechange',
         onConnectionStateChange,
       );
-      connection.removeEventListener(
+      connection.getConnection().removeEventListener(
         'iceconnectionstatechange',
         onIceConnectionStateChange,
       );
     };
 
-    connection.addEventListener(
+    connection.getConnection().addEventListener(
       'icegatheringstatechange',
       onIceConnectionStateChange,
     );
-    connection.addEventListener(
+    connection.getConnection().addEventListener(
       'connectionstatechange',
       onConnectionStateChange,
     );
-    connection.addEventListener(
+    connection.getConnection().addEventListener(
       'iceconnectionstatechange',
       onIceConnectionStateChange,
     );
-    connection.addEventListener('signalingstatechange', onSignalingStateChange);
+    connection.getConnection().addEventListener('signalingstatechange', onSignalingStateChange);
   };
 
   private commandsQueue: Command[] = [];
@@ -97,27 +94,9 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
     this.processNextCommand();
   };
 
-  private isConnectionUnstable = () => {
-    const connection = this.stateManager.connection;
-    if (connection === undefined) return false;
-
-    const isSignalingUnstable = connection.getConnection().signalingState !== 'stable';
-    const isConnectionNotConnected = connection.getConnection().connectionState !== 'connected';
-    const isIceNotConnected = connection.getConnection().iceConnectionState !== 'connected';
-
-    return isSignalingUnstable && isConnectionNotConnected && isIceNotConnected;
-  };
-
-  private isNegotiationInProgress = () => {
-    return (
-      this.negotiationManager.ongoingRenegotiation ||
-      this.stateManager.ongoingTrackReplacement
-    );
-  };
-
   public processNextCommand = () => {
-    if (this.isNegotiationInProgress()) return;
-    if (this.isConnectionUnstable()) return;
+    if (this.localTrackManager.isNegotiationInProgress()) return;
+    if (this.connection?.isConnectionUnstable()) return;
 
     this.resolvePreviousCommand();
 

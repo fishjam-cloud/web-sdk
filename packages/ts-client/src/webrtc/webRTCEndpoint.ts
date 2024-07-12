@@ -16,8 +16,7 @@ import type {
 } from './types';
 import { isEncoding } from './types';
 import type { EndpointWithTrackContext } from './internal';
-import { StateManager } from './StateManager';
-import { NegotiationManager } from './NegotiationManager';
+import { LocalTrackManager } from './LocalTrackManager';
 import { CommandsQueue } from './CommandsQueue';
 import { Remote } from "./tracks/Remote";
 import { Local } from "./tracks/Local";
@@ -37,22 +36,15 @@ export class WebRTCEndpoint<
   private readonly endpointMetadataParser: MetadataParser<EndpointMetadata>;
   private readonly trackMetadataParser: MetadataParser<TrackMetadata>;
 
-  public readonly stateManager: StateManager<EndpointMetadata, TrackMetadata>;
-
+  private readonly localTrackManager: LocalTrackManager<EndpointMetadata, TrackMetadata>;
   private readonly remote: Remote<EndpointMetadata, TrackMetadata>;
   private readonly local: Local<EndpointMetadata, TrackMetadata>;
+  private readonly commandsQueue: CommandsQueue<EndpointMetadata, TrackMetadata>;
   private midToTrackId: Map<string, string> = new Map();
 
   public bandwidthEstimation: bigint = BigInt(0);
 
   public connection?: Connection;
-
-
-  private readonly negotiationManager: NegotiationManager;
-  private readonly commandsQueue: CommandsQueue<
-    EndpointMetadata,
-    TrackMetadata
-  >;
 
   private clearConnectionCallbacks: (() => void) | null = null;
 
@@ -66,11 +58,9 @@ export class WebRTCEndpoint<
     this.remote = new Remote<EndpointMetadata, TrackMetadata>(this, this.endpointMetadataParser, this.trackMetadataParser)
     this.local = new Local<EndpointMetadata, TrackMetadata>(this, this.endpointMetadataParser, this.trackMetadataParser)
 
-    this.negotiationManager = new NegotiationManager();
+    this.localTrackManager = new LocalTrackManager(this, this.local);
 
-    this.stateManager = new StateManager(this, this.negotiationManager, this.local);
-
-    this.commandsQueue = new CommandsQueue(this.stateManager, this.negotiationManager);
+    this.commandsQueue = new CommandsQueue(this.localTrackManager);
   }
 
   /**
@@ -196,7 +186,7 @@ export class WebRTCEndpoint<
         break;
       }
       case 'tracksAdded': {
-        this.negotiationManager.ongoingRenegotiation = true;
+        this.localTrackManager.ongoingRenegotiation = true;
         const data = deserializedMediaEvent.data
 
         if (this.getEndpointId() === data.endpointId) return;
@@ -205,7 +195,7 @@ export class WebRTCEndpoint<
         break;
       }
       case 'tracksRemoved': {
-        this.negotiationManager.ongoingRenegotiation = true;
+        this.localTrackManager.ongoingRenegotiation = true;
 
         const data = deserializedMediaEvent.data
 
@@ -219,7 +209,7 @@ export class WebRTCEndpoint<
       case 'sdpAnswer':
         await this.onSdpAnswer(deserializedMediaEvent.data);
 
-        this.negotiationManager.ongoingRenegotiation = false;
+        this.localTrackManager.ongoingRenegotiation = false;
         this.commandsQueue.processNextCommand();
         break;
 
@@ -426,7 +416,7 @@ export class WebRTCEndpoint<
 
       this.commandsQueue.pushCommand({
         handler: () => {
-          this.stateManager.addTrackHandler(
+          this.localTrackManager.addTrackHandler(
             trackId,
             track,
             stream,
@@ -436,7 +426,7 @@ export class WebRTCEndpoint<
           );
         },
         validate: () =>
-          this.stateManager.validateAddTrack(
+          this.localTrackManager.validateAddTrack(
             track,
             simulcastConfig,
             maxBandwidth,
@@ -521,7 +511,7 @@ export class WebRTCEndpoint<
 
       this.commandsQueue.pushCommand({
         handler: () => {
-          this.stateManager.replaceTrackHandler(trackId, newTrack, newMetadata);
+          this.localTrackManager.replaceTrackHandler(trackId, newTrack, newMetadata);
         },
         resolutionNotifier,
         resolve: 'immediately',
@@ -602,7 +592,7 @@ export class WebRTCEndpoint<
 
     this.commandsQueue.pushCommand({
       handler: () => {
-        this.stateManager.removeTrackHandler(trackId);
+        this.localTrackManager.removeTrackHandler(trackId);
       },
       resolutionNotifier,
       resolve: 'after-renegotiation',
@@ -709,9 +699,7 @@ export class WebRTCEndpoint<
       this.connection?.getConnection().close();
 
       this.commandsQueue.cleanUp();
-
-      this.stateManager.ongoingTrackReplacement = false;
-      this.negotiationManager.ongoingRenegotiation = false;
+      this.localTrackManager.cleanUp()
     }
 
     this.connection = undefined;
@@ -823,14 +811,14 @@ export class WebRTCEndpoint<
         onIceConnectionStateChange,
       );
 
-      this.commandsQueue.setupEventListeners(connection.getConnection());
+      this.commandsQueue.initConnection(connection.getConnection());
 
       this.local.addAllTracksToConnection()
 
       connection.setTransceiversToReadOnly()
     }
 
-    this.stateManager.updateSenders()
+    this.localTrackManager.updateSenders()
 
     const tracks = new Map<string, number>(
       Object.entries(offerData.data.tracksTypes),
@@ -879,7 +867,7 @@ export class WebRTCEndpoint<
   };
 
   private onConnectionStateChange = (event: Event) => {
-    switch (this.stateManager.connection?.getConnection().connectionState) {
+    switch (this.localTrackManager.connection?.getConnection().connectionState) {
       case 'failed':
         this.emit('connectionError', {
           message: 'RTCPeerConnection failed',
@@ -890,7 +878,7 @@ export class WebRTCEndpoint<
   };
 
   private onIceConnectionStateChange = (event: Event) => {
-    switch (this.stateManager.connection?.getConnection().iceConnectionState) {
+    switch (this.localTrackManager.connection?.getConnection().iceConnectionState) {
       case 'disconnected':
         console.warn('ICE connection: disconnected');
         // Requesting renegotiation on ICE connection state failed fixes RTCPeerConnection

@@ -1,48 +1,42 @@
 import type {
-  BandwidthLimit,
-  MetadataParser,
   SimulcastConfig,
   TrackBandwidthLimit,
-  Encoding,
 } from './types';
-import type { EndpointWithTrackContext } from './internal';
-import { generateCustomEvent, generateMediaEvent } from './mediaEvent';
+import { generateCustomEvent } from './mediaEvent';
 import type { WebRTCEndpoint } from './webRTCEndpoint';
-import type { NegotiationManager } from './NegotiationManager';
-import type { TrackId } from "./tracks/Remote";
-import { Remote } from "./tracks/Remote";
 import { Connection } from "./Connection";
 import { Local } from "./tracks/Local";
 
-// localEndpoint + EndpointWithTrackContext
-
-// trackId from signaling Event + TrackContextImpl
-// endpointId from signaling Event + EndpointWithTrackContext
-
-// locally generated track id (uuid) + TrackContextImpl
-// locally generated track id (uuid) + RTCRtpSender
-// locally generated track id (uuid) + TrackEncoding
-
-// mid + trackId from signaling Event
-
-export class StateManager<EndpointMetadata, TrackMetadata> {
+export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
   public connection?: Connection;
 
   private readonly local: Local<EndpointMetadata, TrackMetadata>;
+
   public ongoingTrackReplacement: boolean = false;
+  /**
+   * Indicates if an ongoing renegotiation is active.
+   * During renegotiation, both parties are expected to actively exchange events: renegotiateTracks, offerData, sdpOffer, sdpAnswer.
+   */
+  public ongoingRenegotiation: boolean = false;
 
   // temporary for webrtc.emit and webrtc.sendMediaEvent
   private readonly webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>;
-  private readonly negotiationManager: NegotiationManager;
 
   constructor(
     webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
-    negotiationManager: NegotiationManager,
     local: Local<EndpointMetadata, TrackMetadata>,
   ) {
     this.webrtc = webrtc;
-    this.negotiationManager = negotiationManager;
     this.local = local
+  }
+
+  public isNegotiationInProgress = () => {
+    return (this.ongoingRenegotiation || this.ongoingTrackReplacement);
+  };
+
+  public cleanUp = () => {
+    this.ongoingTrackReplacement = false;
+    this.ongoingRenegotiation = false;
   }
 
   public validateAddTrack = (
@@ -73,7 +67,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     simulcastConfig: SimulcastConfig,
     maxBandwidth: TrackBandwidthLimit,
   ) => {
-    this.negotiationManager.ongoingRenegotiation = true;
+    this.ongoingRenegotiation = true;
 
     const trackManager = this.local.addTrack(this.connection, trackId, track, stream, trackMetadata, simulcastConfig, maxBandwidth)
 
@@ -87,7 +81,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   };
 
   public removeTrackHandler = (trackId: string) => {
-    this.negotiationManager.ongoingRenegotiation = true;
+    this.ongoingRenegotiation = true;
 
     if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
 

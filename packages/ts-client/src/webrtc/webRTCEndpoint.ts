@@ -16,15 +16,14 @@ import type {
 } from './types';
 import { isEncoding } from './types';
 import type { EndpointWithTrackContext } from './internal';
-import {
-  addTrackToConnection,
-  addTransceiversIfNeeded,
-  setTransceiversToReadOnly,
-} from './transciever';
+import { addTrackToConnection, addTransceiversIfNeeded, setTransceiversToReadOnly, } from './transciever';
 import { setTurns } from './turn';
 import { StateManager } from './StateManager';
 import { NegotiationManager } from './NegotiationManager';
 import { CommandsQueue } from './CommandsQueue';
+import { Remote } from "./tracks/Remote";
+import { Local } from "./tracks/Local";
+import { Connection } from "./Connection";
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -41,6 +40,17 @@ export class WebRTCEndpoint<
   private readonly trackMetadataParser: MetadataParser<TrackMetadata>;
 
   public readonly stateManager: StateManager<EndpointMetadata, TrackMetadata>;
+
+  private readonly remote: Remote<EndpointMetadata, TrackMetadata>;
+  private readonly local: Local<EndpointMetadata, TrackMetadata>;
+  private midToTrackId: Map<string, string> = new Map();
+  public rtcConfig: RTCConfiguration = { bundlePolicy: 'max-bundle', iceServers: [], iceTransportPolicy: 'relay' };
+
+  public bandwidthEstimation: bigint = BigInt(0);
+
+  public connection?: Connection;
+
+
   private readonly negotiationManager: NegotiationManager;
   private readonly commandsQueue: CommandsQueue<
     EndpointMetadata,
@@ -56,17 +66,14 @@ export class WebRTCEndpoint<
     this.trackMetadataParser =
       config?.trackMetadataParser ?? ((x) => x as TrackMetadata);
 
+    this.remote = new Remote<EndpointMetadata, TrackMetadata>(this, this.endpointMetadataParser, this.trackMetadataParser)
+    this.local = new Local<EndpointMetadata, TrackMetadata>(this, this.endpointMetadataParser, this.trackMetadataParser)
+
     this.negotiationManager = new NegotiationManager();
-    this.stateManager = new StateManager(
-      this,
-      this.negotiationManager,
-      this.endpointMetadataParser,
-      this.trackMetadataParser,
-    );
-    this.commandsQueue = new CommandsQueue(
-      this.stateManager,
-      this.negotiationManager,
-    );
+
+    this.stateManager = new StateManager(this, this.negotiationManager, this.local);
+
+    this.commandsQueue = new CommandsQueue(this.stateManager, this.negotiationManager);
   }
 
   /**
@@ -83,7 +90,11 @@ export class WebRTCEndpoint<
    * ```
    */
   public connect = (metadata: EndpointMetadata): void => {
-    this.stateManager.setLocalEndpointMetadata(metadata)
+    this.local.setEndpointMetadata(metadata)
+    const mediaEvent = generateMediaEvent('connect', {
+      metadata: metadata,
+    });
+    this.sendMediaEvent(mediaEvent);
   };
 
   /**
@@ -106,13 +117,37 @@ export class WebRTCEndpoint<
     const deserializedMediaEvent = deserializeMediaEvent(mediaEvent);
     switch (deserializedMediaEvent.type) {
       case 'connected': {
-        this.stateManager.onConnect(deserializedMediaEvent.data)
+        this.local.setLocalEndpointId(deserializedMediaEvent.data.id)
+
+        const endpoints = deserializedMediaEvent.data.otherEndpoints as EndpointWithTrackContext<EndpointMetadata, TrackMetadata>[]
+
+        // todo implement track mapping (+ validate metadata)
+        // todo implement endpoint metadata mapping
+        endpoints.forEach((endpoint) => {
+          this.remote.addRemoteEndpoint(endpoint)
+        })
+
         break;
       }
       default:
-        if (this.stateManager.getEndpointId() != null)
+        if (this.getEndpointId() != null)
           await this.handleMediaEvent(deserializedMediaEvent);
     }
+  };
+
+  private getEndpointId = () => this.local.getEndpoint().id;
+
+  private onTrackReady = (event: RTCTrackEvent) => {
+    const stream = event.streams[0];
+    if (!stream) throw new Error("Cannot find media stream")
+
+    const mid = event.transceiver.mid!;
+
+    const remoteTrack = this.remote.getTrackByMid(mid)
+
+    remoteTrack.setReady(stream, event.track)
+
+    this.emit('trackReady', remoteTrack.trackContext);
   };
 
   /**
@@ -127,9 +162,7 @@ export class WebRTCEndpoint<
   public async getStatistics(
     selector?: MediaStreamTrack | null,
   ): Promise<RTCStatsReport> {
-    return (
-      (await this.stateManager.connection?.getConnection().getStats(selector)) ?? new Map()
-    );
+    return await this.connection?.getConnection().getStats(selector) ?? new Map();
   }
 
   /**
@@ -141,22 +174,22 @@ export class WebRTCEndpoint<
    * }
    */
   public getRemoteTracks(): Record<string, TrackContext<EndpointMetadata, TrackMetadata>> {
-    return this.stateManager.getRemote().getRemoteTrackContexts()
+    return this.remote.getRemoteTrackContexts()
   }
 
   /**
    * Returns a snapshot of currently received remote endpoints.
    */
   public getRemoteEndpoints(): Record<string, EndpointWithTrackContext<EndpointMetadata, TrackMetadata>> {
-    return this.stateManager.getRemote().getRemoteEndpoints()
+    return this.remote.getRemoteEndpoints()
   }
 
   public getLocalEndpoint(): EndpointWithTrackContext<EndpointMetadata, TrackMetadata> {
-    return this.stateManager.getLocal().getEndpoint();
+    return this.local.getEndpoint();
   }
 
   public getBandwidthEstimation(): bigint {
-    return this.stateManager.bandwidthEstimation;
+    return this.bandwidthEstimation;
   }
 
   private handleMediaEvent = async (deserializedMediaEvent: MediaEvent) => {
@@ -167,19 +200,27 @@ export class WebRTCEndpoint<
       }
       case 'tracksAdded': {
         this.negotiationManager.ongoingRenegotiation = true;
+        const data = deserializedMediaEvent.data
 
-        this.stateManager.onTracksAdded(deserializedMediaEvent.data);
+        if (this.getEndpointId() === data.endpointId) return;
+
+        this.remote.addTracks(data.endpointId, data.tracks, data.trackIdToMetadata)
         break;
       }
       case 'tracksRemoved': {
         this.negotiationManager.ongoingRenegotiation = true;
 
-        this.stateManager.onTracksRemoved(deserializedMediaEvent.data);
+        const data = deserializedMediaEvent.data
+
+        const endpointId = data.endpointId;
+        if (this.getEndpointId() === endpointId) return;
+
+        this.remote.removeTracks(data.trackIds as string[])
         break;
       }
 
       case 'sdpAnswer':
-        await this.stateManager.onSdpAnswer(deserializedMediaEvent.data);
+        await this.onSdpAnswer(deserializedMediaEvent.data);
 
         this.negotiationManager.ongoingRenegotiation = false;
         this.commandsQueue.processNextCommand();
@@ -190,54 +231,58 @@ export class WebRTCEndpoint<
         break;
 
       case 'endpointAdded':
-        this.stateManager.onEndpointAdded(deserializedMediaEvent.data);
+        const endpoint = deserializedMediaEvent.data
+
+        if (endpoint.id === this.getEndpointId()) return;
+
+        this.remote.addRemoteEndpoint(endpoint)
         break;
 
       case 'endpointRemoved':
-        if (deserializedMediaEvent.data.id === this.stateManager.getLocal().getEndpoint().id) {
+        if (deserializedMediaEvent.data.id === this.local.getEndpoint().id) {
           this.cleanUp();
           this.emit('disconnected');
           return;
         }
 
-        this.stateManager.onEndpointRemoved(deserializedMediaEvent.data);
+        if (this.getEndpointId() === deserializedMediaEvent.data.id) return;
+
+        this.remote.removeRemoteEndpoint(deserializedMediaEvent.data.id)
         break;
 
       case 'endpointUpdated':
-        this.stateManager.onEndpointUpdated(deserializedMediaEvent.data);
+        if (this.getEndpointId() === deserializedMediaEvent.data.id) return;
+
+        this.remote.updateRemoteEndpoint(deserializedMediaEvent.data)
         break;
 
       case 'trackUpdated': {
-        this.stateManager.onTrackUpdated(deserializedMediaEvent.data);
+        if (this.getEndpointId() === deserializedMediaEvent.data.endpointId) return;
+
+        this.remote.updateRemoteTrack(deserializedMediaEvent.data)
         break;
       }
 
       case 'trackEncodingDisabled': {
-        this.stateManager.onTrackEncodingDisabled(deserializedMediaEvent.data);
+        if (this.getEndpointId() === deserializedMediaEvent.data.endpointId) return;
+
+        this.remote.disableRemoteTrackEncoding(deserializedMediaEvent.data.trackId, deserializedMediaEvent.data.encoding)
         break;
       }
 
       case 'trackEncodingEnabled': {
-        this.stateManager.onTrackEncodingEnabled(deserializedMediaEvent.data);
+        const data = deserializedMediaEvent.data
+
+        if (this.getEndpointId() === data.endpointId) return;
+
+        this.remote.enableRemoteTrackEncoding(data.trackId, data.encoding)
         break;
       }
 
-      // // todo The event may not be implemented in the Fishjam
-      // case 'tracksPriority': {
-      //   const enabledTracks = (
-      //     deserializedMediaEvent.data.tracks as string[]
-      //   ).map((trackId) => this.stateManager.trackIdToTrack.get(trackId)!);
-      //
-      //   const disabledTracks = Array.from(
-      //     this.stateManager.trackIdToTrack.values(),
-      //   ).filter((track) => !enabledTracks.includes(track));
-      //
-      //   this.emit('tracksPriorityChanged', enabledTracks, disabledTracks);
-      //   break;
-      // }
-
       case 'encodingSwitched': {
-        this.stateManager.onEncodingSwitched(deserializedMediaEvent.data);
+        const data = deserializedMediaEvent.data
+
+        this.remote.setRemoteTrackEncoding(data.trackId, data.encoding, data.reason)
         break;
       }
       case 'custom':
@@ -251,12 +296,14 @@ export class WebRTCEndpoint<
         break;
 
       case 'vadNotification': {
-        this.stateManager.onVadNotification(deserializedMediaEvent.data);
+        this.remote.setRemoteTrackVadStatus(deserializedMediaEvent.data.trackId, deserializedMediaEvent.data.status)
         break;
       }
 
       case 'bandwidthEstimation': {
-        this.stateManager.onBandwidthEstimation(deserializedMediaEvent.data);
+        this.bandwidthEstimation = deserializedMediaEvent.data.estimation;
+
+        this.emit('bandwidthEstimationChanged', this.bandwidthEstimation);
         break;
       }
 
@@ -268,6 +315,53 @@ export class WebRTCEndpoint<
         break;
     }
   };
+
+  private onSdpAnswer = async (data: any) => {
+    this.remote.updateMLineIds(data.midToTrackId)
+    this.local.updateMLineIds(data.midToTrackId)
+
+    this.midToTrackId = new Map(Object.entries(data.midToTrackId));
+
+    Object.values(data.midToTrackId)
+      .map((trackId) => {
+        if (!trackId) throw new Error("TrackId is not defined")
+        if (typeof trackId !== "string") throw new Error("TrackId is not a string")
+
+        return trackId
+      })
+      .map((trackId) => this.local.getTrackByMidOrNull(trackId))
+      .filter((localTrack) => localTrack !== null)
+      .forEach((localTrack) => {
+        const trackContext = localTrack.trackContext
+
+        trackContext.negotiationStatus = 'done';
+
+        if (trackContext.pendingMetadataUpdate) {
+          const mediaEvent = generateMediaEvent('updateTrackMetadata', {
+            trackId: localTrack.id,
+            trackMetadata: trackContext.metadata,
+          });
+          this.sendMediaEvent(mediaEvent);
+        }
+
+        trackContext.pendingMetadataUpdate = false;
+      })
+
+    if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
+
+    // probably there is no need to reassign it on every onAnswer
+    this.connection.setOnTrackReady((event) => {
+      this.onTrackReady(event);
+    })
+
+    try {
+      await this.connection.setRemoteDescription(data);
+      await this.local.disableAllLocalTrackEncodings()
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
 
   /**
    * Adds track that will be sent to the RTC Engine.
@@ -458,7 +552,9 @@ export class WebRTCEndpoint<
    * @returns {Promise<boolean>} success
    */
   public setTrackBandwidth(trackId: string, bandwidth: BandwidthLimit): Promise<void> {
-    return this.stateManager.setLocalTrackBandwidth(trackId, bandwidth)
+    if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
+
+    return this.local.setTrackBandwidth(trackId, bandwidth)
   }
 
   /**
@@ -472,7 +568,9 @@ export class WebRTCEndpoint<
   public async setEncodingBandwidth(trackId: string, rid: string, bandwidth: BandwidthLimit): Promise<void> {
     if (!isEncoding(rid)) throw new Error(`Rid is invalid ${rid}`)
 
-    return await this.stateManager.setLocalEncodingBandwidth(trackId, rid, bandwidth)
+    if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
+
+    return await this.local.setEncodingBandwidth(trackId, rid, bandwidth)
   }
 
   /**
@@ -535,7 +633,7 @@ export class WebRTCEndpoint<
    * ```
    */
   public setTargetTrackEncoding(trackId: string, variant: Encoding) {
-    this.stateManager.setTargetRemoteTrackEncoding(trackId, variant)
+    this.remote.setTargetRemoteTrackEncoding(trackId, variant)
   }
 
   /**
@@ -550,8 +648,8 @@ export class WebRTCEndpoint<
    * webrtc.enableTrackEncoding(trackId, "l");
    * ```
    */
-  public enableTrackEncoding(trackId: string, encoding: Encoding) {
-    this.stateManager.enableLocalTrackEncoding(trackId, encoding)
+  public enableTrackEncoding = async (trackId: string, encoding: Encoding) => {
+    await this.local.enableLocalTrackEncoding(trackId, encoding)
   }
 
   /**
@@ -564,8 +662,8 @@ export class WebRTCEndpoint<
    * webrtc.disableTrackEncoding(trackId, "l");
    * ```
    */
-  public disableTrackEncoding(trackId: string, encoding: Encoding) {
-    this.stateManager.disableLocalTrackEncoding(trackId, encoding);
+  public disableTrackEncoding = async (trackId: string, encoding: Encoding) => {
+    await this.local.disableLocalTrackEncoding(trackId, encoding)
   }
 
   /**
@@ -576,7 +674,7 @@ export class WebRTCEndpoint<
    * event `endpointUpdated` will be emitted for other endpoint in the room.
    */
   public updateEndpointMetadata = (metadata: any): void => {
-    this.stateManager.updateLocalEndpointMetadata(metadata)
+    this.local.updateEndpointMetadata(metadata)
   };
 
   /**
@@ -588,7 +686,7 @@ export class WebRTCEndpoint<
    * event `trackUpdated` will be emitted for other endpoints in the room.
    */
   public updateTrackMetadata = (trackId: string, trackMetadata: any): void => {
-    this.stateManager.updateLocalTrackMetadata(trackId, trackMetadata)
+    this.local.updateLocalTrackMetadata(trackId, trackMetadata)
   };
 
   /**
@@ -611,7 +709,7 @@ export class WebRTCEndpoint<
   public cleanUp = () => {
     if (this.stateManager.connection) {
       this.clearConnectionCallbacks?.();
-      this.stateManager.connection.getConnection().close();
+      this.connection?.getConnection().close();
 
       this.commandsQueue.cleanUp();
 
@@ -619,7 +717,7 @@ export class WebRTCEndpoint<
       this.negotiationManager.ongoingRenegotiation = false;
     }
 
-    this.stateManager.connection = undefined;
+    this.connection = undefined;
   };
 
   private getTrackId(uuid: string): string {
@@ -633,26 +731,26 @@ export class WebRTCEndpoint<
   };
 
   private async createAndSendOffer() {
-    const connection = this.stateManager.connection;
+    const connection = this.connection;
     if (!connection) return;
 
     try {
       const offer = await connection.getConnection().createOffer();
 
-      if (!this.stateManager.connection) {
+      if (!this.connection) {
         console.warn('RTCPeerConnection stopped or restarted');
         return;
       }
       await connection.getConnection().setLocalDescription(offer);
 
-      if (!this.stateManager.connection) {
+      if (!this.connection) {
         console.warn('RTCPeerConnection stopped or restarted');
         return;
       }
 
-      const trackIdToTrackMetadata = this.stateManager.getLocal().getTrackIdToMetadata()
-      const trackIdToTrackBitrates = this.stateManager.getLocal().getTrackIdToTrackBitrates()
-      const midToTrackId = this.stateManager.getLocal().getMidToTrackId(this.stateManager.connection)
+      const trackIdToTrackMetadata = this.local.getTrackIdToMetadata()
+      const trackIdToTrackBitrates = this.local.getTrackIdToTrackBitrates()
+      const midToTrackId = this.local.getMidToTrackId(this.connection)
 
       const mediaEvent = generateCustomEvent({
         type: 'sdpOffer',
@@ -666,22 +764,22 @@ export class WebRTCEndpoint<
 
       this.sendMediaEvent(mediaEvent);
 
-      this.stateManager.getLocal().setLocalTrackStatusToOffered()
+      this.local.setLocalTrackStatusToOffered()
     } catch (error) {
       console.error(error);
     }
   }
 
   private onOfferData = async (offerData: MediaEvent) => {
-    const connection = this.stateManager.connection
+    const connection = this.connection
 
     if (connection) {
       connection.getConnection().restartIce();
     } else {
       const turnServers = offerData.data.integratedTurnServers;
-      setTurns(turnServers, this.stateManager.rtcConfig);
+      setTurns(turnServers, this.rtcConfig);
 
-      this.stateManager.setConnection(this.stateManager.rtcConfig)
+      this.setConnection(this.rtcConfig)
 
       const onIceCandidate = (event: RTCPeerConnectionIceEvent) =>
         this.onLocalCandidate(event);
@@ -692,7 +790,7 @@ export class WebRTCEndpoint<
       const onIceConnectionStateChange = (event: Event) =>
         this.onIceConnectionStateChange(event);
 
-      const connection = this.stateManager.connection
+      const connection = this.connection
       if (!connection) throw new Error(`There is no active RTCPeerConnection`)
 
       this.clearConnectionCallbacks = () => {
@@ -733,11 +831,11 @@ export class WebRTCEndpoint<
 
       this.commandsQueue.setupEventListeners(connection.getConnection());
 
-      Array.from(this.stateManager.getLocal().getTrackIdToTrack().values()).forEach(
+      Array.from(this.local.getTrackIdToTrack().values()).forEach(
         (trackContext) =>
           addTrackToConnection(
             trackContext,
-            this.stateManager.getDisabledTrackEncodingsMap(),
+            this.local.getDisabledLocalTrackEncodings(),
             connection.getConnection(),
           ),
       );
@@ -755,6 +853,12 @@ export class WebRTCEndpoint<
 
     await this.createAndSendOffer();
   };
+
+  private setConnection = (rtcConfig: RTCConfiguration) => {
+    this.connection = new Connection(rtcConfig);
+
+    this.local.updateConnection(this.connection)
+  }
 
   private onRemoteCandidate = async (candidate: RTCIceCandidate) => {
     try {

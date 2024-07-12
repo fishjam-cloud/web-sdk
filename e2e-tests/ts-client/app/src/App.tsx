@@ -287,11 +287,10 @@ export function App() {
         </div>
         <div id="connection-status">{connected ? "true" : "false"}</div>
         <button onClick={() => {
-          const tracks = webrtc.stateManager.getTracks()
-          const localEndpoint = tracks.getLocalEndpoint()
-          const remoteEndpoint = tracks.getRemoteEndpoints()
+          const local = webrtc.stateManager.getLocal()
+          const remote = webrtc.stateManager.getRemote()
 
-          console.log({ tracks, localEndpoint, remoteEndpoint })
+          console.log({ local, remote })
         }}>Console
         </button>
         <hr />

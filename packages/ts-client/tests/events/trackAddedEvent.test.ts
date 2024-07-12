@@ -149,7 +149,7 @@ it('tracksAdded -> handle offerData with one video track from server', () =>
     expect(addTransceiverCallback.mock.calls[0][0]).toBe('video');
 
     const transceivers =
-      webRTCEndpoint['stateManager']['connection']?.getTransceivers();
+      webRTCEndpoint['stateManager']['connection']?.getConnection().getTransceivers();
 
     expect(transceivers?.length).toBe(1);
     expect(transceivers?.[0].direction).toBe('recvonly');

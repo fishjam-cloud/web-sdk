@@ -141,18 +141,18 @@ export class WebRTCEndpoint<
    * }
    */
   public getRemoteTracks(): Record<string, TrackContext<EndpointMetadata, TrackMetadata>> {
-    return this.stateManager.getTracks().getRemoteTrackContexts()
+    return this.stateManager.getRemote().getRemoteTrackContexts()
   }
 
   /**
    * Returns a snapshot of currently received remote endpoints.
    */
   public getRemoteEndpoints(): Record<string, EndpointWithTrackContext<EndpointMetadata, TrackMetadata>> {
-    return this.stateManager.getTracks().getRemoteEndpoints()
+    return this.stateManager.getRemote().getRemoteEndpoints()
   }
 
   public getLocalEndpoint(): EndpointWithTrackContext<EndpointMetadata, TrackMetadata> {
-    return this.stateManager.getTracks().getLocalEndpoint();
+    return this.stateManager.getLocal().getEndpoint();
   }
 
   public getBandwidthEstimation(): bigint {
@@ -194,7 +194,7 @@ export class WebRTCEndpoint<
         break;
 
       case 'endpointRemoved':
-        if (deserializedMediaEvent.data.id === this.stateManager.getTracks().getLocalEndpoint().id) {
+        if (deserializedMediaEvent.data.id === this.stateManager.getLocal().getEndpoint().id) {
           this.cleanUp();
           this.emit('disconnected');
           return;
@@ -650,9 +650,9 @@ export class WebRTCEndpoint<
         return;
       }
 
-      const trackIdToTrackMetadata = this.stateManager.getTracks().getTrackIdToMetadata()
-      const trackIdToTrackBitrates = this.stateManager.getTracks().getTrackIdToTrackBitrates()
-      const midToTrackId = this.stateManager.getTracks().getMidToTrackId(this.stateManager.connection)
+      const trackIdToTrackMetadata = this.stateManager.getLocal().getTrackIdToMetadata()
+      const trackIdToTrackBitrates = this.stateManager.getLocal().getTrackIdToTrackBitrates()
+      const midToTrackId = this.stateManager.getLocal().getMidToTrackId(this.stateManager.connection)
 
       const mediaEvent = generateCustomEvent({
         type: 'sdpOffer',
@@ -666,7 +666,7 @@ export class WebRTCEndpoint<
 
       this.sendMediaEvent(mediaEvent);
 
-      this.stateManager.getTracks().setLocalTrackStatusToOffered()
+      this.stateManager.getLocal().setLocalTrackStatusToOffered()
     } catch (error) {
       console.error(error);
     }
@@ -733,7 +733,7 @@ export class WebRTCEndpoint<
 
       this.commandsQueue.setupEventListeners(connection.getConnection());
 
-      Array.from(this.stateManager.getTracks().getLocalTrackIdToTrack().values()).forEach(
+      Array.from(this.stateManager.getLocal().getTrackIdToTrack().values()).forEach(
         (trackContext) =>
           addTrackToConnection(
             trackContext,

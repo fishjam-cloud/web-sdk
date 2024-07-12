@@ -9,9 +9,10 @@ import type { EndpointWithTrackContext } from './internal';
 import { generateCustomEvent, generateMediaEvent } from './mediaEvent';
 import type { WebRTCEndpoint } from './webRTCEndpoint';
 import type { NegotiationManager } from './NegotiationManager';
-import type { TrackId } from "./tracks/Tracks";
-import { Tracks } from "./tracks/Tracks";
+import type { TrackId } from "./tracks/Remote";
+import { Remote } from "./tracks/Remote";
 import { Connection } from "./Connection";
+import { Local } from "./tracks/Local";
 
 // localEndpoint + EndpointWithTrackContext
 
@@ -27,10 +28,15 @@ import { Connection } from "./Connection";
 export class StateManager<EndpointMetadata, TrackMetadata> {
   public connection?: Connection;
 
-  private readonly tracks: Tracks<EndpointMetadata, TrackMetadata>;
+  private readonly remote: Remote<EndpointMetadata, TrackMetadata>;
+  private readonly local: Local<EndpointMetadata, TrackMetadata>;
 
-  public getTracks = (): Tracks<EndpointMetadata, TrackMetadata> => {
-    return this.tracks;
+  public getRemote = (): Remote<EndpointMetadata, TrackMetadata> => {
+    return this.remote;
+  }
+
+  public getLocal = (): Local<EndpointMetadata, TrackMetadata> => {
+    return this.local;
   }
 
   // mid + trackId from signaling Event
@@ -53,7 +59,8 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     this.webrtc = webrtc;
     this.negotiationManager = negotiationManager;
 
-    this.tracks = new Tracks<EndpointMetadata, TrackMetadata>(webrtc, endpointMetadataParser, trackMetadataParser)
+    this.remote = new Remote<EndpointMetadata, TrackMetadata>(webrtc, endpointMetadataParser, trackMetadataParser)
+    this.local = new Local<EndpointMetadata, TrackMetadata>(webrtc, endpointMetadataParser, trackMetadataParser)
   }
 
 
@@ -62,7 +69,8 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     if (!stream) throw new Error("Cannot find media stream")
 
     const mid = event.transceiver.mid!;
-    const remoteTrack = this.tracks.getRemoteTrackByMid(mid)
+
+    const remoteTrack = this.remote.getTrackByMid(mid)
 
     remoteTrack.setReady(stream, event.track)
 
@@ -72,20 +80,20 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   public onTracksAdded = (data: any) => {
     if (this.getEndpointId() === data.endpointId) return;
 
-    this.tracks.addRemoteTracks(data.endpointId, data.tracks, data.trackIdToMetadata)
+    this.remote.addTracks(data.endpointId, data.tracks, data.trackIdToMetadata)
   };
 
   public onTracksRemoved = (data: any) => {
     const endpointId = data.endpointId;
     if (this.getEndpointId() === endpointId) return;
 
-    this.tracks.removeRemoteTracks(data.trackIds as string[])
+    this.remote.removeTracks(data.trackIds as string[])
   };
 
   public onSdpAnswer = async (data: any) => {
-    this.tracks.updateMLineIds(data.midToTrackId)
+    this.remote.updateMLineIds(data.midToTrackId)
+    this.local.updateMLineIds(data.midToTrackId)
 
-    console.log({ midToTrackId: data.midToTrackId })
     this.midToTrackId = new Map(Object.entries(data.midToTrackId));
 
     Object.values(data.midToTrackId)
@@ -95,7 +103,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
 
         return trackId
       })
-      .map((trackId) => this.tracks.getLocalTrackByMidOrNull(trackId))
+      .map((trackId) => this.local.getTrackByMidOrNull(trackId))
       .filter((localTrack) => localTrack !== null)
       .forEach((localTrack) => {
         const trackContext = localTrack.trackContext
@@ -116,11 +124,13 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
     if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
 
     // probably there is no need to reassign it on every onAnswer
-    this.connection.setOnTrackReady((event) => this.onTrackReady(event))
+    this.connection.setOnTrackReady((event) => {
+      this.onTrackReady(event);
+    })
 
     try {
       await this.connection.setRemoteDescription(data);
-      await this.tracks.disableAllLocalTrackEncodings()
+      await this.local.disableAllLocalTrackEncodings()
     } catch (err) {
       console.error(err);
     }
@@ -131,45 +141,45 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   ) => {
     if (endpoint.id === this.getEndpointId()) return;
 
-    this.tracks.addRemoteEndpoint(endpoint)
+    this.remote.addRemoteEndpoint(endpoint)
   };
 
   public onEndpointUpdated = (data: any) => {
     if (this.getEndpointId() === data.id) return;
 
-    this.tracks.updateRemoteEndpoint(data)
+    this.remote.updateRemoteEndpoint(data)
   };
 
   public onEndpointRemoved = (data: any) => {
     if (this.getEndpointId() === data.id) return;
 
-    this.tracks.removeRemoteEndpoint(data.id)
+    this.remote.removeRemoteEndpoint(data.id)
   };
 
   public onTrackUpdated = (data: any) => {
     if (this.getEndpointId() === data.endpointId) return;
 
-    this.tracks.updateRemoteTrack(data)
+    this.remote.updateRemoteTrack(data)
   };
 
   public onTrackEncodingDisabled = (data: any) => {
     if (this.getEndpointId() === data.endpointId) return;
 
-    this.tracks.disableRemoteTrackEncoding(data.trackId, data.encoding)
+    this.remote.disableRemoteTrackEncoding(data.trackId, data.encoding)
   };
 
   public onTrackEncodingEnabled = (data: any) => {
     if (this.getEndpointId() === data.endpointId) return;
 
-    this.tracks.enableRemoteTrackEncoding(data.trackId, data.encoding)
+    this.remote.enableRemoteTrackEncoding(data.trackId, data.encoding)
   };
 
   public onEncodingSwitched = (data: any) => {
-    this.tracks.setRemoteTrackEncoding(data.trackId, data.encoding, data.reason)
+    this.remote.setRemoteTrackEncoding(data.trackId, data.encoding, data.reason)
   };
 
   public onVadNotification = (data: any) => {
-    this.tracks.setRemoteTrackVadStatus(data.trackId, data.status)
+    this.remote.setRemoteTrackVadStatus(data.trackId, data.status)
   };
 
   public onBandwidthEstimation = (data: any) => {
@@ -208,7 +218,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   ) => {
     this.negotiationManager.ongoingRenegotiation = true;
 
-    const trackManager = this.tracks.addLocalTrack(this.connection, trackId, track, stream, trackMetadata, simulcastConfig, maxBandwidth)
+    const trackManager = this.local.addTrack(this.connection, trackId, track, stream, trackMetadata, simulcastConfig, maxBandwidth)
 
     if (this.connection) {
       trackManager.addTrackToConnection();
@@ -224,7 +234,7 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
 
     if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
 
-    this.tracks.removeLocalTrack(trackId)
+    this.local.removeTrack(trackId)
   };
 
   public replaceTrackHandler = async (
@@ -234,17 +244,17 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   ): Promise<void> => {
     this.ongoingTrackReplacement = true;
     try {
-      await this.tracks.replaceLocalTrack(trackId, newTrack, newTrackMetadata)
+      await this.local.replaceTrack(trackId, newTrack, newTrackMetadata)
     } catch (e) {
       this.ongoingTrackReplacement = false;
     }
     this.ongoingTrackReplacement = false
   };
 
-  public getEndpointId = () => this.tracks.getLocalEndpoint().id;
+  public getEndpointId = () => this.local.getEndpoint().id;
 
   public setLocalEndpointMetadata = (metadata: EndpointMetadata) => {
-    this.tracks.setLocalEndpointMetadata(metadata)
+    this.local.setEndpointMetadata(metadata)
     const mediaEvent = generateMediaEvent('connect', {
       metadata: metadata,
     });
@@ -254,18 +264,18 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   public setLocalTrackBandwidth = (trackId: string, bandwidth: BandwidthLimit): Promise<void> => {
     if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
 
-    return this.tracks.setLocalTrackBandwidth(trackId, bandwidth)
+    return this.local.setTrackBandwidth(trackId, bandwidth)
   }
 
   public onConnect = (data: any) => {
-    this.tracks.setLocalEndpointId(data.id)
+    this.local.setLocalEndpointId(data.id)
 
     const endpoints = data.otherEndpoints as EndpointWithTrackContext<EndpointMetadata, TrackMetadata>[]
 
     // todo implement track mapping (+ validate metadata)
     // todo implement endpoint metadata mapping
     endpoints.forEach((endpoint) => {
-      this.tracks.addRemoteEndpoint(endpoint)
+      this.remote.addRemoteEndpoint(endpoint)
     })
 
     // this.webrtc.emit('connected', data.id, otherEndpoints);
@@ -286,40 +296,40 @@ export class StateManager<EndpointMetadata, TrackMetadata> {
   public setLocalEncodingBandwidth = async (trackId: TrackId, rid: Encoding, bandwidth: BandwidthLimit): Promise<void> => {
     if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
 
-    return await this.tracks.setLocalEncodingBandwidth(trackId, rid, bandwidth)
+    return await this.local.setEncodingBandwidth(trackId, rid, bandwidth)
   }
 
   public updateSenders = () => {
-    this.tracks.updateSenders()
+    this.local.updateSenders()
   }
 
   public updateLocalEndpointMetadata = (metadata: unknown) => {
-    this.tracks.updateLocalEndpointMetadata(metadata)
+    this.local.updateEndpointMetadata(metadata)
   }
 
   public updateLocalTrackMetadata = (trackId: TrackId, metadata: unknown) => {
-    this.tracks.updateLocalTrackMetadata(trackId, metadata)
+    this.local.updateLocalTrackMetadata(trackId, metadata)
   }
 
   public enableLocalTrackEncoding = async (trackId: TrackId, encoding: Encoding) => {
-    await this.tracks.enableLocalTrackEncoding(trackId, encoding)
+    await this.local.enableLocalTrackEncoding(trackId, encoding)
   }
 
   public disableLocalTrackEncoding = async (trackId: string, encoding: Encoding) => {
-    await this.tracks.disableLocalTrackEncoding(trackId, encoding)
+    await this.local.disableLocalTrackEncoding(trackId, encoding)
   };
 
   public setTargetRemoteTrackEncoding = (trackId: TrackId, variant: Encoding) => {
-    this.tracks.setTargetRemoteTrackEncoding(trackId, variant)
+    this.remote.setTargetRemoteTrackEncoding(trackId, variant)
   }
 
   public getDisabledTrackEncodingsMap = (): Map<string, Encoding[]> => {
-    return this.tracks.getDisabledLocalTrackEncodings()
+    return this.local.getDisabledLocalTrackEncodings()
   }
 
   public setConnection = (rtcConfig: RTCConfiguration) => {
     this.connection = new Connection(rtcConfig);
 
-    this.tracks.updateConnection(this.connection)
+    this.local.updateConnection(this.connection)
   }
 }

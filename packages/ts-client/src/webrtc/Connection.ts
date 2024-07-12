@@ -11,6 +11,36 @@ export class Connection {
     return this.connection;
   }
 
+  public setTransceiversToReadOnly = () => {
+    this.connection
+      .getTransceivers()
+      .forEach((transceiver) => (transceiver.direction = 'sendonly'));
+  };
+
+  public addTransceiversIfNeeded = (serverTracks: Map<string, number>,) => {
+    const recvTransceivers = this.connection
+      .getTransceivers()
+      .filter((elem) => elem.direction === 'recvonly');
+
+    ['audio', 'video']
+      .flatMap((type) =>
+        this.getNeededTransceiversTypes(type, recvTransceivers, serverTracks),
+      )
+      .forEach((kind) =>
+        this.connection.addTransceiver(kind, { direction: 'recvonly' }),
+      );
+  };
+
+  private getNeededTransceiversTypes = (type: string, recvTransceivers: RTCRtpTransceiver[], serverTracks: Map<string, number>,): string[] => {
+    const typeNumber = serverTracks.get(type) ?? 0;
+
+    const typeTransceiversNumber = recvTransceivers.filter(
+      (elem) => elem.receiver.track.kind === type,
+    ).length;
+
+    return Array(typeNumber - typeTransceiversNumber).fill(type);
+  };
+
   public addTransceiver = (track: MediaStreamTrack, transceiverConfig: RTCRtpTransceiverInit) => {
     this.connection.addTransceiver(track, transceiverConfig);
   }

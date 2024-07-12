@@ -14,10 +14,12 @@ import type { WebRTCEndpoint } from "../webRTCEndpoint";
 import { generateCustomEvent, generateMediaEvent } from "../mediaEvent";
 import type { Connection } from "../Connection";
 import type { Bitrates } from "../bitrate";
-import type { MidToTrackId } from "../transciever";
 
 export type TrackId = string
 export type EndpointId = string
+
+type Mid = string;
+export type MidToTrackId = Record<Mid, TrackId>;
 
 export class Local<EndpointMetadata, TrackMetadata> {
   private readonly localTracks: Record<TrackId, LocalTrack<EndpointMetadata, TrackMetadata>> = {}
@@ -351,6 +353,13 @@ export class Local<EndpointMetadata, TrackMetadata> {
     Object.values(this.localTracks)
       .forEach((localTrack) => {
         localTrack.trackContext.negotiationStatus = 'offered';
+      })
+  }
+
+  public addAllTracksToConnection = () => {
+    Object.values(this.localTracks)
+      .forEach((localTrack) => {
+        localTrack.addTrackToConnection()
       })
   }
 }

@@ -16,7 +16,6 @@ import type {
 } from './types';
 import { isEncoding } from './types';
 import type { EndpointWithTrackContext } from './internal';
-import { addTrackToConnection, addTransceiversIfNeeded, setTransceiversToReadOnly, } from './transciever';
 import { setTurns } from './turn';
 import { StateManager } from './StateManager';
 import { NegotiationManager } from './NegotiationManager';
@@ -707,7 +706,7 @@ export class WebRTCEndpoint<
    * Cleans up {@link WebRTCEndpoint} instance.
    */
   public cleanUp = () => {
-    if (this.stateManager.connection) {
+    if (this.connection) {
       this.clearConnectionCallbacks?.();
       this.connection?.getConnection().close();
 
@@ -721,7 +720,7 @@ export class WebRTCEndpoint<
   };
 
   private getTrackId(uuid: string): string {
-    return `${this.stateManager.getEndpointId()}:${uuid}`;
+    return `${this.getEndpointId()}:${uuid}`;
   }
 
   // todo change to private
@@ -831,16 +830,9 @@ export class WebRTCEndpoint<
 
       this.commandsQueue.setupEventListeners(connection.getConnection());
 
-      Array.from(this.local.getTrackIdToTrack().values()).forEach(
-        (trackContext) =>
-          addTrackToConnection(
-            trackContext,
-            this.local.getDisabledLocalTrackEncodings(),
-            connection.getConnection(),
-          ),
-      );
+      this.local.addAllTracksToConnection()
 
-      setTransceiversToReadOnly(connection.getConnection());
+      connection.setTransceiversToReadOnly()
     }
 
     this.stateManager.updateSenders()
@@ -849,7 +841,7 @@ export class WebRTCEndpoint<
       Object.entries(offerData.data.tracksTypes),
     );
 
-    addTransceiversIfNeeded(this.stateManager.connection?.getConnection(), tracks);
+    this.connection?.addTransceiversIfNeeded(tracks);
 
     await this.createAndSendOffer();
   };
@@ -863,12 +855,12 @@ export class WebRTCEndpoint<
   private onRemoteCandidate = async (candidate: RTCIceCandidate) => {
     try {
       const iceCandidate = new RTCIceCandidate(candidate);
-      if (!this.stateManager.connection) {
+      if (!this.connection) {
         throw new Error(
           'Received new remote candidate but RTCConnection is undefined',
         );
       }
-      await this.stateManager.connection.addIceCandidate(iceCandidate);
+      await this.connection.addIceCandidate(iceCandidate);
     } catch (error) {
       console.error(error);
     }

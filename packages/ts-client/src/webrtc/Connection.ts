@@ -1,11 +1,45 @@
 import type { MediaStreamTrackId } from "./types";
 
+export type TurnServer = {
+  transport: string;
+  password: string;
+  serverAddr: string;
+  serverPort: string;
+  username: string;
+};
+
+
 export class Connection {
   public readonly connection: RTCPeerConnection;
+  public rtcConfig: RTCConfiguration = { bundlePolicy: 'max-bundle', iceServers: [], iceTransportPolicy: 'relay' };
 
-  constructor(config: RTCConfiguration) {
-    this.connection = new RTCPeerConnection(config)
+  constructor(config: TurnServer[]) {
+    this.setTurns(config, this.rtcConfig)
+    this.connection = new RTCPeerConnection(this.rtcConfig)
   }
+
+  /**
+   * Configures TURN servers for WebRTC connections by adding them to the provided RTCConfiguration object.
+   */
+  private setTurns = (turnServers: TurnServer[], rtcConfig: RTCConfiguration): void => {
+    turnServers
+      .map((turnServer: TurnServer) => {
+        const transport =
+          turnServer.transport === 'tls' ? 'tcp' : turnServer.transport;
+        const uri = turnServer.transport === 'tls' ? 'turns' : 'turn';
+        const address = turnServer.serverAddr;
+        const port = turnServer.serverPort;
+
+        return {
+          credential: turnServer.password,
+          urls: uri.concat(':', address, ':', port, '?transport=', transport),
+          username: turnServer.username,
+        } satisfies RTCIceServer;
+      })
+      .forEach((rtcIceServer) => {
+        rtcConfig.iceServers!.push(rtcIceServer);
+      });
+  };
 
   public getConnection = (): RTCPeerConnection => {
     return this.connection;

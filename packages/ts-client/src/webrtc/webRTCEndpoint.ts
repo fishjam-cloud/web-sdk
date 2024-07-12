@@ -16,13 +16,12 @@ import type {
 } from './types';
 import { isEncoding } from './types';
 import type { EndpointWithTrackContext } from './internal';
-import { setTurns } from './turn';
 import { StateManager } from './StateManager';
 import { NegotiationManager } from './NegotiationManager';
 import { CommandsQueue } from './CommandsQueue';
 import { Remote } from "./tracks/Remote";
 import { Local } from "./tracks/Local";
-import { Connection } from "./Connection";
+import { Connection, TurnServer } from "./Connection";
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -43,7 +42,6 @@ export class WebRTCEndpoint<
   private readonly remote: Remote<EndpointMetadata, TrackMetadata>;
   private readonly local: Local<EndpointMetadata, TrackMetadata>;
   private midToTrackId: Map<string, string> = new Map();
-  public rtcConfig: RTCConfiguration = { bundlePolicy: 'max-bundle', iceServers: [], iceTransportPolicy: 'relay' };
 
   public bandwidthEstimation: bigint = BigInt(0);
 
@@ -775,10 +773,7 @@ export class WebRTCEndpoint<
     if (connection) {
       connection.getConnection().restartIce();
     } else {
-      const turnServers = offerData.data.integratedTurnServers;
-      setTurns(turnServers, this.rtcConfig);
-
-      this.setConnection(this.rtcConfig)
+      this.setConnection(offerData.data.integratedTurnServers)
 
       const onIceCandidate = (event: RTCPeerConnectionIceEvent) =>
         this.onLocalCandidate(event);
@@ -846,8 +841,8 @@ export class WebRTCEndpoint<
     await this.createAndSendOffer();
   };
 
-  private setConnection = (rtcConfig: RTCConfiguration) => {
-    this.connection = new Connection(rtcConfig);
+  private setConnection = (turnServers: TurnServer[]) => {
+    this.connection = new Connection(turnServers);
 
     this.local.updateConnection(this.connection)
   }

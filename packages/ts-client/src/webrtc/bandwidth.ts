@@ -1,7 +1,7 @@
 import type {
   SimulcastBandwidthLimit,
   TrackBandwidthLimit,
-  TrackEncoding,
+  Encoding,
 } from './types';
 
 export const applyBandwidthLimitation = (
@@ -18,7 +18,7 @@ export const applyBandwidthLimitation = (
       .forEach((encoding) => {
         const limit =
           (maxBandwidth as SimulcastBandwidthLimit).get(
-            encoding.rid! as TrackEncoding,
+            encoding.rid! as Encoding,
           ) || 0;
 
         if (limit > 0) {
@@ -49,7 +49,7 @@ const splitBandwidth = (
   // x + (k0/k1)^2 * x + (k0/k2)^2 * x + ... + (k0/kn)^2 * x = bandwidth
   // where x is the bitrate for the first encoding, kn are scaleResolutionDownBy factors
   // square is dictated by the fact that k0/kn is a scale factor, but we are interested in the total number of pixels in the image
-  const firstScaleDownBy = encodings![0].scaleResolutionDownBy || 1;
+  const firstScaleDownBy = encodings![0]!.scaleResolutionDownBy || 1;
   const bitrate_parts = encodings.reduce(
     (acc, value) =>
       acc + (firstScaleDownBy / (value.scaleResolutionDownBy || 1)) ** 2,

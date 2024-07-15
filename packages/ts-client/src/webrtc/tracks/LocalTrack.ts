@@ -255,8 +255,10 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
   }
 
   public updateSender = () => {
+    console.log({ name: "Update sender invoked", trackId: this.id })
     if (this.mediaStreamTrackId && this.connection) {
       this.rtcRtpSender = this.connection.findSender(this.mediaStreamTrackId)
+      console.log({ trackId: this.id, sender: this.rtcRtpSender })
     }
   }
 

@@ -115,6 +115,10 @@ export class WebRTCEndpoint<
           this.remote.addRemoteEndpoint(endpoint)
         })
 
+        const remoteEndpoints = Object.values(this.remote.getRemoteEndpoints())
+
+        this.emit("connected", this.local.getEndpoint().id, remoteEndpoints)
+
         break;
       }
       default:
@@ -734,9 +738,11 @@ export class WebRTCEndpoint<
         return;
       }
 
+      // ???
+      this.localTrackManager.updateSenders()
+
       const trackIdToTrackMetadata = this.local.getTrackIdToMetadata()
       const trackIdToTrackBitrates = this.local.getTrackIdToTrackBitrates()
-      // todo maybe this.local.updateConnection()
       const midToTrackId = this.local.getMidToTrackId()
 
       const mediaEvent = generateCustomEvent({
@@ -834,6 +840,7 @@ export class WebRTCEndpoint<
   private setConnection = (turnServers: TurnServer[]) => {
     this.connection = new Connection(turnServers);
 
+    this.localTrackManager.updateConnection(this.connection)
     this.local.updateConnection(this.connection)
   }
 

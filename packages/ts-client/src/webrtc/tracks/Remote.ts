@@ -89,7 +89,7 @@ export class Remote<EndpointMetadata, TrackMetadata> {
     this.webrtc.emit('trackRemoved', remoteTrack.trackContext);
   }
 
-  public addRemoteEndpoint = (endpoint: any) => {
+  public addRemoteEndpoint = (endpoint: any, sendNotification: boolean = true) => {
     const newEndpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> = {
       id: endpoint.id,
       type: endpoint.type,
@@ -105,7 +105,9 @@ export class Remote<EndpointMetadata, TrackMetadata> {
     this.addEndpoint(newEndpoint);
     this.addTracks(newEndpoint.id, endpoint.tracks, endpoint.trackIdToMetadata)
 
-    this.webrtc.emit('endpointAdded', endpoint);
+    if (sendNotification) {
+      this.webrtc.emit('endpointAdded', endpoint);
+    }
   }
 
   private addEndpoint = (

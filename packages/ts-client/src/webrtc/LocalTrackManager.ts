@@ -4,8 +4,8 @@ import type {
 } from './types';
 import { generateCustomEvent } from './mediaEvent';
 import type { WebRTCEndpoint } from './webRTCEndpoint';
-import { Connection } from "./Connection";
-import { Local } from "./tracks/Local";
+import type { Connection } from "./Connection";
+import type { Local } from "./tracks/Local";
 
 export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
   public connection?: Connection;
@@ -103,6 +103,10 @@ export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
   };
 
   public getEndpointId = () => this.local.getEndpoint().id;
+
+  public updateConnection = (connection: Connection) => {
+    this.connection = connection
+  }
 
   public updateSenders = () => {
     this.local.updateSenders()

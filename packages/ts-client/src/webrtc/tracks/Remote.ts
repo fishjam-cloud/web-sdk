@@ -100,7 +100,7 @@ export class Remote<EndpointMetadata, TrackMetadata> {
     }
 
     // mutation in place
-    this.updateEndpointMetadata(endpoint, endpoint.metadata)
+    this.updateEndpointMetadata(newEndpoint, endpoint.metadata)
 
     this.addEndpoint(newEndpoint);
     this.addTracks(newEndpoint.id, endpoint.tracks, endpoint.trackIdToMetadata)

@@ -1,5 +1,4 @@
 import type {
-  AudioOrVideoType,
   CurrentDevices,
   DeviceError,
   DevicesStatus,
@@ -149,7 +148,7 @@ export const handleNotAllowedError = async (constraints: MediaStreamConstraints)
   return await getMedia({ video: false, audio: false }, { video: PERMISSION_DENIED, audio: PERMISSION_DENIED });
 };
 
-export const getError = (result: GetMedia, type: AudioOrVideoType): DeviceError | null => {
+export const getError = (result: GetMedia, type: "audio" | "video"): DeviceError | null => {
   if (result.type === "OK") {
     return result.previousErrors[type] || null;
   }

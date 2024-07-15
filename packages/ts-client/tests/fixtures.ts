@@ -173,7 +173,7 @@ export const createConnectedEventWithOneEndpointWithOneTrack = (
   const connectedEvent = createConnectedEvent(localEndpointId);
   connectedEvent.data.otherEndpoints = [createEmptyEndpoint(remoteEndpointId)];
 
-  const endpoint = connectedEvent.data.otherEndpoints[0];
+  const endpoint = connectedEvent.data.otherEndpoints[0]!;
 
   endpoint.tracks[trackId] = createSimulcastTrack();
   endpoint.trackIdToMetadata[trackId] = {};

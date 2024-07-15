@@ -285,16 +285,6 @@ export function App() {
           </button>
         </div>
         <div id="connection-status">{connected ? "true" : "false"}</div>
-        <button
-          onClick={() => {
-            const local = webrtc["local"];
-            const remote = webrtc["remote"];
-
-            console.log({ local, remote });
-          }}
-        >
-          Console
-        </button>
         <hr />
         <MockComponent webrtc={webrtc} />
         <div style={{ width: "100%" }}>

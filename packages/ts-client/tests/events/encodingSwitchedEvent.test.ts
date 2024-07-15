@@ -16,7 +16,7 @@ it('Change existing track encoding', () => {
   setupRoom(webRTCEndpoint, endpointId, trackId);
 
   const initialTrackEncoding =
-    webRTCEndpoint.getRemoteTracks()[trackId].encoding;
+    webRTCEndpoint.getRemoteTracks()[trackId]!.encoding;
   expect(initialTrackEncoding).toBe(undefined);
 
   // When
@@ -28,7 +28,7 @@ it('Change existing track encoding', () => {
   webRTCEndpoint.receiveMediaEvent(JSON.stringify(encodingUpdatedEvent));
 
   // Then
-  const finalTrackEncoding = webRTCEndpoint.getRemoteTracks()[trackId].encoding;
+  const finalTrackEncoding = webRTCEndpoint.getRemoteTracks()[trackId]!.encoding;
   expect(finalTrackEncoding).toBe(encodingUpdatedEvent.data.data.encoding);
 });
 
@@ -39,7 +39,7 @@ it('Changing track encoding when endpoint exist but track does not exist', () =>
   setupRoom(webRTCEndpoint, endpointId, trackId);
 
   const initialTrackEncoding =
-    webRTCEndpoint.getRemoteTracks()[trackId].encoding;
+    webRTCEndpoint.getRemoteTracks()[trackId]!.encoding;
   expect(initialTrackEncoding).toBe(undefined);
 
   // When
@@ -63,7 +63,7 @@ it('Changing track encoding when endpoint does not exist but track exist in othe
   setupRoom(webRTCEndpoint, endpointId, trackId);
 
   const initialTrackEncoding =
-    webRTCEndpoint.getRemoteTracks()[trackId].encoding;
+    webRTCEndpoint.getRemoteTracks()[trackId]!.encoding;
   expect(initialTrackEncoding).toBe(undefined);
 
   // When
@@ -75,7 +75,7 @@ it('Changing track encoding when endpoint does not exist but track exist in othe
   webRTCEndpoint.receiveMediaEvent(JSON.stringify(encodingUpdatedEvent));
 
   // Then
-  const finalTrackEncoding = webRTCEndpoint.getRemoteTracks()[trackId].encoding;
+  const finalTrackEncoding = webRTCEndpoint.getRemoteTracks()[trackId]!.encoding;
   expect(finalTrackEncoding).toBe(encodingUpdatedEvent.data.data.encoding);
 });
 
@@ -87,7 +87,7 @@ it('Change existing track encoding produces event', () =>
     setupRoom(webRTCEndpoint, endpointId, trackId);
 
     const initialTrackEncoding =
-      webRTCEndpoint.getRemoteTracks()[trackId].encoding;
+      webRTCEndpoint.getRemoteTracks()[trackId]!.encoding;
     expect(initialTrackEncoding).toBe(undefined);
 
     const encodingUpdatedEvent = createEncodingSwitchedEvent(
@@ -98,7 +98,7 @@ it('Change existing track encoding produces event', () =>
 
     webRTCEndpoint
       .getRemoteTracks()
-      [trackId].on('encodingChanged', (context) => {
+      [trackId]!.on('encodingChanged', (context) => {
         // Then
         expect(context.encoding).toBe(encodingUpdatedEvent.data.data.encoding);
         done('');

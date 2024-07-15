@@ -12,8 +12,7 @@ import { TrackContextImpl } from '../internal';
 import type { WebRTCEndpoint } from '../webRTCEndpoint';
 import { isVadStatus } from '../voiceActivityDetection';
 import { generateCustomEvent } from '../mediaEvent';
-import type { EndpointId, TrackId } from "./TrackCommon";
-
+import type { EndpointId, TrackId } from './TrackCommon';
 
 type SDPTrack = {
   metadata: null;

@@ -4,7 +4,6 @@ import type { WebRTCEndpoint } from '../webRTCEndpoint';
 import type { Connection } from '../Connection';
 import type { Local } from './Local';
 
-
 export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
   public connection?: Connection;
 

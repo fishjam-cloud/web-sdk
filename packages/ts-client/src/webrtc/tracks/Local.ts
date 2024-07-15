@@ -14,8 +14,7 @@ import type { WebRTCEndpoint } from '../webRTCEndpoint';
 import { generateCustomEvent, generateMediaEvent } from '../mediaEvent';
 import type { Connection } from '../Connection';
 import type { Bitrates } from '../bitrate';
-import type { EndpointId, TrackId } from "./TrackCommon";
-
+import type { EndpointId, TrackId } from './TrackCommon';
 
 type Mid = string;
 export type MidToTrackId = Record<Mid, TrackId>;

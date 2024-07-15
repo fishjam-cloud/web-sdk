@@ -3,7 +3,6 @@ import type { LocalTrackId, MLineId, Encoding } from '../types';
 import type { TrackContextImpl } from '../internal';
 import { isTrackKind } from '../internal';
 
-
 export class RemoteTrack<EndpointMetadata, TrackMetadata>
   implements TrackCommon
 {

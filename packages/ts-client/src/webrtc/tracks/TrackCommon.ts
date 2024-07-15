@@ -1,6 +1,5 @@
 import type { MLineId, Encoding } from '../types';
 
-
 export type TrackId = string;
 export type EndpointId = string;
 

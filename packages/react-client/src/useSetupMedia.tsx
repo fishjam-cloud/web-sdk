@@ -27,13 +27,6 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
     event.trackType === expectedTrackType &&
     stream;
 
-  const isBroadcastedScreenShareTrackStopped = (
-    expectedMediaDeviceType: MediaDeviceType,
-    status: PeerStatus,
-    event: Parameters<ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"]>[0],
-    stream: MediaStream | undefined | null,
-  ) => status === "joined" && event.mediaDeviceType === expectedMediaDeviceType && stream;
-
   return (config: UseSetupMediaConfig<TrackMetadata>): UseSetupMediaResult => {
     const { state } = useFishjamContext();
     const configRef = useRef(config);
@@ -200,7 +193,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
             pending = true;
 
             await audioTrackManager
-              .startStreaming(config.defaultTrackMetadata, config.defaultMaxBandwidth)
+              .startStreaming(config.defaultTrackMetadata, undefined, config.defaultMaxBandwidth)
               .finally(() => {
                 pending = false;
               });
@@ -280,7 +273,11 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
         const microphone = client.devices.microphone;
 
         if (microphone.stream && config.broadcastOnConnect) {
-          await client.audioTrackManager.startStreaming(config.defaultTrackMetadata, config.defaultMaxBandwidth);
+          await client.audioTrackManager.startStreaming(
+            config.defaultTrackMetadata,
+            undefined,
+            config.defaultMaxBandwidth,
+          );
         }
       };
 
@@ -362,7 +359,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
             videoTrackConstraints: configRef.current?.camera?.trackConstraints,
           }),
       }),
-      [state.devices],
+      [state.client],
     );
   };
 };

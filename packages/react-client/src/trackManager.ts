@@ -1,6 +1,6 @@
-import { FishjamClient, TrackContext } from "@fishjam-dev/ts-client";
-import { GenericMediaManager, GenericTrackManager } from "./types";
-import { Track } from "./state.types";
+import type { FishjamClient, SimulcastConfig, TrackBandwidthLimit, TrackContext } from "@fishjam-dev/ts-client";
+import type { GenericMediaManager, GenericTrackManager } from "./types";
+import type { Track } from "./state.types";
 
 export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackManager<TrackMetadata> {
   private mediaManager: GenericMediaManager;
@@ -55,7 +55,11 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackMa
     this?.mediaManager?.stop();
   };
 
-  public startStreaming = async (trackMetadata?: TrackMetadata, simulcastConfig?: any, maxBandwidth?: any) => {
+  public startStreaming = async (
+    trackMetadata?: TrackMetadata,
+    simulcastConfig?: SimulcastConfig,
+    maxBandwidth?: TrackBandwidthLimit,
+  ) => {
     if (this.currentTrackId) throw Error("Track already added");
 
     const media = this.mediaManager.getMedia();

@@ -1,5 +1,5 @@
 import { prepareConstraints } from "./constraints";
-import { DeviceError, GetMedia } from "./types";
+import type { GetMedia } from "./types";
 import {
   getMedia,
   handleNotFoundError,

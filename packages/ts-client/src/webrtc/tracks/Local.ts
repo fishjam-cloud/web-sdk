@@ -14,9 +14,8 @@ import type { WebRTCEndpoint } from '../webRTCEndpoint';
 import { generateCustomEvent, generateMediaEvent } from '../mediaEvent';
 import type { Connection } from '../Connection';
 import type { Bitrates } from '../bitrate';
+import type { EndpointId, TrackId } from "./TrackCommon";
 
-export type TrackId = string;
-export type EndpointId = string;
 
 type Mid = string;
 export type MidToTrackId = Record<Mid, TrackId>;
@@ -92,13 +91,13 @@ export class Local<EndpointMetadata, TrackMetadata> {
   };
 
   public disableAllLocalTrackEncodings = async () => {
-    // I'm afraid that we are disabling already disabled encodings
-    Object.entries(this.localTracks).forEach(([trackId, trackManager]) => {
-      // todo async in forEach probably does not work
-      trackManager.disabledEncodings.forEach(async (encoding) => {
+    // todo I'm afraid that we are disabling already disabled encodings
+    //   I think this part od code is responsible of
+    for (const [trackId, trackManager] of Object.entries(this.localTracks)) {
+      for (const encoding of trackManager.getDisabledEncodings()) {
         await this.disableLocalTrackEncoding(trackId, encoding);
-      });
-    });
+      }
+    }
   };
 
   public getTrackByMidOrNull = (

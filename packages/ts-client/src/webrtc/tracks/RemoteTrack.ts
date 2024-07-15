@@ -1,8 +1,8 @@
-import type { TrackCommon, TrackEncodings } from './TrackCommon';
+import type { TrackCommon, TrackEncodings, TrackId } from './TrackCommon';
 import type { LocalTrackId, MLineId, Encoding } from '../types';
 import type { TrackContextImpl } from '../internal';
 import { isTrackKind } from '../internal';
-import type { TrackId } from './Remote';
+
 
 export class RemoteTrack<EndpointMetadata, TrackMetadata>
   implements TrackCommon

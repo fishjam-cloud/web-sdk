@@ -1,5 +1,5 @@
 import type { Deferred } from './deferred';
-import type { LocalTrackManager } from './LocalTrackManager';
+import type { LocalTrackManager } from './tracks/LocalTrackManager';
 import type { Connection } from './Connection';
 
 export type Command = {

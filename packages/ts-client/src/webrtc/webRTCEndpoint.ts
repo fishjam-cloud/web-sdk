@@ -21,7 +21,7 @@ import type {
 } from './types';
 import { isEncoding } from './types';
 import type { EndpointWithTrackContext } from './internal';
-import { LocalTrackManager } from './LocalTrackManager';
+import { LocalTrackManager } from './tracks/LocalTrackManager';
 import { CommandsQueue } from './CommandsQueue';
 import { Remote } from './tracks/Remote';
 import { Local } from './tracks/Local';

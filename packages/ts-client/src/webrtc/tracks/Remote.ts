@@ -12,9 +12,8 @@ import { TrackContextImpl } from '../internal';
 import type { WebRTCEndpoint } from '../webRTCEndpoint';
 import { isVadStatus } from '../voiceActivityDetection';
 import { generateCustomEvent } from '../mediaEvent';
+import type { EndpointId, TrackId } from "./TrackCommon";
 
-export type TrackId = string;
-export type EndpointId = string;
 
 type SDPTrack = {
   metadata: null;
@@ -143,11 +142,6 @@ export class Remote<EndpointMetadata, TrackMetadata> {
   private addEndpoint = (
     endpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata>,
   ): void => {
-    // #TODO remove this line after fixing deserialization
-    // if (Object.prototype.hasOwnProperty.call(endpoint, 'trackIdToMetadata'))
-    //   endpoint.tracks = new Map(Object.entries(endpoint.tracks));
-    // else endpoint.tracks = new Map();
-
     this.remoteEndpoints[endpoint.id] = endpoint;
   };
 

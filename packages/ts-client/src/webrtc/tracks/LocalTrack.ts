@@ -1,68 +1,34 @@
 import type { TrackContextImpl } from '../internal';
 import type {
   BandwidthLimit,
+  Encoding,
   LocalTrackId,
   MediaStreamTrackId,
   MetadataParser,
   MLineId,
-  Encoding,
+  SimulcastBandwidthLimit,
+  TrackBandwidthLimit,
   TrackKind,
 } from '../types';
-import { applyBandwidthLimitation } from '../bandwidth';
-import type { TrackCommon, TrackEncodings } from './TrackCommon';
+import type { TrackCommon, TrackEncodings, TrackId } from './TrackCommon';
 import { generateCustomEvent, generateMediaEvent } from '../mediaEvent';
 import type { WebRTCEndpoint } from '../webRTCEndpoint';
 import type { Bitrate } from '../bitrate';
-import {
-  defaultBitrates,
-  defaultSimulcastBitrates,
-  UNLIMITED_BANDWIDTH,
-} from '../bitrate';
+import { defaultBitrates, defaultSimulcastBitrates, UNLIMITED_BANDWIDTH, } from '../bitrate';
 import type { Connection } from '../Connection';
 
-export const simulcastTransceiverConfig: RTCRtpTransceiverInit = {
-  direction: 'sendonly',
-  // keep this array from low resolution to high resolution
-  // in other case lower resolution encoding can get
-  // higher max_bitrate
-  sendEncodings: [
-    {
-      rid: 'l',
-      active: false,
-      // maxBitrate: 4_000_000,
-      scaleResolutionDownBy: 4.0,
-      //   scalabilityMode: "L1T" + TEMPORAL_LAYERS_COUNT,
-    },
-    {
-      rid: 'm',
-      active: false,
-      scaleResolutionDownBy: 2.0,
-    },
-    {
-      rid: 'h',
-      active: false,
-      // maxBitrate: 4_000_000,
-      // scalabilityMode: "L1T" + TEMPORAL_LAYERS_COUNT,
-    },
-  ],
-};
-
 export class LocalTrack<EndpointMetadata, TrackMetadata>
-  implements TrackCommon
-{
-  // its not local track id
-  public readonly id: LocalTrackId;
+  implements TrackCommon {
+  public readonly id: TrackId;
   public mediaStreamTrackId: MediaStreamTrackId | null = null;
   public mLineId: MLineId | null = null;
   public readonly trackContext: TrackContextImpl<
     EndpointMetadata,
     TrackMetadata
   >;
-  private rtcRtpSender: RTCRtpSender | null = null;
-  // todo change to { h: boolean, m: boolean, l: boolean }
-  // for compatibility reasons
-  public disabledEncodings: Encoding[] = [];
+  private sender: RTCRtpSender | null = null;
   public readonly encodings: TrackEncodings;
+
   private readonly metadataParser: MetadataParser<TrackMetadata>;
 
   public connection: Connection | undefined;
@@ -76,6 +42,8 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
     this.connection = connection;
     this.id = id;
     this.trackContext = trackContext;
+
+    // todo maybe we could remove this object and use sender.getParameters().encodings.encodingParameter.active instead
     this.encodings = { h: true, m: true, l: true };
     if (trackContext.track?.id) {
       this.mediaStreamTrackId = trackContext.track?.id;
@@ -84,18 +52,11 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
   }
 
   public disableTrackEncoding = async (encoding: Encoding) => {
-    // maybe we could remove this object and use sender.getParameters().encodings.encodingParameter.active instead
     this.encodings[encoding] = false;
-    if (!this.disabledEncodings.find((e) => e === encoding)) {
-      this.disabledEncodings.push(encoding);
-    }
 
-    // const sender = findSenderByTrack(this.connection, track);
-    const sender = this.rtcRtpSender;
+    if (!this.sender) throw new Error(`RTCRtpSender for track ${this.id} not found`);
 
-    if (!sender) throw new Error(`RTCRtpSender for track ${this.id} not found`);
-
-    const params = sender.getParameters();
+    const params = this.sender.getParameters();
     const encodings = params.encodings;
 
     const encodingParameter = encodings.find((en) => en.rid == encoding);
@@ -107,7 +68,7 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
 
     encodingParameter.active = false;
 
-    await sender.setParameters(params);
+    await this.sender.setParameters(params);
   };
 
   public addTrackToConnection = () => {
@@ -131,12 +92,10 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
 
     const videoTransceiver = this.createVideoTransceiverConfig();
 
-    if (this.trackContext.maxBandwidth && videoTransceiver.sendEncodings)
-      // todo remove mutation
-      applyBandwidthLimitation(
-        videoTransceiver.sendEncodings,
-        this.trackContext.maxBandwidth,
-      );
+    if (this.trackContext.maxBandwidth && videoTransceiver.sendEncodings) {
+      // warning: this function mutates `videoTransceiver`
+      this.applyBandwidthLimitation(videoTransceiver.sendEncodings, this.trackContext.maxBandwidth)
+    }
 
     return videoTransceiver;
   };
@@ -154,7 +113,33 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
       throw new Error(`Simulcast config for track ${this.id} not found.`);
 
     if (this.trackContext.simulcastConfig.enabled) {
-      const transceiverConfig = { ...simulcastTransceiverConfig };
+      const transceiverConfig: RTCRtpTransceiverInit = {
+        direction: 'sendonly',
+        // keep this array from low resolution to high resolution
+        // in other case lower resolution encoding can get
+        // higher max_bitrate
+        sendEncodings: [
+          {
+            rid: 'l',
+            active: false,
+            // maxBitrate: 4_000_000,
+            scaleResolutionDownBy: 4.0,
+            //   scalabilityMode: "L1T" + TEMPORAL_LAYERS_COUNT,
+          },
+          {
+            rid: 'm',
+            active: false,
+            scaleResolutionDownBy: 2.0,
+          },
+          {
+            rid: 'h',
+            active: false,
+            // maxBitrate: 4_000_000,
+            // scalabilityMode: "L1T" + TEMPORAL_LAYERS_COUNT,
+          },
+        ],
+      };
+
       const activeEncodings = this.trackContext.simulcastConfig.activeEncodings;
 
       transceiverConfig.sendEncodings?.forEach((encoding) => {
@@ -165,9 +150,6 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
           this.encodings[rid] = true;
         } else {
           this.encodings[rid] = false;
-          if (!this.disabledEncodings.find((e) => e === rid)) {
-            this.disabledEncodings.push(rid);
-          }
         }
       });
 
@@ -186,29 +168,23 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
   };
 
   public removeFromConnection = () => {
-    // const sender = findSender(this.connection, trackContext.track!.id);
-
-    const sender = this.rtcRtpSender;
-
-    if (!sender) throw new Error(`RTCRtpSender for track ${this.id} not found`);
+    if (!this.sender) throw new Error(`RTCRtpSender for track ${this.id} not found`);
     if (!this.connection)
       throw new Error(`There is no active RTCPeerConnection`);
 
-    this.connection.removeTrack(sender);
+    this.connection.removeTrack(this.sender);
   };
 
   // todo extract replace metadata
-  // todo remove webrtc dependency
   public replaceTrack = async (
     newTrack: MediaStreamTrack | null,
     newTrackMetadata: TrackMetadata | undefined,
     webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
-  ) => {
+  ): Promise<void> => {
     const trackId = this.id;
-    const sender = this.rtcRtpSender;
     const stream = this.trackContext.stream;
 
-    if (!sender) throw Error('There is no RTCRtpSender for this track id!');
+    if (!this.sender) throw Error('There is no RTCRtpSender for this track id!');
 
     stream?.getTracks().forEach((track) => {
       stream?.removeTrack(track);
@@ -233,7 +209,7 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
     this.mediaStreamTrackId = newTrack?.id ?? null;
 
     try {
-      await sender.replaceTrack(newTrack);
+      await this.sender.replaceTrack(newTrack);
       this.trackContext.track = newTrack;
 
       if (newTrackMetadata) {
@@ -245,28 +221,26 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
   };
 
   public setTrackBandwidth = (bandwidth: BandwidthLimit): Promise<void> => {
-    const sender = this.rtcRtpSender;
-    if (!sender) throw new Error(`RTCRtpSender for track ${this.id} not found`);
+    if (!this.sender) throw new Error(`RTCRtpSender for track ${this.id} not found`);
 
-    const parameters = sender.getParameters();
+    const parameters = this.sender.getParameters();
 
     if (parameters.encodings.length === 0) {
       parameters.encodings = [{}];
     } else {
-      applyBandwidthLimitation(parameters.encodings, bandwidth);
+      this.applyBandwidthLimitation(parameters.encodings, bandwidth);
     }
 
-    return sender.setParameters(parameters);
+    return this.sender.setParameters(parameters);
   };
 
   public setEncodingBandwidth(
     rid: Encoding,
     bandwidth: BandwidthLimit,
   ): Promise<void> {
-    const sender = this.rtcRtpSender;
-    if (!sender) throw new Error(`RTCRtpSender for track ${this.id} not found`);
+    if (!this.sender) throw new Error(`RTCRtpSender for track ${this.id} not found`);
 
-    const parameters = sender.getParameters();
+    const parameters = this.sender.getParameters();
     const encoding = parameters.encodings.find(
       (encoding) => encoding.rid === rid,
     );
@@ -279,14 +253,12 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
       encoding.maxBitrate = bandwidth * 1024;
     }
 
-    return sender.setParameters(parameters);
+    return this.sender.setParameters(parameters);
   }
 
   public updateSender = () => {
-    console.log({ name: 'Update sender invoked', trackId: this.id });
     if (this.mediaStreamTrackId && this.connection) {
-      this.rtcRtpSender = this.connection.findSender(this.mediaStreamTrackId);
-      console.log({ trackId: this.id, sender: this.rtcRtpSender });
+      this.sender = this.connection.findSender(this.mediaStreamTrackId);
     }
   };
 
@@ -305,10 +277,9 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
   };
 
   public enableTrackEncoding = (encoding: Encoding) => {
-    const sender = this.rtcRtpSender;
-    if (!sender) throw new Error(`RTCRtpSender for track ${this.id} not found`);
+    if (!this.sender) throw new Error(`RTCRtpSender for track ${this.id} not found`);
 
-    const params = sender.getParameters();
+    const params = this.sender.getParameters();
     const encodingParameters = params.encodings.find(
       (en) => en.rid == encoding,
     );
@@ -320,12 +291,12 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
 
     encodingParameters.active = true;
 
-    return sender.setParameters(params);
+    return this.sender.setParameters(params);
   };
 
   public getDisabledEncodings = (): Encoding[] => {
     return Object.entries(this.encodings)
-      .filter(([_, value]) => value)
+      .filter(([_, value]) => !value)
       .map(([encoding]) => encoding as Encoding)
       .reduce((acc, encoding) => [...acc, encoding], [] as Encoding[]);
   };
@@ -349,11 +320,9 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
       return defaultBitrates[trackContext.trackKind];
     }
 
-    // const sender = findSender(connection, trackContext.track!.id);
-    const sender = this.rtcRtpSender;
-    if (!sender) throw new Error(`RTCRtpSender for track ${this.id} not found`);
+    if (!this.sender) throw new Error(`RTCRtpSender for track ${this.id} not found`);
 
-    const encodings = sender.getParameters().encodings;
+    const encodings = this.sender.getParameters().encodings;
 
     if (this.isNotSimulcastTrack(encodings)) {
       return (
@@ -364,16 +333,13 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
       throw 'Audio track cannot have multiple encodings';
     }
 
-    const bitrates: Record<string, Bitrate> = {};
-
-    encodings
+    return encodings
       .filter((encoding) => encoding.rid)
-      .forEach((encoding) => {
+      .reduce((acc, encoding) => {
         const rid = encoding.rid! as Encoding;
-        bitrates[rid] = encoding.maxBitrate || defaultSimulcastBitrates[rid];
-      });
-
-    return bitrates;
+        acc[rid] = encoding.maxBitrate || defaultSimulcastBitrates[rid];
+        return acc
+      }, {} as Record<string, Bitrate>);
   };
 
   public updateConnection = (connection: Connection) => {
@@ -387,6 +353,70 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
         trackId: this.id,
         variantBitrates: this.getTrackBitrates(),
       },
+    });
+  };
+
+
+  // todo refactor to pure function
+  private applyBandwidthLimitation = (
+    encodings: RTCRtpEncodingParameters[],
+    maxBandwidth: TrackBandwidthLimit,
+  ) => {
+    if (typeof maxBandwidth === 'number') {
+      // non-simulcast limitation
+      this.splitBandwidth(encodings, (maxBandwidth as number) * 1024);
+    } else {
+      // simulcast bandwidth limit
+      encodings
+        .filter((encoding) => encoding.rid)
+        .forEach((encoding) => {
+          const limit =
+            (maxBandwidth as SimulcastBandwidthLimit).get(
+              encoding.rid! as Encoding,
+            ) || 0;
+
+          if (limit > 0) {
+            encoding.maxBitrate = limit * 1024;
+          } else delete encoding.maxBitrate;
+        });
+    }
+  };
+
+  // todo refactor to pure function
+  private splitBandwidth = (
+    encodings: RTCRtpEncodingParameters[],
+    bandwidth: number,
+  ) => {
+    if (bandwidth === 0) {
+      encodings.forEach((encoding) => delete encoding.maxBitrate);
+      return;
+    }
+
+    if (encodings.length === 0) {
+      // This most likely is a race condition. Log an error and prevent catastrophic failure
+      console.error(
+        "Attempted to limit bandwidth of the track that doesn't have any encodings",
+      );
+      return;
+    }
+
+    if (!encodings[0]) throw new Error("RTCRtpEncodingParameters is in invalid state")
+
+    // We are solving the following equation:
+    // x + (k0/k1)^2 * x + (k0/k2)^2 * x + ... + (k0/kn)^2 * x = bandwidth
+    // where x is the bitrate for the first encoding, kn are scaleResolutionDownBy factors
+    // square is dictated by the fact that k0/kn is a scale factor, but we are interested in the total number of pixels in the image
+    const firstScaleDownBy = encodings[0].scaleResolutionDownBy || 1;
+    const bitrate_parts = encodings.reduce(
+      (acc, value) =>
+        acc + (firstScaleDownBy / (value.scaleResolutionDownBy || 1)) ** 2,
+      0,
+    );
+    const x = bandwidth / bitrate_parts;
+
+    encodings.forEach((value) => {
+      value.maxBitrate =
+        x * (firstScaleDownBy / (value.scaleResolutionDownBy || 1)) ** 2;
     });
   };
 }

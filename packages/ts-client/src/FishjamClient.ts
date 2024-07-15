@@ -915,6 +915,7 @@ export class FishjamClient<
     trackId: string,
     rid: string,
     bandwidth: BandwidthLimit,
+    // todo change type to Promise<void>
   ): Promise<boolean> {
     if (!this.webrtc) throw this.handleWebRTCNotInitialized();
     await this.webrtc.setEncodingBandwidth(trackId, rid, bandwidth);

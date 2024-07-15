@@ -49,7 +49,9 @@ export const VideoPlayerWithDetector = ({ stream, id, webrtc }: Props) => {
     const connection = webrtc["connection"];
     if (!connection) return 0;
 
-    const inbound = getTrackIdentifierToInboundRtp(await connection.getConnection().getStats());
+    const inbound = getTrackIdentifierToInboundRtp(
+      await connection.getConnection().getStats(),
+    );
 
     const trackId = stream?.getVideoTracks()?.[0]?.id ?? "";
 

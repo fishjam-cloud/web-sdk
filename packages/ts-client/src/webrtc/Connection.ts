@@ -1,4 +1,4 @@
-import type { MediaStreamTrackId } from "./types";
+import type { MediaStreamTrackId } from './types';
 
 export type TurnServer = {
   transport: string;
@@ -8,22 +8,27 @@ export type TurnServer = {
   username: string;
 };
 
-
 export class Connection {
   public readonly connection: RTCPeerConnection;
-  public rtcConfig: RTCConfiguration = { bundlePolicy: 'max-bundle', iceServers: [], iceTransportPolicy: 'relay' };
+  public rtcConfig: RTCConfiguration = {
+    bundlePolicy: 'max-bundle',
+    iceServers: [],
+    iceTransportPolicy: 'relay',
+  };
 
   constructor(config: TurnServer[]) {
-    this.setTurns(config, this.rtcConfig)
-    this.connection = new RTCPeerConnection(this.rtcConfig)
+    this.setTurns(config, this.rtcConfig);
+    this.connection = new RTCPeerConnection(this.rtcConfig);
   }
 
   public isConnectionUnstable = () => {
     if (!this.connection) return false;
 
     const isSignalingUnstable = this.connection.signalingState !== 'stable';
-    const isConnectionNotConnected = this.connection.connectionState !== 'connected';
-    const isIceNotConnected = this.connection.iceConnectionState !== 'connected';
+    const isConnectionNotConnected =
+      this.connection.connectionState !== 'connected';
+    const isIceNotConnected =
+      this.connection.iceConnectionState !== 'connected';
 
     return isSignalingUnstable && isConnectionNotConnected && isIceNotConnected;
   };
@@ -31,7 +36,10 @@ export class Connection {
   /**
    * Configures TURN servers for WebRTC connections by adding them to the provided RTCConfiguration object.
    */
-  private setTurns = (turnServers: TurnServer[], rtcConfig: RTCConfiguration): void => {
+  private setTurns = (
+    turnServers: TurnServer[],
+    rtcConfig: RTCConfiguration,
+  ): void => {
     turnServers
       .map((turnServer: TurnServer) => {
         const transport =
@@ -53,7 +61,7 @@ export class Connection {
 
   public getConnection = (): RTCPeerConnection => {
     return this.connection;
-  }
+  };
 
   public setTransceiversToReadOnly = () => {
     this.connection
@@ -61,7 +69,7 @@ export class Connection {
       .forEach((transceiver) => (transceiver.direction = 'sendonly'));
   };
 
-  public addTransceiversIfNeeded = (serverTracks: Map<string, number>,) => {
+  public addTransceiversIfNeeded = (serverTracks: Map<string, number>) => {
     const recvTransceivers = this.connection
       .getTransceivers()
       .filter((elem) => elem.direction === 'recvonly');
@@ -75,7 +83,11 @@ export class Connection {
       );
   };
 
-  private getNeededTransceiversTypes = (type: string, recvTransceivers: RTCRtpTransceiver[], serverTracks: Map<string, number>,): string[] => {
+  private getNeededTransceiversTypes = (
+    type: string,
+    recvTransceivers: RTCRtpTransceiver[],
+    serverTracks: Map<string, number>,
+  ): string[] => {
     const typeNumber = serverTracks.get(type) ?? 0;
 
     const typeTransceiversNumber = recvTransceivers.filter(
@@ -85,38 +97,44 @@ export class Connection {
     return Array(typeNumber - typeTransceiversNumber).fill(type);
   };
 
-  public addTransceiver = (track: MediaStreamTrack, transceiverConfig: RTCRtpTransceiverInit) => {
+  public addTransceiver = (
+    track: MediaStreamTrack,
+    transceiverConfig: RTCRtpTransceiverInit,
+  ) => {
     this.connection.addTransceiver(track, transceiverConfig);
-  }
+  };
 
   public setOnTrackReady = (onTrackReady: (event: RTCTrackEvent) => void) => {
-    this.connection.ontrack = onTrackReady
-  }
+    this.connection.ontrack = onTrackReady;
+  };
   public setRemoteDescription = async (data: any) => {
-    await this.connection.setRemoteDescription(data)
-  }
+    await this.connection.setRemoteDescription(data);
+  };
 
-  public isTrackInUse = (track: MediaStreamTrack) => this.connection.getSenders().some((val) => val.track === track);
+  public isTrackInUse = (track: MediaStreamTrack) =>
+    this.connection.getSenders().some((val) => val.track === track);
 
   public setTransceiverDirection = () => {
-    this.connection
-      .getTransceivers()
-      .forEach((transceiver) => {
-          transceiver.direction = transceiver.direction === 'sendrecv' ? 'sendonly' : transceiver.direction
-        },
-      );
+    this.connection.getTransceivers().forEach((transceiver) => {
+      transceiver.direction =
+        transceiver.direction === 'sendrecv'
+          ? 'sendonly'
+          : transceiver.direction;
+    });
   };
 
   public removeTrack = (sender: RTCRtpSender) => {
-    this.connection.removeTrack(sender)
-  }
+    this.connection.removeTrack(sender);
+  };
 
   public findSender = (mediaStreamTrackId: MediaStreamTrackId): RTCRtpSender =>
     this.connection
       .getSenders()
-      .find((sender) => sender.track && sender!.track!.id === mediaStreamTrackId)!;
+      .find(
+        (sender) => sender.track && sender!.track!.id === mediaStreamTrackId,
+      )!;
 
   public addIceCandidate = async (iceCandidate: RTCIceCandidate) => {
     await this.connection.addIceCandidate(iceCandidate);
-  }
+  };
 }

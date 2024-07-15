@@ -1,20 +1,28 @@
-import type { TrackCommon, TrackEncodings } from "./TrackCommon";
-import type { LocalTrackId, MLineId, Encoding } from "../types";
-import type { TrackContextImpl } from "../internal";
-import { isTrackKind } from "../internal";
-import type { TrackId } from "./Remote";
+import type { TrackCommon, TrackEncodings } from './TrackCommon';
+import type { LocalTrackId, MLineId, Encoding } from '../types';
+import type { TrackContextImpl } from '../internal';
+import { isTrackKind } from '../internal';
+import type { TrackId } from './Remote';
 
-export class RemoteTrack<EndpointMetadata, TrackMetadata> implements TrackCommon {
+export class RemoteTrack<EndpointMetadata, TrackMetadata>
+  implements TrackCommon
+{
   public id: TrackId;
   public mLineId: MLineId | null = null;
-  public readonly trackContext: TrackContextImpl<EndpointMetadata, TrackMetadata>;
+  public readonly trackContext: TrackContextImpl<
+    EndpointMetadata,
+    TrackMetadata
+  >;
   // todo starts with true or false?
-  public readonly encodings: TrackEncodings = { h: false, m: false, l: false }
-  private targetEncoding: Encoding | null = null
+  public readonly encodings: TrackEncodings = { h: false, m: false, l: false };
+  private targetEncoding: Encoding | null = null;
 
-  constructor(id: LocalTrackId, trackContext: TrackContextImpl<EndpointMetadata, TrackMetadata>) {
+  constructor(
+    id: LocalTrackId,
+    trackContext: TrackContextImpl<EndpointMetadata, TrackMetadata>,
+  ) {
     this.id = id;
-    this.trackContext = trackContext
+    this.trackContext = trackContext;
   }
 
   public setReady = (stream: MediaStream, track: MediaStreamTrack) => {
@@ -23,33 +31,34 @@ export class RemoteTrack<EndpointMetadata, TrackMetadata> implements TrackCommon
     this.trackContext.stream = stream;
     this.trackContext.track = track;
     this.trackContext.trackKind = track.kind;
-  }
+  };
 
   public disableTrackEncoding = (encoding: Encoding) => {
-    this.encodings[encoding] = false
-  }
+    this.encodings[encoding] = false;
+  };
 
   public enableTrackEncoding = (encoding: Encoding) => {
-    this.encodings[encoding] = true
-  }
+    this.encodings[encoding] = true;
+  };
 
   public setTargetTrackEncoding = (variant: Encoding) => {
     // todo implement validation
-    this.targetEncoding = variant
+    this.targetEncoding = variant;
 
-    const trackContext = this.trackContext
+    const trackContext = this.trackContext;
 
     if (!trackContext.simulcastConfig?.enabled) {
       throw new Error('The track does not support changing its target variant');
     }
 
-    const isValidTargetEncoding = !trackContext.simulcastConfig.activeEncodings.includes(variant);
+    const isValidTargetEncoding =
+      !trackContext.simulcastConfig.activeEncodings.includes(variant);
 
     if (isValidTargetEncoding) {
       throw new Error(`The track does not support variant ${variant}`);
     }
-  }
+  };
   public setMLineId = (mLineId: MLineId) => {
-    this.mLineId = mLineId
-  }
+    this.mLineId = mLineId;
+  };
 }

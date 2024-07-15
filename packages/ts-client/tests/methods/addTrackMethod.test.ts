@@ -46,8 +46,7 @@ it('Adding track updates internal state', () => {
   webRTCEndpoint.addTrack(mockTrack);
 
   // Then
-  const localTrackIdToTrack =
-    webRTCEndpoint['local'].getTrackIdToTrack();
+  const localTrackIdToTrack = webRTCEndpoint['local'].getTrackIdToTrack();
   expect(localTrackIdToTrack.size).toBe(1);
 
   const localEndpoint = webRTCEndpoint['local'].getEndpoint();

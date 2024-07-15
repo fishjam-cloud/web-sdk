@@ -1,6 +1,6 @@
 import type { Deferred } from './deferred';
 import type { LocalTrackManager } from './LocalTrackManager';
-import { Connection } from "./Connection";
+import type { Connection } from './Connection';
 
 export type Command = {
   handler: () => void;
@@ -10,16 +10,21 @@ export type Command = {
 };
 
 export class CommandsQueue<EndpointMetadata, TrackMetadata> {
-  private readonly localTrackManager: LocalTrackManager<EndpointMetadata, TrackMetadata>;
-  private connection: Connection | null = null
+  private readonly localTrackManager: LocalTrackManager<
+    EndpointMetadata,
+    TrackMetadata
+  >;
+  private connection: Connection | null = null;
   private clearConnectionCallbacks: (() => void) | null = null;
 
-  constructor(localTrackManager: LocalTrackManager<EndpointMetadata, TrackMetadata>) {
+  constructor(
+    localTrackManager: LocalTrackManager<EndpointMetadata, TrackMetadata>,
+  ) {
     this.localTrackManager = localTrackManager;
   }
 
   public initConnection = (connection: Connection) => {
-    this.connection = connection
+    this.connection = connection;
 
     const onSignalingStateChange = () => {
       switch (connection.getConnection().signalingState) {
@@ -53,37 +58,38 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
     };
 
     this.clearConnectionCallbacks = () => {
-      connection.getConnection().removeEventListener(
-        'signalingstatechange',
-        onSignalingStateChange,
-      );
-      connection.getConnection().removeEventListener(
-        'icegatheringstatechange',
-        onIceGatheringStateChange,
-      );
-      connection.getConnection().removeEventListener(
-        'connectionstatechange',
-        onConnectionStateChange,
-      );
-      connection.getConnection().removeEventListener(
-        'iceconnectionstatechange',
-        onIceConnectionStateChange,
-      );
+      connection
+        .getConnection()
+        .removeEventListener('signalingstatechange', onSignalingStateChange);
+      connection
+        .getConnection()
+        .removeEventListener(
+          'icegatheringstatechange',
+          onIceGatheringStateChange,
+        );
+      connection
+        .getConnection()
+        .removeEventListener('connectionstatechange', onConnectionStateChange);
+      connection
+        .getConnection()
+        .removeEventListener(
+          'iceconnectionstatechange',
+          onIceConnectionStateChange,
+        );
     };
 
-    connection.getConnection().addEventListener(
-      'icegatheringstatechange',
-      onIceConnectionStateChange,
-    );
-    connection.getConnection().addEventListener(
-      'connectionstatechange',
-      onConnectionStateChange,
-    );
-    connection.getConnection().addEventListener(
-      'iceconnectionstatechange',
-      onIceConnectionStateChange,
-    );
-    connection.getConnection().addEventListener('signalingstatechange', onSignalingStateChange);
+    connection
+      .getConnection()
+      .addEventListener('icegatheringstatechange', onIceConnectionStateChange);
+    connection
+      .getConnection()
+      .addEventListener('connectionstatechange', onConnectionStateChange);
+    connection
+      .getConnection()
+      .addEventListener('iceconnectionstatechange', onIceConnectionStateChange);
+    connection
+      .getConnection()
+      .addEventListener('signalingstatechange', onSignalingStateChange);
   };
 
   private commandsQueue: Command[] = [];

@@ -1,3 +1,1 @@
-export class NegotiationManager {
-
-}
+export class NegotiationManager {}

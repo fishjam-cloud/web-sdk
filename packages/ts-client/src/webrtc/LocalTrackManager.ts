@@ -1,11 +1,8 @@
-import type {
-  SimulcastConfig,
-  TrackBandwidthLimit,
-} from './types';
+import type { SimulcastConfig, TrackBandwidthLimit } from './types';
 import { generateCustomEvent } from './mediaEvent';
 import type { WebRTCEndpoint } from './webRTCEndpoint';
-import type { Connection } from "./Connection";
-import type { Local } from "./tracks/Local";
+import type { Connection } from './Connection';
+import type { Local } from './tracks/Local';
 
 export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
   public connection?: Connection;
@@ -27,17 +24,17 @@ export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
     local: Local<EndpointMetadata, TrackMetadata>,
   ) {
     this.webrtc = webrtc;
-    this.local = local
+    this.local = local;
   }
 
   public isNegotiationInProgress = () => {
-    return (this.ongoingRenegotiation || this.ongoingTrackReplacement);
+    return this.ongoingRenegotiation || this.ongoingTrackReplacement;
   };
 
   public cleanUp = () => {
     this.ongoingTrackReplacement = false;
     this.ongoingRenegotiation = false;
-  }
+  };
 
   public validateAddTrack = (
     track: MediaStreamTrack,
@@ -69,11 +66,19 @@ export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
   ) => {
     this.ongoingRenegotiation = true;
 
-    const trackManager = this.local.addTrack(this.connection, trackId, track, stream, trackMetadata, simulcastConfig, maxBandwidth)
+    const trackManager = this.local.addTrack(
+      this.connection,
+      trackId,
+      track,
+      stream,
+      trackMetadata,
+      simulcastConfig,
+      maxBandwidth,
+    );
 
     if (this.connection) {
       trackManager.addTrackToConnection();
-      this.connection.setTransceiverDirection()
+      this.connection.setTransceiverDirection();
     }
 
     const mediaEvent = generateCustomEvent({ type: 'renegotiateTracks' });
@@ -83,9 +88,10 @@ export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
   public removeTrackHandler = (trackId: string) => {
     this.ongoingRenegotiation = true;
 
-    if (!this.connection) throw new Error(`There is no active RTCPeerConnection`)
+    if (!this.connection)
+      throw new Error(`There is no active RTCPeerConnection`);
 
-    this.local.removeTrack(trackId)
+    this.local.removeTrack(trackId);
   };
 
   public replaceTrackHandler = async (
@@ -95,20 +101,20 @@ export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
   ): Promise<void> => {
     this.ongoingTrackReplacement = true;
     try {
-      await this.local.replaceTrack(trackId, newTrack, newTrackMetadata)
+      await this.local.replaceTrack(trackId, newTrack, newTrackMetadata);
     } catch (e) {
       this.ongoingTrackReplacement = false;
     }
-    this.ongoingTrackReplacement = false
+    this.ongoingTrackReplacement = false;
   };
 
   public getEndpointId = () => this.local.getEndpoint().id;
 
   public updateConnection = (connection: Connection) => {
-    this.connection = connection
-  }
+    this.connection = connection;
+  };
 
   public updateSenders = () => {
-    this.local.updateSenders()
-  }
+    this.local.updateSenders();
+  };
 }

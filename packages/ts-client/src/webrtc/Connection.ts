@@ -131,7 +131,7 @@ export class Connection {
     this.connection
       .getSenders()
       .find(
-        (sender) => sender.track && sender!.track!.id === mediaStreamTrackId,
+        (sender) => sender.track && sender.track.id === mediaStreamTrackId,
       )!;
 
   public addIceCandidate = async (iceCandidate: RTCIceCandidate) => {

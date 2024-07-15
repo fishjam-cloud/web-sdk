@@ -28,7 +28,8 @@ it('Change existing track encoding', () => {
   webRTCEndpoint.receiveMediaEvent(JSON.stringify(encodingUpdatedEvent));
 
   // Then
-  const finalTrackEncoding = webRTCEndpoint.getRemoteTracks()[trackId]!.encoding;
+  const finalTrackEncoding =
+    webRTCEndpoint.getRemoteTracks()[trackId]!.encoding;
   expect(finalTrackEncoding).toBe(encodingUpdatedEvent.data.data.encoding);
 });
 
@@ -75,7 +76,8 @@ it('Changing track encoding when endpoint does not exist but track exist in othe
   webRTCEndpoint.receiveMediaEvent(JSON.stringify(encodingUpdatedEvent));
 
   // Then
-  const finalTrackEncoding = webRTCEndpoint.getRemoteTracks()[trackId]!.encoding;
+  const finalTrackEncoding =
+    webRTCEndpoint.getRemoteTracks()[trackId]!.encoding;
   expect(finalTrackEncoding).toBe(encodingUpdatedEvent.data.data.encoding);
 });
 

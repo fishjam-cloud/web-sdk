@@ -47,10 +47,10 @@ it('Adding track updates internal state', () => {
 
   // Then
   const localTrackIdToTrack =
-    webRTCEndpoint['local'].getLocal().getTrackIdToTrack();
+    webRTCEndpoint['local'].getTrackIdToTrack();
   expect(localTrackIdToTrack.size).toBe(1);
 
-  const localEndpoint = webRTCEndpoint['local'].getLocal().getEndpoint();
+  const localEndpoint = webRTCEndpoint['local'].getEndpoint();
   expect(localEndpoint.tracks.size).toBe(1);
 });
 

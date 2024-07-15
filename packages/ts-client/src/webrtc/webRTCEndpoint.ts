@@ -20,7 +20,8 @@ import { LocalTrackManager } from './LocalTrackManager';
 import { CommandsQueue } from './CommandsQueue';
 import { Remote } from "./tracks/Remote";
 import { Local } from "./tracks/Local";
-import { Connection, TurnServer } from "./Connection";
+import type { TurnServer } from "./Connection";
+import { Connection } from "./Connection";
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -735,7 +736,8 @@ export class WebRTCEndpoint<
 
       const trackIdToTrackMetadata = this.local.getTrackIdToMetadata()
       const trackIdToTrackBitrates = this.local.getTrackIdToTrackBitrates()
-      const midToTrackId = this.local.getMidToTrackId(this.connection)
+      // todo maybe this.local.updateConnection()
+      const midToTrackId = this.local.getMidToTrackId()
 
       const mediaEvent = generateCustomEvent({
         type: 'sdpOffer',
@@ -811,7 +813,7 @@ export class WebRTCEndpoint<
         onIceConnectionStateChange,
       );
 
-      this.commandsQueue.initConnection(connection.getConnection());
+      this.commandsQueue.initConnection(connection);
 
       this.local.addAllTracksToConnection()
 

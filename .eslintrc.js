@@ -21,7 +21,7 @@ module.exports = {
       },
     ],
     // "no-console": ["error", { allow: ["warn", "error"] }],
-    "no-case-declarations": "disable",
+    "no-case-declarations": "off",
     "react-hooks/exhaustive-deps": "error",
     "react-hooks/rules-of-hooks": "error",
     "react-refresh/only-export-components": ["warn", {allowConstantExport: true}],

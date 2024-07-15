@@ -37,6 +37,8 @@ export class Local<EndpointMetadata, TrackMetadata> {
   // temporary for webrtc.emit and webrtc.sendMediaEvent
   private readonly webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>;
 
+  private connection: Connection | null = null;
+
   constructor(
     webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
     endpointMetadataParser: MetadataParser<EndpointMetadata>,
@@ -284,6 +286,8 @@ export class Local<EndpointMetadata, TrackMetadata> {
   }
 
   public updateConnection = (connection: Connection) => {
+    this.connection = connection;
+
     Object.values(this.localTracks).forEach((track) => {
       track.updateConnection(connection)
     })
@@ -309,12 +313,12 @@ export class Local<EndpointMetadata, TrackMetadata> {
       )
   };
 
-  public getMidToTrackId = (connection: Connection): MidToTrackId | null => {
-    if (!connection) return null;
+  public getMidToTrackId = (): MidToTrackId | null => {
+    if (!this.connection) return null;
 
     // - negotiated unmuted tracks: tracks added in previous negotiation, data is being transmitted
     // - not yet negotiated tracks: tracks added in this negotiation, data will be transmitted after successful negotiation
-    const mappingFromTransceivers = this.getTransceiverMapping(connection);
+    const mappingFromTransceivers = this.getTransceiverMapping();
 
     // - negotiated unmuted tracks: tracks added in previous negotiation, data is being transmitted
     // - negotiated muted tracks: tracks added in previous negotiation, data is not being transmitted but can be transmitted in the future
@@ -330,8 +334,10 @@ export class Local<EndpointMetadata, TrackMetadata> {
     return { ...mappingFromTransceivers, ...mappingFromLocalNegotiatedTracks };
   };
 
-  private getTransceiverMapping = (connection: Connection): MidToTrackId =>
-    connection
+  private getTransceiverMapping = (): MidToTrackId => {
+    if (!this.connection) return ({});
+
+    return this.connection
       .getConnection()
       .getTransceivers()
       .filter((transceiver) => transceiver.sender.track?.id && transceiver.mid)
@@ -348,6 +354,7 @@ export class Local<EndpointMetadata, TrackMetadata> {
 
         return acc;
       }, {} as MidToTrackId);
+  };
 
   public setLocalTrackStatusToOffered = () => {
     Object.values(this.localTracks)

@@ -90,8 +90,9 @@ export class Local<EndpointMetadata, TrackMetadata> {
   };
 
   public disableAllLocalTrackEncodings = async () => {
-    // todo I'm afraid that we are disabling already disabled encodings
-    //   I think this part od code is responsible of
+    // TODO: Why are we disabling already disabled encodings?
+    //  I think this part of the code is invoked to mutate RTCRtpSender.getParameters().encodings.active.
+    //  We should probably implement a separate method for that, because disabling already disabled tracks seems weird.
     for (const [trackId, trackManager] of Object.entries(this.localTracks)) {
       for (const encoding of trackManager.getDisabledEncodings()) {
         await this.disableLocalTrackEncoding(trackId, encoding);

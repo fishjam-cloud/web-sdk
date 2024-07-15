@@ -311,14 +311,6 @@ export class Local<EndpointMetadata, TrackMetadata> {
     });
   };
 
-  public getDisabledLocalTrackEncodings = (): Map<TrackId, Encoding[]> => {
-    const entries = Object.values(this.localTracks).map(
-      (track) => [track.id, track.getDisabledEncodings()] as const,
-    );
-
-    return new Map(entries);
-  };
-
   public updateMLineIds = (midToTrackId: Record<MLineId, TrackId>) => {
     Object.entries(midToTrackId).forEach(([mLineId, trackId]) => {
       const localTrack = this.localTracks[trackId];

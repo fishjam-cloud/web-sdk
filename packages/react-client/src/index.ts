@@ -51,6 +51,7 @@ export type {
   MetadataParser,
   ConnectConfig,
   AuthErrorReason,
+  Encoding,
 } from "@fishjam-dev/ts-client";
 
 export { FishjamClient } from "@fishjam-dev/ts-client";

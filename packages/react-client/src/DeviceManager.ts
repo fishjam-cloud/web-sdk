@@ -1,10 +1,18 @@
-import type { DeviceManagerConfig, DeviceState, Media, GenericMediaManager, StorageConfig, DeviceError } from "./types";
+import {
+  type DeviceManagerConfig,
+  type DeviceState,
+  type Media,
+  type GenericMediaManager,
+  type StorageConfig,
+  type DeviceError,
+  parseUserMediaError,
+} from "./types";
 
 import { prepareMediaTrackConstraints, toMediaTrackConstraints } from "./constraints";
 
 import EventEmitter from "events";
 import type TypedEmitter from "typed-emitter";
-import { getDeviceInfo, getLocalStorageConfig, getMedia, prepareDeviceState } from "./utils/media";
+import { getDeviceInfo, getLocalStorageConfig, prepareDeviceState } from "./utils/media";
 
 export type DeviceManagerEvents = {
   managerStarted: (
@@ -142,10 +150,8 @@ export class DeviceManager
       this.deviceState,
     );
 
-    const result = await getMedia({ [this.deviceType]: exactConstraints });
-
-    if (result.type === "OK") {
-      const stream = result.stream;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ [this.deviceType]: exactConstraints });
 
       const getTrack = (): MediaStreamTrack | null => {
         const tracks = this.deviceType === "audio" ? stream.getAudioTracks() : stream.getVideoTracks();
@@ -192,9 +198,8 @@ export class DeviceManager
       this.deviceState.mediaStatus = "OK";
 
       this.emit("devicesReady", { ...this.deviceState, restarted: shouldRestart }, this.deviceState);
-    } else {
-      const parsedError = result.error;
-
+    } catch (err) {
+      const parsedError = parseUserMediaError(err);
       const event = {
         parsedError,
         constraints: exactConstraints,

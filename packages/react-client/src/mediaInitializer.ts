@@ -1,79 +1,88 @@
 import { prepareConstraints } from "./constraints";
-import type { GetMedia } from "./types";
-import {
-  getMedia,
-  handleNotFoundError,
-  handleOverconstrainedError,
-  handleNotAllowedError,
-  getCurrentDevicesSettings,
-  stopTracks,
-  isAnyDeviceDifferentFromLastSession,
-} from "./utils/media";
+import { DeviceError, NOT_FOUND_ERROR, OVERCONSTRAINED_ERROR, PERMISSION_DENIED, UNHANDLED_ERROR } from "./types";
+import { getCurrentDevicesSettings, stopTracks, isAnyDeviceDifferentFromLastSession, removeExact } from "./utils/media";
 
-interface MediaConstraints {
-  audio?: MediaTrackConstraints;
-  video?: MediaTrackConstraints;
-}
+type AudioVideo<T> = { audio: T; video: T };
 
-interface PreviousDevices {
-  audio: MediaDeviceInfo | null;
-  video: MediaDeviceInfo | null;
-}
+type MediaConstraints = AudioVideo<MediaTrackConstraints | undefined>;
 
-export const getAvailableMedia = async (constraints: MediaConstraints) => {
-  let result: GetMedia = await getMedia(constraints);
+type PreviousDevices = AudioVideo<MediaDeviceInfo | null>;
 
-  if (result.type === "Error" && result.error?.name === "NotFoundError") {
-    result = await handleNotFoundError(constraints);
+const defaultErrors = { audio: null, video: null };
+
+const tryToGetVideoThenAudio = async (
+  constraints: MediaStreamConstraints,
+  deviceErrors: AudioVideo<DeviceError | null> = defaultErrors,
+  transformConstraint: (value?: boolean | MediaTrackConstraints) => boolean | MediaTrackConstraints | undefined = () =>
+    false,
+) => {
+  try {
+    return await getAvailableMedia(
+      { ...constraints, video: transformConstraint(constraints.video) },
+      { ...deviceErrors, video: null },
+    );
+  } catch (err: unknown) {
+    return await getAvailableMedia(
+      { ...constraints, video: transformConstraint(constraints.audio) },
+      { ...deviceErrors, audio: null },
+    );
   }
+};
 
-  if (result.type === "Error" && result.error?.name === "OverconstrainedError") {
-    result = await handleOverconstrainedError(result.constraints);
+export const getAvailableMedia = async (
+  constraints: MediaStreamConstraints,
+  deviceErrors: AudioVideo<DeviceError | null> = defaultErrors,
+): Promise<[MediaStream | null, AudioVideo<DeviceError | null>]> => {
+  try {
+    return [await navigator.mediaDevices.getUserMedia(constraints), deviceErrors];
+  } catch (err: unknown) {
+    if (!(err instanceof DOMException)) return [null, { audio: UNHANDLED_ERROR, video: UNHANDLED_ERROR }];
+
+    if (err.name === "NotFoundError")
+      return tryToGetVideoThenAudio(constraints, { audio: NOT_FOUND_ERROR, video: NOT_FOUND_ERROR });
+
+    if (err.name === "OverconstrainedError")
+      return tryToGetVideoThenAudio(
+        constraints,
+        { audio: OVERCONSTRAINED_ERROR, video: OVERCONSTRAINED_ERROR },
+        removeExact,
+      );
+
+    if (err.name === "NotAllowedError")
+      return tryToGetVideoThenAudio(constraints, { audio: PERMISSION_DENIED, video: PERMISSION_DENIED });
+
+    return [null, { audio: UNHANDLED_ERROR, video: UNHANDLED_ERROR }];
   }
-
-  if (result.type === "Error" && result.error?.name === "NotAllowedError") {
-    result = await handleNotAllowedError(result.constraints);
-  }
-
-  return result;
 };
 
 // Safari changes deviceId between sessions, therefore we cannot rely on deviceId for identification purposes.
 // We can switch a random device that comes from safari to one that has the same label as the one used in the previous session.
 export const getCorrectedResult = async (
-  result: GetMedia,
+  stream: MediaStream,
+  deviceErrors: AudioVideo<DeviceError | null>,
   devices: MediaDeviceInfo[],
   constraints: MediaConstraints,
   previousDevices: PreviousDevices,
-) => {
-  if (result.type !== "OK") return;
-
+): Promise<[MediaStream | null, AudioVideo<DeviceError | null>]> => {
   const shouldCorrectDevices = isAnyDeviceDifferentFromLastSession(
     previousDevices.video,
     previousDevices.audio,
-    getCurrentDevicesSettings(result.stream, devices),
+    getCurrentDevicesSettings(stream, devices),
   );
 
-  if (!shouldCorrectDevices) return;
+  if (!shouldCorrectDevices) return [stream, deviceErrors];
 
   const videoIdToStart = devices.find((info) => info.label === previousDevices.video?.label)?.deviceId;
   const audioIdToStart = devices.find((info) => info.label === previousDevices.audio?.label)?.deviceId;
 
-  if (!videoIdToStart && !audioIdToStart) return;
+  if (!videoIdToStart && !audioIdToStart) return [stream, deviceErrors];
 
-  stopTracks(result.stream);
+  stopTracks(stream);
 
   const exactConstraints: MediaStreamConstraints = {
-    video: !!result.constraints.video && prepareConstraints(videoIdToStart, constraints.video),
-    audio: !!result.constraints.video && prepareConstraints(audioIdToStart, constraints.audio),
+    video: !deviceErrors.video && prepareConstraints(videoIdToStart, constraints.video),
+    audio: !deviceErrors.audio && prepareConstraints(audioIdToStart, constraints.audio),
   };
 
-  const correctedResult = await getMedia(exactConstraints, result.previousErrors);
-
-  if (correctedResult.type !== "OK") {
-    console.error("Device Manager unexpected error");
-    return correctedResult;
-  }
-
-  return correctedResult;
+  return await getAvailableMedia(exactConstraints, deviceErrors);
 };

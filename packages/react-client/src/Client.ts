@@ -19,13 +19,13 @@ import type { PeerId, PeerState, PeerStatus, Track, TrackId, TrackWithOrigin } f
 import type { MediaDeviceType, ScreenShareManagerConfig, TrackType } from "./ScreenShareManager";
 import { ScreenShareManager } from "./ScreenShareManager";
 import type { DeviceError } from "./types";
-import {
-  type DeviceManagerConfig,
-  type DeviceManagerInitConfig,
-  type DeviceManagerStartConfig,
-  type Devices,
-  type DeviceState,
-  type MediaState,
+import type {
+  DeviceManagerConfig,
+  DeviceManagerInitConfig,
+  DeviceManagerStartConfig,
+  Devices,
+  DeviceState,
+  MediaState,
 } from "./types";
 import type { DeviceManagerEvents } from "./DeviceManager";
 import { DeviceManager } from "./DeviceManager";
@@ -52,6 +52,11 @@ export type ClientApi<PeerMetadata, TrackMetadata> = {
   screenShareManager: ScreenShareManager;
 
   isReconnecting: () => boolean;
+};
+
+type DeviceTypeInfo = {
+  mediaDeviceType: MediaDeviceType;
+  trackType: TrackType;
 };
 
 export interface ClientEvents<PeerMetadata, TrackMetadata> {
@@ -215,10 +220,7 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
 
   // device manager events
   managerStarted: (
-    event: Parameters<DeviceManagerEvents["managerInitialized"]>[0] & {
-      mediaDeviceType: MediaDeviceType;
-      trackType: TrackType;
-    },
+    event: Parameters<DeviceManagerEvents["managerInitialized"]>[0] & DeviceTypeInfo,
     client: ClientApi<PeerMetadata, TrackMetadata>,
   ) => void;
   managerInitialized: (
@@ -226,47 +228,20 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
     client: ClientApi<PeerMetadata, TrackMetadata>,
   ) => void;
   deviceReady: (
-    event: Parameters<DeviceManagerEvents["deviceReady"]>[0] & {
-      mediaDeviceType: MediaDeviceType;
-      trackType: TrackType;
-    },
+    event: Parameters<DeviceManagerEvents["deviceReady"]>[0] & DeviceTypeInfo,
     client: ClientApi<PeerMetadata, TrackMetadata>,
   ) => void;
   devicesStarted: (
-    event: Parameters<DeviceManagerEvents["devicesStarted"]>[0] & {
-      mediaDeviceType: MediaDeviceType;
-      trackType: TrackType;
-    },
+    event: Parameters<DeviceManagerEvents["devicesStarted"]>[0] & DeviceTypeInfo,
     client: ClientApi<PeerMetadata, TrackMetadata>,
   ) => void;
   devicesReady: (
-    event: Parameters<DeviceManagerEvents["devicesReady"]>[0] & {
-      mediaDeviceType: MediaDeviceType;
-      trackType: TrackType;
-    },
+    event: Parameters<DeviceManagerEvents["devicesReady"]>[0] & DeviceTypeInfo,
     client: ClientApi<PeerMetadata, TrackMetadata>,
   ) => void;
-  deviceStopped: (
-    event: {
-      mediaDeviceType: MediaDeviceType;
-      trackType: TrackType;
-    },
-    client: ClientApi<PeerMetadata, TrackMetadata>,
-  ) => void;
-  deviceEnabled: (
-    event: {
-      mediaDeviceType: MediaDeviceType;
-      trackType: TrackType;
-    },
-    client: ClientApi<PeerMetadata, TrackMetadata>,
-  ) => void;
-  deviceDisabled: (
-    event: {
-      mediaDeviceType: MediaDeviceType;
-      trackType: TrackType;
-    },
-    client: ClientApi<PeerMetadata, TrackMetadata>,
-  ) => void;
+  deviceStopped: (event: DeviceTypeInfo, client: ClientApi<PeerMetadata, TrackMetadata>) => void;
+  deviceEnabled: (event: DeviceTypeInfo, client: ClientApi<PeerMetadata, TrackMetadata>) => void;
+  deviceDisabled: (event: DeviceTypeInfo, client: ClientApi<PeerMetadata, TrackMetadata>) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error: (arg: any, client: ClientApi<PeerMetadata, TrackMetadata>) => void;
 
@@ -904,35 +879,31 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       audio: this.audioDeviceManager.getLastDevice(),
     };
 
-    const getMediaResult = await getAvailableMedia(constraints);
+    let [stream, deviceErrors] = await getAvailableMedia(constraints);
 
     const devices = await navigator.mediaDevices.enumerateDevices();
 
     const videoDevices = devices.filter(({ kind }) => kind === "videoinput");
     const audioDevices = devices.filter(({ kind }) => kind === "audioinput");
 
-    const correctedResult = await getCorrectedResult(getMediaResult, devices, constraints, previousDevices);
-    const finalResult = correctedResult ?? getMediaResult;
-
-    let stream: MediaStream | null = null;
-    let videoTrack: MediaStreamTrack | null = null;
-    let audioTrack: MediaStreamTrack | null = null;
-    let audioError: DeviceError | null = null;
-    let videoError: DeviceError | null = null;
-
-    if (finalResult.type === "OK") {
-      stream = finalResult.stream;
-      videoTrack = stream.getVideoTracks()[0];
-      audioTrack = stream.getAudioTracks()[0];
-      videoError = finalResult.previousErrors["video"] ?? null;
-      audioError = finalResult.previousErrors["audio"] ?? null;
-    } else {
-      audioError = finalResult.error;
-      videoError = finalResult.error;
+    if (stream) {
+      [stream, deviceErrors] = await getCorrectedResult(stream, deviceErrors, devices, constraints, previousDevices);
     }
 
-    this.videoDeviceManager.initialize(stream, videoTrack, videoDevices, !!constraints.video, videoError);
-    this.audioDeviceManager.initialize(stream, audioTrack, audioDevices, !!constraints.audio, audioError);
+    this.videoDeviceManager.initialize(
+      stream,
+      stream?.getVideoTracks()?.[0] ?? null,
+      videoDevices,
+      !!constraints.video,
+      deviceErrors.video,
+    );
+    this.audioDeviceManager.initialize(
+      stream,
+      stream?.getAudioTracks()?.[0] ?? null,
+      audioDevices,
+      !!constraints.audio,
+      deviceErrors.audio,
+    );
   };
 
   public startDevices = async (config: DeviceManagerStartConfig) => {

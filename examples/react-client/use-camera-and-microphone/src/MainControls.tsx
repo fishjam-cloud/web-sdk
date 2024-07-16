@@ -43,41 +43,41 @@ const tokenAtom = atomWithStorage("token", "");
 
 const broadcastVideoOnConnectAtom = atomWithStorage<boolean | undefined>(
   "broadcastVideoOnConnect",
-  undefined,
+  undefined
 );
 const broadcastVideoOnDeviceStartAtom = atomWithStorage<boolean | undefined>(
   "broadcastVideoOnDeviceStart",
-  undefined,
+  undefined
 );
 const videoOnDeviceChangeAtom = atomWithStorage<OnDeviceChange>(
   "videoOnDeviceChange",
-  undefined,
+  undefined
 );
 const videoOnDeviceStopAtom = atomWithStorage<OnDeviceStop>(
   "videoOnDeviceStop",
-  undefined,
+  undefined
 );
 
 const broadcastAudioOnConnectAtom = atomWithStorage<boolean | undefined>(
   "broadcastAudioOnConnect",
-  undefined,
+  undefined
 );
 const broadcastAudioOnDeviceStartAtom = atomWithStorage<boolean | undefined>(
   "broadcastAudioOnDeviceStart",
-  undefined,
+  undefined
 );
 const audioOnDeviceChangeAtom = atomWithStorage<OnDeviceChange>(
   "audioOnDeviceChange",
-  undefined,
+  undefined
 );
 const audioOnDeviceStopAtom = atomWithStorage<OnDeviceStop>(
   "audioOnDeviceStop",
-  undefined,
+  undefined
 );
 
 const broadcastScreenShareOnConnectAtom = atomWithStorage<boolean | undefined>(
   "broadcastScreenShareOnConnect",
-  undefined,
+  undefined
 );
 const broadcastScreenShareOnDeviceStartAtom = atomWithStorage<
   boolean | undefined
@@ -99,27 +99,27 @@ export const MainControls = () => {
   const authError = useAuthErrorReason();
 
   const [broadcastVideoOnConnect, setBroadcastVideoOnConnect] = useAtom(
-    broadcastVideoOnConnectAtom,
+    broadcastVideoOnConnectAtom
   );
   const [broadcastVideoOnDeviceStart, setBroadcastVideoOnDeviceStart] = useAtom(
-    broadcastVideoOnDeviceStartAtom,
+    broadcastVideoOnDeviceStartAtom
   );
   const [broadcastVideoOnDeviceChange, setBroadcastVideoOnDeviceChange] =
     useAtom(videoOnDeviceChangeAtom);
   const [broadcastVideoOnDeviceStop, setBroadcastVideoOnDeviceStop] = useAtom(
-    videoOnDeviceStopAtom,
+    videoOnDeviceStopAtom
   );
 
   const [broadcastAudioOnConnect, setBroadcastAudioOnConnect] = useAtom(
-    broadcastAudioOnConnectAtom,
+    broadcastAudioOnConnectAtom
   );
   const [broadcastAudioOnDeviceStart, setBroadcastAudioOnDeviceStart] = useAtom(
-    broadcastAudioOnDeviceStartAtom,
+    broadcastAudioOnDeviceStartAtom
   );
   const [broadcastAudioOnDeviceChange, setBroadcastAudioOnDeviceChange] =
     useAtom(audioOnDeviceChangeAtom);
   const [broadcastAudioOnDeviceStop, setBroadcastAudioOnDeviceStop] = useAtom(
-    audioOnDeviceStopAtom,
+    audioOnDeviceStopAtom
   );
 
   const [broadcastScreenShareOnConnect, setBroadcastScreenShareOnConnect] =
@@ -172,6 +172,9 @@ export const MainControls = () => {
   const screenShare = useScreenShare();
   const status = useStatus();
 
+  const audioStatus = client.audioDeviceManager.getStatus();
+  const videoStatus = client.videoDeviceManager.getStatus();
+
   return (
     <div className="flex flex-row flex-wrap gap-2 p-2 md:grid md:grid-cols-2">
       <div className="flex flex-col gap-2">
@@ -198,9 +201,7 @@ export const MainControls = () => {
           <button
             className="btn btn-info btn-sm"
             disabled={
-              ![client.audioDeviceManager, client.videoDeviceManager]
-                .map((manager) => manager.getStatus())
-                .includes("uninitialized")
+              audioStatus !== "uninitialized" || videoStatus !== "uninitialized"
             }
             onClick={() => {
               init();
@@ -373,9 +374,9 @@ export const MainControls = () => {
           name="Video"
           activeDevice={video?.deviceInfo?.label ?? null}
           devices={video?.devices || null}
-          setInput={(id) => {
-            if (!id) return;
-            video.initialize(id);
+          setInput={(deviceId) => {
+            if (!deviceId) return;
+            video.initialize(deviceId);
           }}
           defaultOptionText="Select video device"
           stop={() => {
@@ -387,9 +388,9 @@ export const MainControls = () => {
           name="Audio"
           activeDevice={audio?.deviceInfo?.label ?? null}
           devices={audio?.devices || null}
-          setInput={(id) => {
-            if (!id) return;
-            audio.initialize(id);
+          setInput={(deviceId) => {
+            if (!deviceId) return;
+            audio.initialize(deviceId);
           }}
           defaultOptionText="Select audio device"
           stop={() => {

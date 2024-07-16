@@ -4,6 +4,18 @@ import type { WebRTCEndpoint } from '../webRTCEndpoint';
 import type { Connection } from '../Connection';
 import type { Local } from './Local';
 
+/**
+ * This class is responsible for handling asynchronous operations related to track management.
+ * It contains methods and state associated with handling a single operation
+ * (adding, removing, and replacing a track).
+ * It facilitates the preparation of events that will later be handled by the `CommandsQueue`.
+ * It informs the `CommandsQueue` whether the previous task has been completed
+ *
+ * Adding and removing tracks requires renegotiation.
+ *
+ * Replacing a track relies on `ongoingTrackReplacement`, which probably could be removed
+ * and replaced with a Promise, because it does not require renegotiation.
+ */
 export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
   public connection?: Connection;
 

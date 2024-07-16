@@ -10,14 +10,14 @@ export type TurnServer = {
 
 export class Connection {
   public readonly connection: RTCPeerConnection;
-  public rtcConfig: RTCConfiguration = {
+  private rtcConfig: RTCConfiguration = {
     bundlePolicy: 'max-bundle',
     iceServers: [],
     iceTransportPolicy: 'relay',
   };
 
   constructor(config: TurnServer[]) {
-    this.setTurns(config, this.rtcConfig);
+    this.setTurns(config);
     this.connection = new RTCPeerConnection(this.rtcConfig);
   }
 
@@ -36,10 +36,8 @@ export class Connection {
   /**
    * Configures TURN servers for WebRTC connections by adding them to the provided RTCConfiguration object.
    */
-  private setTurns = (
-    turnServers: TurnServer[],
-    rtcConfig: RTCConfiguration,
-  ): void => {
+  // TODO refactor to pure function
+  private setTurns = (turnServers: TurnServer[]): void => {
     turnServers
       .map((turnServer: TurnServer) => {
         const transport =
@@ -55,7 +53,7 @@ export class Connection {
         } satisfies RTCIceServer;
       })
       .forEach((rtcIceServer) => {
-        rtcConfig.iceServers!.push(rtcIceServer);
+        this.rtcConfig.iceServers!.push(rtcIceServer);
       });
   };
 

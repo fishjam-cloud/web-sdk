@@ -16,9 +16,15 @@ import type { Connection } from '../Connection';
 import type { Bitrates } from '../bitrate';
 import type { EndpointId, TrackId } from './TrackCommon';
 
-type Mid = string;
-export type MidToTrackId = Record<Mid, TrackId>;
+export type MidToTrackId = Record<MLineId, TrackId>;
 
+/**
+ * This class encapsulates methods related to handling the list of local tracks and local endpoint.
+ * It stores and mutates part of the client state for this local peer.
+ * It emits local events for local tracks and endpoints,
+ * and delegates mutation logic to the appropriate `LocalTrack` objects.
+ * It's responsible for creating `MidToTrackId` record which is required in `sdpOffer`
+ */
 export class Local<EndpointMetadata, TrackMetadata> {
   private readonly localTracks: Record<
     TrackId,
@@ -52,6 +58,29 @@ export class Local<EndpointMetadata, TrackMetadata> {
     this.endpointMetadataParser = endpointMetadataParser;
     this.trackMetadataParser = trackMetadataParser;
   }
+
+  public updateSenders = () => {
+    Object.values(this.localTracks).forEach((localTrack) => {
+      localTrack.updateSender();
+    });
+  };
+
+  public updateMLineIds = (midToTrackId: MidToTrackId) => {
+    Object.entries(midToTrackId).forEach(([mLineId, trackId]) => {
+      const localTrack = this.localTracks[trackId];
+      if (localTrack) {
+        localTrack.setMLineId(mLineId);
+      }
+    });
+  };
+
+  public updateConnection = (connection: Connection) => {
+    this.connection = connection;
+
+    Object.values(this.localTracks).forEach((track) => {
+      track.updateConnection(connection);
+    });
+  };
 
   public addTrack = (
     connection: Connection | undefined,
@@ -127,7 +156,7 @@ export class Local<EndpointMetadata, TrackMetadata> {
     newTrack: MediaStreamTrack | null,
     newTrackMetadata: TrackMetadata | undefined,
   ) => {
-    // todo add validation to track.kind, you cannot replace video with audio
+    // TODO add validation to track.kind, you cannot replace video with audio
 
     const trackManager = this.localTracks[trackId];
     if (!trackManager) throw new Error(`Cannot find ${trackId}`);
@@ -216,12 +245,6 @@ export class Local<EndpointMetadata, TrackMetadata> {
     });
   };
 
-  public updateSenders = () => {
-    Object.values(this.localTracks).forEach((localTrack) => {
-      localTrack.updateSender();
-    });
-  };
-
   public updateEndpointMetadata = (metadata: unknown) => {
     this.localEndpoint.metadata = this.endpointMetadataParser(metadata);
     this.localEndpoint.rawMetadata = this.localEndpoint.metadata;
@@ -272,7 +295,7 @@ export class Local<EndpointMetadata, TrackMetadata> {
   public disableLocalTrackEncoding = async (
     trackId: string,
     encoding: Encoding,
-  ) => {
+  ): Promise<void> => {
     const localTrack = this.localTracks[trackId];
     if (!localTrack) throw new Error(`Track ${trackId} not found`);
 
@@ -293,7 +316,7 @@ export class Local<EndpointMetadata, TrackMetadata> {
   public enableLocalTrackEncoding = async (
     trackId: TrackId,
     encoding: Encoding,
-  ) => {
+  ): Promise<void> => {
     const trackManager = this.localTracks[trackId];
     if (!trackManager) throw new Error(`Cannot find ${trackId}`);
 
@@ -308,23 +331,6 @@ export class Local<EndpointMetadata, TrackMetadata> {
     this.webrtc.emit('localTrackEncodingEnabled', {
       trackId,
       encoding,
-    });
-  };
-
-  public updateMLineIds = (midToTrackId: Record<MLineId, TrackId>) => {
-    Object.entries(midToTrackId).forEach(([mLineId, trackId]) => {
-      const localTrack = this.localTracks[trackId];
-      if (localTrack) {
-        localTrack.setMLineId(mLineId);
-      }
-    });
-  };
-
-  public updateConnection = (connection: Connection) => {
-    this.connection = connection;
-
-    Object.values(this.localTracks).forEach((track) => {
-      track.updateConnection(connection);
     });
   };
 

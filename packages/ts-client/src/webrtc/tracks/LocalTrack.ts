@@ -21,6 +21,35 @@ import {
 } from '../bitrate';
 import type { Connection } from '../Connection';
 
+/**
+ * This is a wrapper over `TrackContext` that adds additional properties such as:
+ * - `MLineId`: required to generate sdpOffer
+ * - `MediaStreamTrackId`: required to generate sdpOffer and match RTCRtpSender
+ * - `RTCRtpSender`: required to manage RTCPeerConnection track, e.g.:
+ *   - enable/disable encoding
+ *   - remove from connection
+ *   - replace track
+ *   - set track bandwidth
+ *
+ * In the future, this object could potentially be merged with `TrackContextImpl`.
+ *
+ * # Lifecycle, state transitions
+ *
+ * I identified the following states
+ * - Before creating `Connection` object
+ *   - connection === null
+ *   - sender === null
+ *   - mLineId === null
+ * - After creating `Connection` object, during `onOfferData` handler
+ *   // TODO: Verify if the track acquires a sender at this point or if it's only for past tracks
+ *   - connection !== null
+ *   - sender !== null
+ *   - mLineId === null
+ * - After establishing connection, during `onSdpAnswer`, track is being sent
+ *   - connection !== null
+ *   - sender !== null
+ *   - mLineId !== null
+ */
 export class LocalTrack<EndpointMetadata, TrackMetadata>
   implements TrackCommon
 {
@@ -55,6 +84,16 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
     }
     this.metadataParser = metadataParser;
   }
+
+  public updateSender = () => {
+    if (this.mediaStreamTrackId && this.connection) {
+      this.sender = this.connection.findSender(this.mediaStreamTrackId);
+    }
+  };
+
+  public updateConnection = (connection: Connection) => {
+    this.connection = connection;
+  };
 
   public disableTrackEncoding = async (encoding: Encoding) => {
     this.encodings[encoding] = false;
@@ -185,7 +224,9 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
     this.connection.removeTrack(this.sender);
   };
 
-  // todo extract replace metadata
+  // TODO: Remove `newTrackMetadata` parameter because this function should be an atomic operation.
+  //  Metadata are updated after `await this.sender.replaceTrack(newTrack)`,
+  //  so it could be chained by the user.
   public replaceTrack = async (
     newTrack: MediaStreamTrack | null,
     newTrackMetadata: TrackMetadata | undefined,
@@ -268,12 +309,6 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
 
     return this.sender.setParameters(parameters);
   }
-
-  public updateSender = () => {
-    if (this.mediaStreamTrackId && this.connection) {
-      this.sender = this.connection.findSender(this.mediaStreamTrackId);
-    }
-  };
 
   public updateTrackMetadata = (metadata: unknown) => {
     const trackContext = this.trackContext;
@@ -358,10 +393,6 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
         },
         {} as Record<string, Bitrate>,
       );
-  };
-
-  public updateConnection = (connection: Connection) => {
-    this.connection = connection;
   };
 
   public createTrackVariantBitratesEvent = () => {

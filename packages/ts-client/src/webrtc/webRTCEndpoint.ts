@@ -805,7 +805,7 @@ export class WebRTCEndpoint<
       }
 
       // ???
-      this.localTrackManager.updateSenders();
+      // this.localTrackManager.updateSenders();
 
       const trackIdToTrackMetadata = this.local.getTrackIdToMetadata();
       const trackIdToTrackBitrates = this.local.getTrackIdToTrackBitrates();

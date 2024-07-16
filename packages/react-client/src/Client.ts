@@ -558,12 +558,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       this.emit("deviceEnabled", { ...state, trackType: "video", mediaDeviceType: "userMedia" }, this);
     });
 
-    this.videoDeviceManager.on("managerInitialized", () => {
-      this.stateToSnapshot();
-
-      this.emit("managerInitialized", { mediaDeviceType: "userMedia" }, this);
-    });
-
     this.videoDeviceManager.on("managerStarted", (state) => {
       this.stateToSnapshot();
 
@@ -610,12 +604,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       this.stateToSnapshot();
 
       this.emit("deviceEnabled", { ...state, trackType: "audio", mediaDeviceType: "userMedia" }, this);
-    });
-
-    this.audioDeviceManager.on("managerInitialized", () => {
-      this.stateToSnapshot();
-
-      this.emit("managerInitialized", { mediaDeviceType: "userMedia" }, this);
     });
 
     this.audioDeviceManager.on("managerStarted", (state) => {
@@ -903,6 +891,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       !!constraints.audio,
       deviceErrors.audio,
     );
+
+    this.emit("managerInitialized", { mediaDeviceType: "userMedia" }, this);
   };
 
   public startDevices = async (config: DeviceManagerStartConfig) => {

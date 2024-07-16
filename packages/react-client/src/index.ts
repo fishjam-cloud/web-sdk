@@ -26,6 +26,7 @@ export type {
   UseSetupMediaConfig,
   CreateFishjamClient,
   UseConnect,
+  GenericTrackManager,
 } from "./types";
 
 export type { ScreenShareManagerConfig } from "./ScreenShareManager";

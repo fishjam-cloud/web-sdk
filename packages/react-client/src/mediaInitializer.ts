@@ -16,23 +16,22 @@ type PreviousDevices = AudioVideo<MediaDeviceInfo | null>;
 
 const defaultErrors = { audio: null, video: null };
 
-const tryToGetVideoThenAudio = async (
+const tryToGetAudioOnlyThenVideoOnly = async (
   constraints: MediaStreamConstraints,
   deviceErrors: AudioVideo<DeviceError | null> = defaultErrors,
   transformConstraint: (value?: boolean | MediaTrackConstraints) => boolean | MediaTrackConstraints | undefined = () =>
     false,
 ) => {
-  try {
-    return await getAvailableMedia(
-      { ...constraints, video: transformConstraint(constraints.video) },
-      { ...deviceErrors, video: null },
-    );
-  } catch (err: unknown) {
-    return await getAvailableMedia(
-      { ...constraints, video: transformConstraint(constraints.audio) },
-      { ...deviceErrors, audio: null },
-    );
-  }
+  const audioOnly = await getAvailableMedia(
+    { ...constraints, video: transformConstraint(constraints.video) },
+    { ...deviceErrors, audio: null },
+  );
+  if (audioOnly[0]) return audioOnly;
+
+  return getAvailableMedia(
+    { ...constraints, audio: transformConstraint(constraints.audio) },
+    { ...deviceErrors, video: null },
+  );
 };
 
 export const getAvailableMedia = async (
@@ -44,17 +43,19 @@ export const getAvailableMedia = async (
   } catch (err: unknown) {
     if (!(err instanceof DOMException)) return [null, { audio: UNHANDLED_ERROR, video: UNHANDLED_ERROR }];
 
+    if (err.name === deviceErrors.audio?.name || err.name === deviceErrors.video?.name) return [null, deviceErrors];
+
     switch (err.name) {
       case "NotFoundError":
-        return tryToGetVideoThenAudio(constraints, { audio: NOT_FOUND_ERROR, video: NOT_FOUND_ERROR });
+        return tryToGetAudioOnlyThenVideoOnly(constraints, { audio: NOT_FOUND_ERROR, video: NOT_FOUND_ERROR });
       case "OverconstrainedError":
-        return tryToGetVideoThenAudio(
+        return tryToGetAudioOnlyThenVideoOnly(
           constraints,
           { audio: OVERCONSTRAINED_ERROR, video: OVERCONSTRAINED_ERROR },
           removeSpecifiedDeviceFromConstraints,
         );
       case "NotAllowedError":
-        return tryToGetVideoThenAudio(constraints, { audio: PERMISSION_DENIED, video: PERMISSION_DENIED });
+        return tryToGetAudioOnlyThenVideoOnly(constraints, { audio: PERMISSION_DENIED, video: PERMISSION_DENIED });
       default:
         return [null, { audio: UNHANDLED_ERROR, video: UNHANDLED_ERROR }];
     }

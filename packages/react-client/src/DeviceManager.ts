@@ -101,6 +101,7 @@ export class DeviceManager
     const deviceInfo = this.deviceState.media?.deviceInfo;
     if (deviceInfo) this.saveLastDevice(deviceInfo);
 
+    this.status = "initialized";
     this.setupOnEndedCallback();
     this.emit("managerInitialized", this.deviceState);
 

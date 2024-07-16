@@ -223,7 +223,7 @@ export interface ClientEvents<PeerMetadata, TrackMetadata> {
     client: ClientApi<PeerMetadata, TrackMetadata>,
   ) => void;
   managerInitialized: (
-    event: { audio?: DeviceState; video?: DeviceState; mediaDeviceType: MediaDeviceType },
+    event: { audio?: DeviceState; video?: DeviceState },
     client: ClientApi<PeerMetadata, TrackMetadata>,
   ) => void;
   deviceReady: (
@@ -877,14 +877,15 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       [stream, deviceErrors] = await getCorrectedResult(stream, deviceErrors, devices, constraints, previousDevices);
     }
 
-    this.videoDeviceManager.initialize(
+    const state: { audio?: DeviceState; video?: DeviceState } = {};
+    state.audio = this.videoDeviceManager.initialize(
       stream,
       stream?.getVideoTracks()?.[0] ?? null,
       videoDevices,
       !!constraints.video,
       deviceErrors.video,
     );
-    this.audioDeviceManager.initialize(
+    state.video = this.audioDeviceManager.initialize(
       stream,
       stream?.getAudioTracks()?.[0] ?? null,
       audioDevices,
@@ -892,7 +893,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       deviceErrors.audio,
     );
 
-    this.emit("managerInitialized", { mediaDeviceType: "userMedia" }, this);
+    this.emit("managerInitialized", state, this);
   };
 
   public startDevices = async (config: DeviceManagerStartConfig) => {

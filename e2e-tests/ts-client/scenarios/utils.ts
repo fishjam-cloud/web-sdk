@@ -137,15 +137,14 @@ export const assertThatRemoteTracksAreVisible = async (
   });
 };
 
-type WebrtcClient = { webrtc?: { stateManager: { connection?: RTCPeerConnection } } };
+type WebrtcClient = { webrtc?: { connection: { connection?: RTCPeerConnection } } };
 type WindowType = typeof window;
 
 export const assertThatOtherVideoIsPlaying = async (page: Page) => {
   await test.step('Assert that media is working', async () => {
     const getDecodedFrames: () => Promise<number> = () =>
       page.evaluate(async () => {
-        const connection = (window as WindowType & WebrtcClient)?.webrtc?.stateManager
-          ?.connection;
+        const connection = (window as WindowType & WebrtcClient)?.webrtc?.connection?.connection;
         // connection object is available after first renegotiation (sdpOffer, sdpAnswer)
         if (!window || !connection) return -1;
         const stats = await connection.getStats();

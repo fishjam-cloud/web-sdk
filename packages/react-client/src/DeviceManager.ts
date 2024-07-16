@@ -1,18 +1,11 @@
-import {
-  type DeviceManagerConfig,
-  type DeviceState,
-  type Media,
-  type GenericMediaManager,
-  type StorageConfig,
-  type DeviceError,
-  parseUserMediaError,
-} from "./types";
+import type { DeviceManagerConfig, DeviceState, Media, GenericMediaManager, StorageConfig, DeviceError } from "./types";
 
 import { prepareMediaTrackConstraints, toMediaTrackConstraints } from "./constraints";
 
 import EventEmitter from "events";
 import type TypedEmitter from "typed-emitter";
 import { getDeviceInfo, getLocalStorageConfig, prepareDeviceState } from "./utils/media";
+import { parseUserMediaError } from "./utils/errors";
 
 export type DeviceManagerEvents = {
   managerStarted: (

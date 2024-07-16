@@ -1,19 +1,4 @@
-import type {
-  CurrentDevices,
-  DeviceError,
-  DevicesStatus,
-  DeviceState,
-  Errors,
-  GetMedia,
-  StorageConfig,
-} from "../types";
-import {
-  NOT_FOUND_ERROR,
-  OVERCONSTRAINED_ERROR,
-  parseUserMediaError,
-  PERMISSION_DENIED,
-  UNHANDLED_ERROR,
-} from "../types";
+import type { CurrentDevices, DeviceError, DevicesStatus, DeviceState, StorageConfig } from "../types";
 
 import { loadObject, saveObject } from "./localStorage";
 

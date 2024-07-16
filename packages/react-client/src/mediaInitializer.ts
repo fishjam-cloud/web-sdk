@@ -1,5 +1,5 @@
 import { prepareConstraints } from "./constraints";
-import type { DeviceError} from "./types";
+import type { DeviceError } from "./types";
 import { NOT_FOUND_ERROR, OVERCONSTRAINED_ERROR, PERMISSION_DENIED, UNHANDLED_ERROR } from "./types";
 import { getCurrentDevicesSettings, stopTracks, isAnyDeviceDifferentFromLastSession, removeExact } from "./utils/media";
 

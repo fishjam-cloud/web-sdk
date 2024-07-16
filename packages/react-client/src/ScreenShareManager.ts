@@ -1,7 +1,7 @@
 import EventEmitter from "events";
 import type TypedEmitter from "typed-emitter";
 import type { DeviceError, DevicesStatus } from "./types";
-import { parseUserMediaError } from "./types";
+import { parseUserMediaError } from "./utils/errors";
 import type { TrackKind } from "@fishjam-dev/ts-client";
 
 export type TrackType = TrackKind | "audiovideo";

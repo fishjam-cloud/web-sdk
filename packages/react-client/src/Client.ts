@@ -18,7 +18,6 @@ import { FishjamClient } from "@fishjam-dev/ts-client";
 import type { PeerId, PeerState, PeerStatus, Track, TrackId, TrackWithOrigin } from "./state.types";
 import type { MediaDeviceType, ScreenShareManagerConfig, TrackType } from "./ScreenShareManager";
 import { ScreenShareManager } from "./ScreenShareManager";
-import type { DeviceError } from "./types";
 import type {
   DeviceManagerConfig,
   DeviceManagerInitConfig,

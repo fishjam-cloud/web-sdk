@@ -1,31 +1,17 @@
 import type { FishjamContextType, UseSetupMediaConfig, UseSetupMediaResult } from "./types";
 import { useEffect, useMemo, useRef } from "react";
-import type { MediaDeviceType, TrackType } from "./ScreenShareManager";
+import type { MediaDeviceType } from "./ScreenShareManager";
 import type { ClientApi, ClientEvents } from "./Client";
 import type { PeerStatus } from "./state.types";
 
 export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
   useFishjamContext: () => FishjamContextType<PeerMetadata, TrackMetadata>,
 ) => {
-  const isBroadcastedTrackChanged = (
-    expectedMediaDeviceType: MediaDeviceType,
-    client: ClientApi<PeerMetadata, TrackMetadata>,
-    pending: boolean,
-    mediaDeviceType: MediaDeviceType,
-  ) =>
-    client.status === "joined" && mediaDeviceType === expectedMediaDeviceType && !pending && !client.isReconnecting();
+  const isBroadcastedTrackChanged = (client: ClientApi<PeerMetadata, TrackMetadata>, pending: boolean) =>
+    client.status === "joined" && !pending && !client.isReconnecting();
 
-  const isBroadcastedTrackStopped = (
-    expectedMediaDeviceType: MediaDeviceType,
-    expectedTrackType: TrackType,
-    status: PeerStatus,
-    event: Parameters<ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"]>[0],
-    stream: MediaStream | undefined | null,
-  ) =>
-    status === "joined" &&
-    event.mediaDeviceType === expectedMediaDeviceType &&
-    event.trackType === expectedTrackType &&
-    stream;
+  const isBroadcastedTrackStopped = (status: PeerStatus, stream: MediaStream | undefined | null) =>
+    status === "joined" && stream;
 
   return (config: UseSetupMediaConfig<TrackMetadata>): UseSetupMediaResult => {
     const { state } = useFishjamContext();
@@ -60,17 +46,14 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
     useEffect(() => {
       let pending = false;
 
-      const broadcastOnCameraStart = async (
-        event: { mediaDeviceType: MediaDeviceType },
-        client: ClientApi<PeerMetadata, TrackMetadata>,
-      ) => {
+      const broadcastOnCameraStart = async (client: ClientApi<PeerMetadata, TrackMetadata>) => {
         const config = configRef.current.camera;
         const videoTrackManager = client.videoTrackManager;
         const onDeviceChange = config.onDeviceChange ?? "replace";
         const camera = client.devices.camera;
         const stream = camera.broadcast?.stream;
 
-        if (isBroadcastedTrackChanged("userMedia", client, pending, event.mediaDeviceType)) {
+        if (isBroadcastedTrackChanged(client, pending)) {
           if (!stream && config.broadcastOnDeviceStart) {
             pending = true;
 
@@ -100,19 +83,19 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
         client,
       ) => {
         if (event.video?.media?.stream) {
-          await broadcastOnCameraStart(event, client);
+          await broadcastOnCameraStart(client);
         }
       };
 
       const devicesReady: ClientEvents<PeerMetadata, TrackMetadata>["devicesReady"] = async (event, client) => {
         if (event.trackType === "video" && event.restarted && event?.media?.stream) {
-          await broadcastOnCameraStart(event, client);
+          await broadcastOnCameraStart(client);
         }
       };
 
       const deviceReady: ClientEvents<PeerMetadata, TrackMetadata>["deviceReady"] = async (event, client) => {
         if (event.trackType === "video") {
-          await broadcastOnCameraStart(event, client);
+          await broadcastOnCameraStart(client);
         }
       };
 
@@ -137,7 +120,11 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
         const stream = camera.broadcast?.stream;
         const onDeviceStop = configRef.current.camera.onDeviceStop ?? "mute";
 
-        if (isBroadcastedTrackStopped("userMedia", "video", client.status, event, stream)) {
+        if (
+          event.mediaDeviceType === "userMedia" &&
+          event.trackType === "video" &&
+          isBroadcastedTrackStopped(client.status, stream)
+        ) {
           if (onDeviceStop === "mute") {
             await videoTrackManager.pauseStreaming();
           } else {
@@ -178,17 +165,14 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
     useEffect(() => {
       let pending = false;
 
-      const broadcastOnMicrophoneStart = async (
-        event: { mediaDeviceType: MediaDeviceType },
-        client: ClientApi<PeerMetadata, TrackMetadata>,
-      ) => {
+      const broadcastOnMicrophoneStart = async (client: ClientApi<PeerMetadata, TrackMetadata>) => {
         const microphone = client.devices.microphone;
         const audioTrackManager = client.audioTrackManager;
         const stream = microphone.broadcast?.stream;
         const config = configRef.current.microphone;
         const onDeviceChange = config.onDeviceChange ?? "replace";
 
-        if (isBroadcastedTrackChanged("userMedia", client, pending, event.mediaDeviceType)) {
+        if (isBroadcastedTrackChanged(client, pending)) {
           if (!stream && config.broadcastOnDeviceStart) {
             pending = true;
 
@@ -218,19 +202,19 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
         client,
       ) => {
         if (event.audio?.media?.stream) {
-          await broadcastOnMicrophoneStart(event, client);
+          await broadcastOnMicrophoneStart(client);
         }
       };
 
       const devicesReady: ClientEvents<PeerMetadata, TrackMetadata>["devicesReady"] = async (event, client) => {
         if (event.trackType === "audio" && event.restarted && event?.media?.stream) {
-          await broadcastOnMicrophoneStart(event, client);
+          await broadcastOnMicrophoneStart(client);
         }
       };
 
       const deviceReady: ClientEvents<PeerMetadata, TrackMetadata>["deviceReady"] = async (event, client) => {
         if (event.trackType === "audio") {
-          await broadcastOnMicrophoneStart(event, client);
+          await broadcastOnMicrophoneStart(client);
         }
       };
 
@@ -250,8 +234,10 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
         const audioTrackManager = client.audioTrackManager;
         const stream = client.devices.microphone.broadcast?.stream;
         const onDeviceStop = configRef.current.microphone.onDeviceStop ?? "mute";
+        const isRightDeviceType = event.mediaDeviceType === "userMedia";
+        const isRightTrackType = event.trackType === "audio";
 
-        if (isBroadcastedTrackStopped("userMedia", "audio", client.status, event, stream)) {
+        if (isRightDeviceType && isRightTrackType && isBroadcastedTrackStopped(client.status, stream)) {
           if (onDeviceStop === "mute") {
             await audioTrackManager.pauseStreaming();
           } else {
@@ -300,7 +286,8 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
         const { broadcastOnDeviceStart, defaultTrackMetadata, defaultMaxBandwidth } = configRef.current.screenShare;
 
         if (
-          isBroadcastedTrackChanged("displayMedia", client, pending, event.mediaDeviceType) &&
+          event.mediaDeviceType === "displayMedia" &&
+          isBroadcastedTrackChanged(client, pending) &&
           !stream &&
           broadcastOnDeviceStart
         ) {
@@ -322,7 +309,10 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
     useEffect(() => {
       const onScreenShareStop: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (event, client) => {
         const stream = client.devices.screenShare.broadcast?.stream;
-        if (isBroadcastedTrackStopped("displayMedia", "video", client.status, event, stream)) {
+        const isRightDeviceType = event.mediaDeviceType === "displayMedia";
+        const isRightTrackType = event.trackType === "video";
+
+        if (isRightDeviceType && isRightTrackType && isBroadcastedTrackStopped(client.status, stream)) {
           await client.devices.screenShare.stopStreaming();
         }
       };

@@ -1,7 +1,12 @@
 import { prepareConstraints } from "./constraints";
 import type { DeviceError } from "./types";
 import { NOT_FOUND_ERROR, OVERCONSTRAINED_ERROR, PERMISSION_DENIED, UNHANDLED_ERROR } from "./utils/errors";
-import { getCurrentDevicesSettings, stopTracks, isAnyDeviceDifferentFromLastSession, removeExact } from "./utils/media";
+import {
+  getCurrentDevicesSettings,
+  stopTracks,
+  isAnyDeviceDifferentFromLastSession,
+  removeSpecifiedDeviceFromConstraints,
+} from "./utils/media";
 
 type AudioVideo<T> = { audio: T; video: T };
 
@@ -39,20 +44,20 @@ export const getAvailableMedia = async (
   } catch (err: unknown) {
     if (!(err instanceof DOMException)) return [null, { audio: UNHANDLED_ERROR, video: UNHANDLED_ERROR }];
 
-    if (err.name === "NotFoundError")
-      return tryToGetVideoThenAudio(constraints, { audio: NOT_FOUND_ERROR, video: NOT_FOUND_ERROR });
-
-    if (err.name === "OverconstrainedError")
-      return tryToGetVideoThenAudio(
-        constraints,
-        { audio: OVERCONSTRAINED_ERROR, video: OVERCONSTRAINED_ERROR },
-        removeExact,
-      );
-
-    if (err.name === "NotAllowedError")
-      return tryToGetVideoThenAudio(constraints, { audio: PERMISSION_DENIED, video: PERMISSION_DENIED });
-
-    return [null, { audio: UNHANDLED_ERROR, video: UNHANDLED_ERROR }];
+    switch (err.name) {
+      case "NotFoundError":
+        return tryToGetVideoThenAudio(constraints, { audio: NOT_FOUND_ERROR, video: NOT_FOUND_ERROR });
+      case "OverconstrainedError":
+        return tryToGetVideoThenAudio(
+          constraints,
+          { audio: OVERCONSTRAINED_ERROR, video: OVERCONSTRAINED_ERROR },
+          removeSpecifiedDeviceFromConstraints,
+        );
+      case "NotAllowedError":
+        return tryToGetVideoThenAudio(constraints, { audio: PERMISSION_DENIED, video: PERMISSION_DENIED });
+      default:
+        return [null, { audio: UNHANDLED_ERROR, video: UNHANDLED_ERROR }];
+    }
   }
 };
 

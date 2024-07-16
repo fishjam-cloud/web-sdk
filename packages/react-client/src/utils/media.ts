@@ -2,7 +2,7 @@ import type { CurrentDevices, DeviceError, DevicesStatus, DeviceState, StorageCo
 
 import { loadObject, saveObject } from "./localStorage";
 
-export const removeExact = (
+export const removeSpecifiedDeviceFromConstraints = (
   trackConstraints?: boolean | MediaTrackConstraints,
 ): boolean | MediaTrackConstraints | undefined => {
   if (typeof trackConstraints === "object") {

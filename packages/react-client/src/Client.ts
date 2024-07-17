@@ -1036,36 +1036,36 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
     const peersTracks: Record<TrackId, TrackWithOrigin<PeerMetadata, TrackMetadata>> = {};
     const componentTracks: Record<TrackId, TrackWithOrigin<PeerMetadata, TrackMetadata>> = {};
 
-    Object.values(this.tsClient.getRemotePeers()).forEach((endpoint) => {
+    Object.values(this.tsClient.getRemotePeers()).forEach((remotePeer) => {
       const tracks: Record<TrackId, Track<TrackMetadata>> = {};
-      endpoint.tracks.forEach((track) => {
+      remotePeer.tracks.forEach((track) => {
         const mappedTrack = this.trackContextToTrack(track);
         tracks[track.trackId] = mappedTrack;
-        peersTracks[track.trackId] = { ...mappedTrack, origin: endpoint };
+        peersTracks[track.trackId] = { ...mappedTrack, origin: remotePeer };
       });
 
-      peers[endpoint.id] = {
-        rawMetadata: endpoint.rawMetadata,
-        metadata: endpoint.metadata,
-        metadataParsingError: endpoint.metadataParsingError,
-        id: endpoint.id,
+      peers[remotePeer.id] = {
+        rawMetadata: remotePeer.rawMetadata,
+        metadata: remotePeer.metadata,
+        metadataParsingError: remotePeer.metadataParsingError,
+        id: remotePeer.id,
         tracks,
       };
     });
 
-    Object.values(this.tsClient.getRemoteComponents()).forEach((endpoint) => {
+    Object.values(this.tsClient.getRemoteComponents()).forEach((remotePeer) => {
       const tracks: Record<TrackId, Track<TrackMetadata>> = {};
-      endpoint.tracks.forEach((track) => {
+      remotePeer.tracks.forEach((track) => {
         const mappedTrack = this.trackContextToTrack(track);
         tracks[track.trackId] = mappedTrack;
-        componentTracks[track.trackId] = { ...mappedTrack, origin: endpoint };
+        componentTracks[track.trackId] = { ...mappedTrack, origin: remotePeer };
       });
 
-      components[endpoint.id] = {
-        rawMetadata: endpoint.rawMetadata,
-        metadata: endpoint.metadata,
-        metadataParsingError: endpoint.metadataParsingError,
-        id: endpoint.id,
+      components[remotePeer.id] = {
+        rawMetadata: remotePeer.rawMetadata,
+        metadata: remotePeer.metadata,
+        metadataParsingError: remotePeer.metadataParsingError,
+        id: remotePeer.id,
         tracks,
       };
     });

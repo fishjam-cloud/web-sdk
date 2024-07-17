@@ -82,6 +82,13 @@ export class DeviceManager
 
   public getMedia = () => this.deviceState.media;
 
+  public getTracks = () => {
+    if (this.deviceType === "audio") {
+      return this.deviceState.media?.stream?.getAudioTracks() ?? [];
+    }
+    return this.deviceState.media?.stream?.getVideoTracks() ?? [];
+  };
+
   public initialize = (
     stream: MediaStream | null,
     track: MediaStreamTrack | null,

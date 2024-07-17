@@ -143,6 +143,7 @@ export interface GenericMediaManager {
   stop: () => Promise<void>;
   disable: () => void;
   enable: () => void;
+  getTracks: () => MediaStreamTrack[];
   getMedia: () => { stream: MediaStream | null; track: MediaStreamTrack | null; enabled: boolean } | null;
 }
 

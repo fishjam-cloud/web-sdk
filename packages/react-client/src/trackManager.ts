@@ -23,6 +23,7 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackMa
   };
 
   public getCurrentTrack = (): Track<TrackMetadata> | null => {
+    if (!this.currentTrackId) return null;
     return this.getRemoteTrack(this.currentTrackId);
   };
 
@@ -38,9 +39,7 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackMa
     metadataParsingError: track.metadataParsingError,
   });
 
-  private getRemoteTrack = (remoteOrLocalTrackId: string | null): Track<TrackMetadata> | null => {
-    if (!remoteOrLocalTrackId) return null;
-
+  private getRemoteTrack = (remoteOrLocalTrackId: string): Track<TrackMetadata> | null => {
     const tracks = this.tsClient?.getLocalEndpoint()?.tracks;
     if (!tracks) return null;
 
@@ -87,7 +86,7 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackMa
   public refreshStreamedTrack = async () => {
     const prevTrack = this.getPreviousTrack();
 
-    const newTrack = this.mediaManager.getMedia()?.stream?.getVideoTracks()[0];
+    const newTrack = this.mediaManager.getTracks()[0];
     if (!newTrack) throw Error("New track is empty");
 
     return this.tsClient.replaceTrack(prevTrack.trackId, newTrack);

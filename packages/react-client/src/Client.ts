@@ -325,8 +325,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
   public reconnectionStatus: ReconnectionStatus = "idle";
 
-  private currentMicrophoneTrackId: string | null = null;
-  private currentCameraTrackId: string | null = null;
   private currentScreenShareTrackId: string | null = null;
 
   public videoDeviceManager: DeviceManager;
@@ -424,8 +422,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
     this.tsClient.on("disconnected", () => {
       this.status = null;
-      this.currentCameraTrackId = null;
-      this.currentMicrophoneTrackId = null;
+      this.videoTrackManager.stopStreaming();
+      this.audioTrackManager.stopStreaming();
       this.currentScreenShareTrackId = null;
       this.stateToSnapshot();
 
@@ -938,8 +936,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       localTracks[track.trackId] = this.trackContextToTrack(track);
     });
 
-    const broadcastedVideoTrack = this.getRemoteTrack(this.currentCameraTrackId);
-    const broadcastedAudioTrack = this.getRemoteTrack(this.currentMicrophoneTrackId);
+    const broadcastedVideoTrack = this.videoTrackManager.getCurrentTrack();
+    const broadcastedAudioTrack = this.audioTrackManager.getCurrentTrack();
     const screenShareVideoTrack = this.getRemoteTrack(this.currentScreenShareTrackId);
 
     const devices: Devices<TrackMetadata> = {

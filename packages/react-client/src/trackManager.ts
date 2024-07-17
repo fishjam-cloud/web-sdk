@@ -22,6 +22,10 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackMa
     return prevTrack;
   };
 
+  public getCurrentTrack = (): Track<TrackMetadata> | null => {
+    return this.getRemoteTrack(this.currentTrackId);
+  };
+
   private trackContextToTrack = (track: TrackContext<unknown, TrackMetadata>): Track<TrackMetadata> => ({
     rawMetadata: track.rawMetadata,
     metadata: track.metadata,

@@ -877,22 +877,24 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       [stream, deviceErrors] = await getCorrectedResult(stream, deviceErrors, devices, constraints, previousDevices);
     }
 
-    const state: { audio?: DeviceState; video?: DeviceState } = {};
-    state.audio = this.videoDeviceManager.initialize(
-      stream,
-      stream?.getVideoTracks()?.[0] ?? null,
-      videoDevices,
-      !!constraints.video,
-      deviceErrors.video,
-    );
-    state.video = this.audioDeviceManager.initialize(
-      stream,
-      stream?.getAudioTracks()?.[0] ?? null,
-      audioDevices,
-      !!constraints.audio,
-      deviceErrors.audio,
-    );
+    const state = {
+      video: this.videoDeviceManager.initialize(
+        stream,
+        stream?.getVideoTracks()?.[0] ?? null,
+        videoDevices,
+        !!constraints.video,
+        deviceErrors.video,
+      ),
+      audio: this.audioDeviceManager.initialize(
+        stream,
+        stream?.getAudioTracks()?.[0] ?? null,
+        audioDevices,
+        !!constraints.audio,
+        deviceErrors.audio,
+      ),
+    };
 
+    this.stateToSnapshot();
     this.emit("managerInitialized", state, this);
   };
 

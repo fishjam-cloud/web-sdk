@@ -17,6 +17,9 @@ import type { ReconnectConfig } from './reconnection';
 import { ReconnectManager } from './reconnection';
 import type { AuthErrorReason } from './auth';
 import { isAuthError } from './auth';
+import { generateMediaEvent, serializeMediaEvent } from './webrtc/mediaEvent';
+
+const STATISTICS_INTERVAL = 10_000;
 
 export type Peer<PeerMetadata, TrackMetadata> = Endpoint<
   PeerMetadata,
@@ -359,6 +362,8 @@ export class FishjamClient<
 
   private reconnectManager: ReconnectManager<PeerMetadata, TrackMetadata>;
 
+  private sendStatisticsInterval: NodeJS.Timeout | undefined = undefined;
+
   private readonly peerMetadataParser: MetadataParser<PeerMetadata>;
   private readonly trackMetadataParser: MetadataParser<TrackMetadata>;
 
@@ -585,12 +590,19 @@ export class FishjamClient<
 
         await this.reconnectManager.handleReconnect();
 
+        this.sendStatisticsInterval = setInterval(
+          () => this.sendStatistics(),
+          STATISTICS_INTERVAL,
+        );
+
         this.emit('joined', peerId, peers, components);
       },
     );
 
     this.webrtc?.on('disconnected', () => {
       this.emit('disconnected');
+
+      clearInterval(this.sendStatisticsInterval);
     });
     this.webrtc?.on(
       'endpointAdded',
@@ -711,6 +723,29 @@ export class FishjamClient<
     });
     this.webrtc?.on('disconnectRequested', (event) => {
       this.emit('disconnectRequested', event);
+    });
+  }
+
+  private sendStatistics() {
+    this.getStatistics(null).then((statistics) => {
+      const tracksStatistics: Record<
+        string,
+        RTCInboundRtpStreamStats | RTCOutboundRtpStreamStats
+      > = {};
+
+      statistics.forEach((report, key) => {
+        if (report.type === 'inbound-rtp' || report.type === 'outbound-rtp')
+          tracksStatistics[key] = report;
+      });
+
+      const mediaEvent = generateMediaEvent('RTCStatsReport', tracksStatistics);
+      const serializedMediaEvent = serializeMediaEvent(mediaEvent);
+
+      const message = PeerMessage.encode({
+        mediaEvent: { data: serializedMediaEvent },
+      }).finish();
+
+      this.websocket?.send(message);
     });
   }
 

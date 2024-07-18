@@ -1,6 +1,6 @@
 import type { Deferred } from './deferred';
 import type { LocalTrackManager } from './tracks/LocalTrackManager';
-import type { Connection } from './Connection';
+import type { ConnectionManager } from './ConnectionManager';
 
 export type Command = {
   handler: () => void;
@@ -14,7 +14,7 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
     EndpointMetadata,
     TrackMetadata
   >;
-  private connection: Connection | null = null;
+  private connection: ConnectionManager | null = null;
   private clearConnectionCallbacks: (() => void) | null = null;
 
   constructor(
@@ -23,37 +23,29 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
     this.localTrackManager = localTrackManager;
   }
 
-  public initConnection = (connection: Connection) => {
+  public initConnection = (connection: ConnectionManager) => {
     this.connection = connection;
 
     const onSignalingStateChange = () => {
-      switch (connection.getConnection().signalingState) {
-        case 'stable':
-          this.processNextCommand();
-          break;
+      if (connection.getConnection().signalingState === 'stable') {
+        this.processNextCommand();
       }
     };
 
     const onIceGatheringStateChange = () => {
-      switch (connection.getConnection().iceGatheringState) {
-        case 'complete':
-          this.processNextCommand();
-          break;
+      if (connection.getConnection().iceGatheringState === 'complete') {
+        this.processNextCommand();
       }
     };
 
     const onConnectionStateChange = () => {
-      switch (connection.getConnection().connectionState) {
-        case 'connected':
-          this.processNextCommand();
-          break;
+      if (connection.getConnection().connectionState === 'connected') {
+        this.processNextCommand();
       }
     };
     const onIceConnectionStateChange = () => {
-      switch (connection.getConnection().iceConnectionState) {
-        case 'connected':
-          this.processNextCommand();
-          break;
+      if (connection.getConnection().iceConnectionState === 'connected') {
+        this.processNextCommand();
       }
     };
 

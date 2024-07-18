@@ -8,17 +8,19 @@ export type TurnServer = {
   username: string;
 };
 
-export class Connection {
-  public readonly connection: RTCPeerConnection;
-  private rtcConfig: RTCConfiguration = {
-    bundlePolicy: 'max-bundle',
-    iceServers: [],
-    iceTransportPolicy: 'relay',
-  };
+export class ConnectionManager {
+  private readonly connection: RTCPeerConnection;
 
-  constructor(config: TurnServer[]) {
-    this.setTurns(config);
-    this.connection = new RTCPeerConnection(this.rtcConfig);
+  constructor(turnServers: TurnServer[]) {
+    const iceServers = this.prepareIceServers(turnServers);
+
+    const rtcConfig: RTCConfiguration = {
+      bundlePolicy: 'max-bundle',
+      iceServers: iceServers,
+      iceTransportPolicy: 'relay',
+    };
+
+    this.connection = new RTCPeerConnection(rtcConfig);
   }
 
   public isConnectionUnstable = () => {
@@ -36,25 +38,20 @@ export class Connection {
   /**
    * Configures TURN servers for WebRTC connections by adding them to the provided RTCConfiguration object.
    */
-  // TODO refactor to pure function
-  private setTurns = (turnServers: TurnServer[]): void => {
-    turnServers
-      .map((turnServer: TurnServer) => {
-        const transport =
-          turnServer.transport === 'tls' ? 'tcp' : turnServer.transport;
-        const uri = turnServer.transport === 'tls' ? 'turns' : 'turn';
-        const address = turnServer.serverAddr;
-        const port = turnServer.serverPort;
+  private prepareIceServers = (turnServers: TurnServer[]): RTCIceServer[] => {
+    return turnServers.map((turnServer: TurnServer) => {
+      const transport =
+        turnServer.transport === 'tls' ? 'tcp' : turnServer.transport;
+      const uri = turnServer.transport === 'tls' ? 'turns' : 'turn';
+      const address = turnServer.serverAddr;
+      const port = turnServer.serverPort;
 
-        return {
-          credential: turnServer.password,
-          urls: uri.concat(':', address, ':', port, '?transport=', transport),
-          username: turnServer.username,
-        } satisfies RTCIceServer;
-      })
-      .forEach((rtcIceServer) => {
-        this.rtcConfig.iceServers!.push(rtcIceServer);
-      });
+      return {
+        credential: turnServer.password,
+        urls: uri.concat(':', address, ':', port, '?transport=', transport),
+        username: turnServer.username,
+      };
+    });
   };
 
   public getConnection = (): RTCPeerConnection => {
@@ -105,7 +102,7 @@ export class Connection {
   public setOnTrackReady = (onTrackReady: (event: RTCTrackEvent) => void) => {
     this.connection.ontrack = onTrackReady;
   };
-  public setRemoteDescription = async (data: any) => {
+  public setRemoteDescription = async (data: RTCSessionDescriptionInit) => {
     await this.connection.setRemoteDescription(data);
   };
 
@@ -113,12 +110,12 @@ export class Connection {
     this.connection.getSenders().some((val) => val.track === track);
 
   public setTransceiverDirection = () => {
-    this.connection.getTransceivers().forEach((transceiver) => {
-      transceiver.direction =
-        transceiver.direction === 'sendrecv'
-          ? 'sendonly'
-          : transceiver.direction;
-    });
+    this.connection
+      .getTransceivers()
+      .filter((transceiver) => transceiver.direction === 'sendrecv')
+      .forEach((transceiver) => {
+        transceiver.direction = 'sendonly';
+      });
   };
 
   public removeTrack = (sender: RTCRtpSender) => {

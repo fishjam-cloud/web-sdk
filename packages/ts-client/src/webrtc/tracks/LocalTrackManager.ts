@@ -1,7 +1,7 @@
 import type { SimulcastConfig, TrackBandwidthLimit } from '../types';
 import { generateCustomEvent } from '../mediaEvent';
 import type { WebRTCEndpoint } from '../webRTCEndpoint';
-import type { Connection } from '../Connection';
+import type { ConnectionManager } from '../ConnectionManager';
 import type { Local } from './Local';
 
 /**
@@ -17,7 +17,7 @@ import type { Local } from './Local';
  * and replaced with a Promise, because it does not require renegotiation.
  */
 export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
-  public connection?: Connection;
+  public connection?: ConnectionManager;
 
   private readonly local: Local<EndpointMetadata, TrackMetadata>;
 
@@ -98,10 +98,10 @@ export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
   };
 
   public removeTrackHandler = (trackId: string) => {
-    this.ongoingRenegotiation = true;
-
     if (!this.connection)
       throw new Error(`There is no active RTCPeerConnection`);
+
+    this.ongoingRenegotiation = true;
 
     this.local.removeTrack(trackId);
   };
@@ -122,7 +122,7 @@ export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
 
   public getEndpointId = () => this.local.getEndpoint().id;
 
-  public updateConnection = (connection: Connection) => {
+  public updateConnection = (connection: ConnectionManager) => {
     this.connection = connection;
   };
 

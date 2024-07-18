@@ -12,7 +12,7 @@ import type { EndpointWithTrackContext } from '../internal';
 import { isTrackKind, TrackContextImpl } from '../internal';
 import type { WebRTCEndpoint } from '../webRTCEndpoint';
 import { generateCustomEvent, generateMediaEvent } from '../mediaEvent';
-import type { Connection } from '../Connection';
+import type { ConnectionManager } from '../ConnectionManager';
 import type { Bitrates } from '../bitrate';
 import type { EndpointId, TrackId } from './TrackCommon';
 
@@ -47,7 +47,7 @@ export class Local<EndpointMetadata, TrackMetadata> {
   // temporary for webrtc.emit and webrtc.sendMediaEvent
   private readonly webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>;
 
-  private connection: Connection | null = null;
+  private connection: ConnectionManager | null = null;
 
   constructor(
     webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
@@ -74,7 +74,7 @@ export class Local<EndpointMetadata, TrackMetadata> {
     });
   };
 
-  public updateConnection = (connection: Connection) => {
+  public updateConnection = (connection: ConnectionManager) => {
     this.connection = connection;
 
     Object.values(this.localTracks).forEach((track) => {
@@ -83,7 +83,7 @@ export class Local<EndpointMetadata, TrackMetadata> {
   };
 
   public addTrack = (
-    connection: Connection | undefined,
+    connection: ConnectionManager | undefined,
     trackId: string,
     track: MediaStreamTrack,
     stream: MediaStream,

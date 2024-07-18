@@ -25,8 +25,8 @@ import { LocalTrackManager } from './tracks/LocalTrackManager';
 import { CommandsQueue } from './CommandsQueue';
 import { Remote } from './tracks/Remote';
 import { Local } from './tracks/Local';
-import type { TurnServer } from './Connection';
-import { Connection } from './Connection';
+import type { TurnServer } from './ConnectionManager';
+import { ConnectionManager } from './ConnectionManager';
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -52,11 +52,9 @@ export class WebRTCEndpoint<
     EndpointMetadata,
     TrackMetadata
   >;
-  private midToTrackId: Map<string, string> = new Map();
-
   public bandwidthEstimation: bigint = BigInt(0);
 
-  public connection?: Connection;
+  public connection?: ConnectionManager;
 
   private clearConnectionCallbacks: (() => void) | null = null;
 
@@ -363,8 +361,6 @@ export class WebRTCEndpoint<
   private onSdpAnswer = async (data: any) => {
     this.remote.updateMLineIds(data.midToTrackId);
     this.local.updateMLineIds(data.midToTrackId);
-
-    this.midToTrackId = new Map(Object.entries(data.midToTrackId));
 
     Object.values(data.midToTrackId)
       .map((trackId) => {
@@ -905,7 +901,7 @@ export class WebRTCEndpoint<
   };
 
   private setConnection = (turnServers: TurnServer[]) => {
-    this.connection = new Connection(turnServers);
+    this.connection = new ConnectionManager(turnServers);
 
     this.localTrackManager.updateConnection(this.connection);
     this.local.updateConnection(this.connection);

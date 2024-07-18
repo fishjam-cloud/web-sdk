@@ -19,7 +19,7 @@ import {
   defaultSimulcastBitrates,
   UNLIMITED_BANDWIDTH,
 } from '../bitrate';
-import type { Connection } from '../Connection';
+import type { ConnectionManager } from '../ConnectionManager';
 
 /**
  * This is a wrapper over `TrackContext` that adds additional properties such as:
@@ -65,10 +65,10 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
 
   private readonly metadataParser: MetadataParser<TrackMetadata>;
 
-  public connection: Connection | undefined;
+  public connection: ConnectionManager | undefined;
 
   constructor(
-    connection: Connection | undefined,
+    connection: ConnectionManager | undefined,
     id: LocalTrackId,
     trackContext: TrackContextImpl<EndpointMetadata, TrackMetadata>,
     metadataParser: MetadataParser<TrackMetadata>,
@@ -91,7 +91,7 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
     }
   };
 
-  public updateConnection = (connection: Connection) => {
+  public updateConnection = (connection: ConnectionManager) => {
     this.connection = connection;
   };
 

@@ -14,11 +14,7 @@ import type { TrackCommon, TrackEncodings, TrackId } from './TrackCommon';
 import { generateCustomEvent, generateMediaEvent } from '../mediaEvent';
 import type { WebRTCEndpoint } from '../webRTCEndpoint';
 import type { Bitrate } from '../bitrate';
-import {
-  defaultBitrates,
-  defaultSimulcastBitrates,
-  UNLIMITED_BANDWIDTH,
-} from '../bitrate';
+import { defaultBitrates, defaultSimulcastBitrates, UNLIMITED_BANDWIDTH, } from '../bitrate';
 import type { ConnectionManager } from '../ConnectionManager';
 
 /**
@@ -51,8 +47,7 @@ import type { ConnectionManager } from '../ConnectionManager';
  *   - mLineId !== null
  */
 export class LocalTrack<EndpointMetadata, TrackMetadata>
-  implements TrackCommon
-{
+  implements TrackCommon {
   public readonly id: TrackId;
   public mediaStreamTrackId: MediaStreamTrackId | null = null;
   public mLineId: MLineId | null = null;
@@ -119,14 +114,29 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
   public addTrackToConnection = () => {
     if (!this.trackContext.track)
       throw Error(`MediaStreamTrack for track ${this.id} does not exist`);
+
     if (!this.connection)
       throw new Error(`There is no active RTCPeerConnection`);
 
     const transceiverConfig = this.createTransceiverConfig();
 
+    this.updateEncodings();
+
     this.connection.addTransceiver(this.trackContext.track, transceiverConfig);
   };
 
+  // 1
+  private updateEncodings = () => {
+    if (this.trackContext?.track?.kind === "video" && this.trackContext.simulcastConfig?.activeEncodings) {
+      const activeEncodings = this.trackContext.simulcastConfig.activeEncodings;
+
+      this.encodings.l = activeEncodings.some((e) => e === "l")
+      this.encodings.m = activeEncodings.some((e) => e === "m")
+      this.encodings.h = activeEncodings.some((e) => e === "h")
+    }
+  }
+
+  // 1
   private createTransceiverConfig = (): RTCRtpTransceiverInit => {
     if (!this.trackContext.track)
       throw new Error(`Cannot create transceiver config for ${this.id}`);
@@ -135,19 +145,10 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
       return this.createAudioTransceiverConfig();
     }
 
-    const videoTransceiver = this.createVideoTransceiverConfig();
-
-    if (this.trackContext.maxBandwidth && videoTransceiver.sendEncodings) {
-      // warning: this function mutates `videoTransceiver`
-      this.applyBandwidthLimitation(
-        videoTransceiver.sendEncodings,
-        this.trackContext.maxBandwidth,
-      );
-    }
-
-    return videoTransceiver;
+    return this.createVideoTransceiverConfig(this.trackContext.maxBandwidth);
   };
 
+  // 1
   private createAudioTransceiverConfig = (): RTCRtpTransceiverInit => {
     return {
       direction: 'sendonly',
@@ -155,65 +156,67 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
     };
   };
 
-  // todo this function mutates internal state
-  private createVideoTransceiverConfig = (): RTCRtpTransceiverInit => {
+  // 1
+  private createVideoTransceiverConfig = (maxBandwidth: TrackBandwidthLimit): RTCRtpTransceiverInit => {
     if (!this.trackContext.simulcastConfig)
       throw new Error(`Simulcast config for track ${this.id} not found.`);
 
-    if (this.trackContext.simulcastConfig.enabled) {
-      const transceiverConfig: RTCRtpTransceiverInit = {
-        direction: 'sendonly',
-        // keep this array from low resolution to high resolution
-        // in other case lower resolution encoding can get
-        // higher max_bitrate
-        sendEncodings: [
-          {
-            rid: 'l',
-            active: false,
-            // maxBitrate: 4_000_000,
-            scaleResolutionDownBy: 4.0,
-            //   scalabilityMode: "L1T" + TEMPORAL_LAYERS_COUNT,
-          },
-          {
-            rid: 'm',
-            active: false,
-            scaleResolutionDownBy: 2.0,
-          },
-          {
-            rid: 'h',
-            active: false,
-            // maxBitrate: 4_000_000,
-            // scalabilityMode: "L1T" + TEMPORAL_LAYERS_COUNT,
-          },
-        ],
-      };
-
-      const activeEncodings = this.trackContext.simulcastConfig.activeEncodings;
-
-      transceiverConfig.sendEncodings?.forEach((encoding) => {
-        const rid = encoding.rid as Encoding;
-
-        if (activeEncodings.includes(rid)) {
-          encoding.active = true;
-          this.encodings[rid] = true;
-        } else {
-          this.encodings[rid] = false;
-        }
-      });
-
-      return transceiverConfig;
-    } else {
-      return {
-        direction: 'sendonly',
-        sendEncodings: [
-          {
-            active: true,
-          },
-        ],
-        streams: this.trackContext.stream ? [this.trackContext.stream] : [],
-      };
+    if (typeof maxBandwidth !== 'number' && this.trackContext.simulcastConfig.enabled) {
+      return this.createSimulcastTransceiverConfig(maxBandwidth)
     }
+
+    if (typeof maxBandwidth === 'number') {
+      return this.createNonSimulcastTransceiverConfig(maxBandwidth)
+    }
+
+    throw new Error("LocalTrack is in invalid state!")
   };
+
+  // 1
+  private createNonSimulcastTransceiverConfig = (maxBandwidth: number): RTCRtpTransceiverInit => {
+    return {
+      direction: 'sendonly',
+      sendEncodings: this.splitBandwidth([{ active: true }], maxBandwidth),
+      streams: this.trackContext.stream ? [this.trackContext.stream] : [],
+    };
+  }
+
+  // 1
+  private createSimulcastTransceiverConfig = (maxBandwidth: SimulcastBandwidthLimit): RTCRtpTransceiverInit => {
+    if (!this.trackContext.simulcastConfig)
+      throw new Error(`Simulcast config for track ${this.id} not found.`);
+
+    const activeEncodings = this.trackContext.simulcastConfig.activeEncodings;
+
+    const encodings: RTCRtpEncodingParameters[] = [
+      {
+        rid: 'l',
+        active: activeEncodings.includes('l'),
+        // maxBitrate: 4_000_000,
+        scaleResolutionDownBy: 4.0,
+        //   scalabilityMode: "L1T" + TEMPORAL_LAYERS_COUNT,
+      },
+      {
+        rid: 'm',
+        active: activeEncodings.includes('m'),
+        scaleResolutionDownBy: 2.0,
+      },
+      {
+        rid: 'h',
+        active: activeEncodings.includes('h'),
+        // maxBitrate: 4_000_000,
+        // scalabilityMode: "L1T" + TEMPORAL_LAYERS_COUNT,
+      },
+    ]
+
+    return {
+      direction: 'sendonly',
+      // keep this array from low resolution to high resolution
+      // in other case lower resolution encoding can get
+      // higher max_bitrate
+      sendEncodings: this.calculateSimulcastEncodings(encodings, maxBandwidth),
+    }
+  }
 
   public removeFromConnection = () => {
     if (!this.sender)
@@ -280,14 +283,19 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
 
     const parameters = this.sender.getParameters();
 
-    if (parameters.encodings.length === 0) {
-      parameters.encodings = [{}];
-    } else {
-      this.applyBandwidthLimitation(parameters.encodings, bandwidth);
-    }
+    parameters.encodings = this.getEncodings(parameters, bandwidth)
 
     return this.sender.setParameters(parameters);
   };
+
+  // 1
+  private getEncodings(parameters: RTCRtpSendParameters, bandwidth: number) {
+    const unlimitedEncodings = [{}];
+
+    return parameters.encodings.length === 0
+      ? unlimitedEncodings
+      : this.splitBandwidth(parameters.encodings, bandwidth);
+  }
 
   public setEncodingBandwidth(
     rid: Encoding,
@@ -407,67 +415,59 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
     });
   };
 
-  // todo refactor to pure function
-  private applyBandwidthLimitation = (
+  // 1
+  private calculateSimulcastEncodings = (
     encodings: RTCRtpEncodingParameters[],
-    maxBandwidth: TrackBandwidthLimit,
+    maxBandwidth: SimulcastBandwidthLimit
   ) => {
-    if (typeof maxBandwidth === 'number') {
-      // non-simulcast limitation
-      this.splitBandwidth(encodings, (maxBandwidth as number) * 1024);
-    } else {
-      // simulcast bandwidth limit
-      encodings
-        .filter((encoding) => encoding.rid)
-        .forEach((encoding) => {
-          const limit =
-            (maxBandwidth as SimulcastBandwidthLimit).get(
-              encoding.rid! as Encoding,
-            ) || 0;
+    return encodings
+      .filter((encoding) => encoding.rid)
+      .map((encoding) => {
+        const rid = encoding.rid! as Encoding;
 
-          if (limit > 0) {
-            encoding.maxBitrate = limit * 1024;
-          } else delete encoding.maxBitrate;
-        });
-    }
-  };
+        const limit = maxBandwidth.get(rid) || 0;
 
-  // todo refactor to pure function
+        return ({ ...encoding, maxBitrate: limit > 0 ? limit * 1024 : undefined }) satisfies RTCRtpEncodingParameters
+      });
+  }
+
+  // 2
   private splitBandwidth = (
-    encodings: RTCRtpEncodingParameters[],
-    bandwidth: number,
-  ) => {
+    rtcRtpEncodingParameters: RTCRtpEncodingParameters[],
+    maxBandwidth: number,
+  ): RTCRtpEncodingParameters[] => {
+    const bandwidth = maxBandwidth * 1024
+
     if (bandwidth === 0) {
-      encodings.forEach((encoding) => delete encoding.maxBitrate);
-      return;
+      return rtcRtpEncodingParameters
+        .map((encoding) => ({ ...encoding, maxBitrate: undefined }))
     }
 
-    if (encodings.length === 0) {
+    if (rtcRtpEncodingParameters.length === 0) {
       // This most likely is a race condition. Log an error and prevent catastrophic failure
       console.error(
         "Attempted to limit bandwidth of the track that doesn't have any encodings",
       );
-      return;
+      return rtcRtpEncodingParameters.map((encoding) => ({ ...encoding }));
     }
-
-    if (!encodings[0])
+    if (!rtcRtpEncodingParameters[0])
       throw new Error('RTCRtpEncodingParameters is in invalid state');
 
     // We are solving the following equation:
     // x + (k0/k1)^2 * x + (k0/k2)^2 * x + ... + (k0/kn)^2 * x = bandwidth
     // where x is the bitrate for the first encoding, kn are scaleResolutionDownBy factors
     // square is dictated by the fact that k0/kn is a scale factor, but we are interested in the total number of pixels in the image
-    const firstScaleDownBy = encodings[0].scaleResolutionDownBy || 1;
-    const bitrate_parts = encodings.reduce(
+    const firstScaleDownBy = rtcRtpEncodingParameters[0].scaleResolutionDownBy || 1;
+    const bitrate_parts = rtcRtpEncodingParameters.reduce(
       (acc, value) =>
         acc + (firstScaleDownBy / (value.scaleResolutionDownBy || 1)) ** 2,
       0,
     );
     const x = bandwidth / bitrate_parts;
 
-    encodings.forEach((value) => {
-      value.maxBitrate =
-        x * (firstScaleDownBy / (value.scaleResolutionDownBy || 1)) ** 2;
-    });
+    return rtcRtpEncodingParameters.map((encoding) => ({
+      ...encoding,
+      maxBitrate: x * (firstScaleDownBy / (encoding.scaleResolutionDownBy || 1)) ** 2
+    }));
   };
 }

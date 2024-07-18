@@ -812,23 +812,7 @@ export class WebRTCEndpoint<
         return;
       }
 
-      // ???
-      // this.localTrackManager.updateSenders();
-
-      const trackIdToTrackMetadata = this.local.getTrackIdToMetadata();
-      const trackIdToTrackBitrates = this.local.getTrackIdToTrackBitrates();
-      const midToTrackId = this.local.getMidToTrackId();
-
-      const mediaEvent = generateCustomEvent({
-        type: 'sdpOffer',
-        data: {
-          sdpOffer: offer,
-          trackIdToTrackMetadata,
-          trackIdToTrackBitrates,
-          midToTrackId,
-        },
-      });
-
+      const mediaEvent = this.local.createSdpOfferEvent(offer);
       this.sendMediaEvent(mediaEvent);
 
       this.local.setLocalTrackStatusToOffered();

@@ -14,7 +14,8 @@ import type { WebRTCEndpoint } from '../webRTCEndpoint';
 import type { Bitrate, Bitrates } from '../bitrate';
 import { defaultBitrates, defaultSimulcastBitrates, UNLIMITED_BANDWIDTH, } from '../bitrate';
 import type { ConnectionManager } from '../ConnectionManager';
-import { createTransceiverConfig, getEncodingParameters } from "./encodings";
+import { getEncodingParameters } from "./encodings";
+import { createTransceiverConfig } from "./transceivers";
 
 /**
  * This is a wrapper over `TrackContext` that adds additional properties such as:
@@ -90,8 +91,6 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
   };
 
   public disableTrackEncoding = async (encoding: Encoding) => {
-    this.encodings[encoding] = false;
-
     if (!this.sender)
       throw new Error(`RTCRtpSender for track ${this.id} not found`);
 
@@ -106,6 +105,7 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
       );
 
     encodingParameter.active = false;
+    this.encodings[encoding] = false;
 
     await this.sender.setParameters(params);
   };
@@ -257,6 +257,7 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
       );
 
     encodingParameters.active = true;
+    this.encodings[encoding] = true;
 
     return this.sender.setParameters(params);
   };

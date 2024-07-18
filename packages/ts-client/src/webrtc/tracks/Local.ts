@@ -86,6 +86,22 @@ export class Local<EndpointMetadata, TrackMetadata> {
     });
   };
 
+  public createSdpOfferEvent = (offer: RTCSessionDescriptionInit): MediaEvent => {
+    const trackIdToTrackMetadata = this.getTrackIdToMetadata();
+    const trackIdToTrackBitrates = this.getTrackIdToTrackBitrates();
+    const midToTrackId = this.getMidToTrackId();
+
+    return generateCustomEvent({
+      type: 'sdpOffer',
+      data: {
+        sdpOffer: offer,
+        trackIdToTrackMetadata,
+        trackIdToTrackBitrates,
+        midToTrackId,
+      },
+    });
+  }
+
   public addTrack = (
     connection: ConnectionManager | undefined,
     trackId: string,
@@ -341,7 +357,8 @@ export class Local<EndpointMetadata, TrackMetadata> {
     });
   };
 
-  public getTrackIdToMetadata = (): Record<
+
+  private getTrackIdToMetadata = (): Record<
     TrackId,
     TrackMetadata | undefined
   > => {
@@ -354,7 +371,7 @@ export class Local<EndpointMetadata, TrackMetadata> {
     );
   };
 
-  public getTrackIdToTrackBitrates = (): Record<TrackId, Bitrates> => {
+  private getTrackIdToTrackBitrates = (): Record<TrackId, Bitrates> => {
     return Object.values(this.localTracks).reduce(
       (previousValue, localTrack) => ({
         ...previousValue,
@@ -364,7 +381,7 @@ export class Local<EndpointMetadata, TrackMetadata> {
     );
   };
 
-  public getMidToTrackId = (): MidToTrackId | null => {
+  private getMidToTrackId = (): MidToTrackId | null => {
     if (!this.connection) return null;
 
     // - negotiated unmuted tracks: tracks added in previous negotiation, data is being transmitted

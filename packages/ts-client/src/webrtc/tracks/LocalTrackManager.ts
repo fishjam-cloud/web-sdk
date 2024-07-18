@@ -1,6 +1,5 @@
 import type { SimulcastConfig, TrackBandwidthLimit } from '../types';
-import { generateCustomEvent } from '../mediaEvent';
-import type { WebRTCEndpoint } from '../webRTCEndpoint';
+import { generateCustomEvent, type MediaEvent } from '../mediaEvent';
 import type { ConnectionManager } from '../ConnectionManager';
 import type { Local } from './Local';
 
@@ -28,15 +27,14 @@ export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
    */
   public ongoingRenegotiation: boolean = false;
 
-  // temporary for webrtc.emit and webrtc.sendMediaEvent
-  private readonly webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>;
+  private readonly sendMediaEvent: (mediaEvent: MediaEvent) => void
 
   constructor(
-    webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
     local: Local<EndpointMetadata, TrackMetadata>,
+    sendMediaEvent: (mediaEvent: MediaEvent) => void,
   ) {
-    this.webrtc = webrtc;
     this.local = local;
+    this.sendMediaEvent = sendMediaEvent
   }
 
   public isNegotiationInProgress = () => {
@@ -48,24 +46,22 @@ export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
     this.ongoingRenegotiation = false;
   };
 
-  public validateAddTrack = (
+  public parseAddTrack = (
     track: MediaStreamTrack,
     simulcastConfig: SimulcastConfig,
     maxBandwidth: TrackBandwidthLimit,
-  ): string | null => {
+  ) => {
     if (this.getEndpointId() === '') {
-      return 'Cannot add tracks before being accepted by the server';
+      throw new Error('Cannot add tracks before being accepted by the server');
     }
 
     if (!simulcastConfig.enabled && !(typeof maxBandwidth === 'number')) {
-      return 'Invalid type of `maxBandwidth` argument for a non-simulcast track, expected: number';
+      throw new Error('Invalid type of `maxBandwidth` argument for a non-simulcast track, expected: number');
     }
 
     if (this.connection?.isTrackInUse(track)) {
-      return "This track was already added to peerConnection, it can't be added again!";
+      throw new Error("This track was already added to peerConnection, it can't be added again!");
     }
-
-    return null;
   };
 
   public addTrackHandler = (
@@ -94,7 +90,7 @@ export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
     }
 
     const mediaEvent = generateCustomEvent({ type: 'renegotiateTracks' });
-    this.webrtc.sendMediaEvent(mediaEvent);
+    this.sendMediaEvent(mediaEvent);
   };
 
   public removeTrackHandler = (trackId: string) => {

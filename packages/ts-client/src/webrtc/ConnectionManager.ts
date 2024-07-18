@@ -12,15 +12,11 @@ export class ConnectionManager {
   private readonly connection: RTCPeerConnection;
 
   constructor(turnServers: TurnServer[]) {
-    const iceServers = this.prepareIceServers(turnServers);
-
-    const rtcConfig: RTCConfiguration = {
+    this.connection = new RTCPeerConnection({
       bundlePolicy: 'max-bundle',
-      iceServers: iceServers,
+      iceServers: this.getIceServers(turnServers),
       iceTransportPolicy: 'relay',
-    };
-
-    this.connection = new RTCPeerConnection(rtcConfig);
+    });
   }
 
   public isConnectionUnstable = () => {
@@ -38,7 +34,7 @@ export class ConnectionManager {
   /**
    * Configures TURN servers for WebRTC connections by adding them to the provided RTCConfiguration object.
    */
-  private prepareIceServers = (turnServers: TurnServer[]): RTCIceServer[] => {
+  private getIceServers = (turnServers: TurnServer[]): RTCIceServer[] => {
     return turnServers.map((turnServer: TurnServer) => {
       const transport =
         turnServer.transport === 'tls' ? 'tcp' : turnServer.transport;

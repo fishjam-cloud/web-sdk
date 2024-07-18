@@ -4,7 +4,7 @@ import type { ConnectionManager } from './ConnectionManager';
 
 export type Command = {
   handler: () => void;
-  validate?: () => string | null;
+  parse?: () => void;
   resolutionNotifier: Deferred<void>;
   resolve: 'after-renegotiation' | 'immediately';
 };
@@ -107,19 +107,18 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
   };
 
   private handleCommand = (command: Command) => {
-    const error = command.validate?.();
-
-    if (error) {
-      this.commandResolutionNotifier?.reject(error);
-      this.commandResolutionNotifier = null;
-      this.processNextCommand();
-    } else {
+    try {
+      command.parse?.();
       command.handler();
 
       if (command.resolve === 'immediately') {
         this.resolvePreviousCommand();
         this.processNextCommand();
       }
+    } catch (error) {
+      this.commandResolutionNotifier?.reject(error);
+      this.commandResolutionNotifier = null;
+      this.processNextCommand();
     }
   };
 

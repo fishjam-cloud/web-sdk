@@ -12,10 +12,14 @@ import type { TrackCommon, TrackEncodings, TrackId } from './TrackCommon';
 import { generateCustomEvent, generateMediaEvent } from '../mediaEvent';
 import type { WebRTCEndpoint } from '../webRTCEndpoint';
 import type { Bitrate, Bitrates } from '../bitrate';
-import { defaultBitrates, defaultSimulcastBitrates, UNLIMITED_BANDWIDTH, } from '../bitrate';
+import {
+  defaultBitrates,
+  defaultSimulcastBitrates,
+  UNLIMITED_BANDWIDTH,
+} from '../bitrate';
 import type { ConnectionManager } from '../ConnectionManager';
-import { getEncodingParameters } from "./encodings";
-import { createTransceiverConfig } from "./transceivers";
+import { getEncodingParameters } from './encodings';
+import { createTransceiverConfig } from './transceivers';
 
 /**
  * This is a wrapper over `TrackContext` that adds additional properties such as:
@@ -47,7 +51,8 @@ import { createTransceiverConfig } from "./transceivers";
  *   - mLineId !== null
  */
 export class LocalTrack<EndpointMetadata, TrackMetadata>
-  implements TrackCommon {
+  implements TrackCommon
+{
   public readonly id: TrackId;
   public mediaStreamTrackId: MediaStreamTrackId | null = null;
   public mLineId: MLineId | null = null;
@@ -126,14 +131,17 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
 
   // 1
   private updateEncodings = () => {
-    if (this.trackContext?.track?.kind === "video" && this.trackContext.simulcastConfig?.activeEncodings) {
+    if (
+      this.trackContext?.track?.kind === 'video' &&
+      this.trackContext.simulcastConfig?.activeEncodings
+    ) {
       const activeEncodings = this.trackContext.simulcastConfig.activeEncodings;
 
-      this.encodings.l = activeEncodings.some((e) => e === "l")
-      this.encodings.m = activeEncodings.some((e) => e === "m")
-      this.encodings.h = activeEncodings.some((e) => e === "h")
+      this.encodings.l = activeEncodings.some((e) => e === 'l');
+      this.encodings.m = activeEncodings.some((e) => e === 'm');
+      this.encodings.h = activeEncodings.some((e) => e === 'h');
     }
-  }
+  };
 
   public removeFromConnection = () => {
     if (!this.sender)
@@ -200,7 +208,7 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
 
     const parameters = this.sender.getParameters();
 
-    parameters.encodings = getEncodingParameters(parameters, bandwidth)
+    parameters.encodings = getEncodingParameters(parameters, bandwidth);
 
     return this.sender.setParameters(parameters);
   };
@@ -273,8 +281,9 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
     this.mLineId = mLineId;
   };
 
-  private isNotSimulcastTrack = (encodings: RTCRtpEncodingParameters[]): boolean =>
-    encodings.length === 1 && !encodings[0]!.rid;
+  private isNotSimulcastTrack = (
+    encodings: RTCRtpEncodingParameters[],
+  ): boolean => encodings.length === 1 && !encodings[0]!.rid;
 
   public getTrackBitrates = (): Bitrates => {
     const trackContext = this.trackContext;

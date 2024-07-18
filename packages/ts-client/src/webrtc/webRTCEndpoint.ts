@@ -35,7 +35,7 @@ export class WebRTCEndpoint<
   EndpointMetadata = any,
   TrackMetadata = any,
 > extends (EventEmitter as {
-  new<EndpointMetadata, TrackMetadata>(): TypedEmitter<
+  new <EndpointMetadata, TrackMetadata>(): TypedEmitter<
     Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>
   >;
 })<EndpointMetadata, TrackMetadata> {
@@ -65,12 +65,21 @@ export class WebRTCEndpoint<
     this.trackMetadataParser =
       config?.trackMetadataParser ?? ((x) => x as TrackMetadata);
 
-    const sendEvent = (mediaEvent: MediaEvent) => this.sendMediaEvent(mediaEvent);
+    const sendEvent = (mediaEvent: MediaEvent) =>
+      this.sendMediaEvent(mediaEvent);
 
-    const emit: <E extends keyof Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>>(event: E, ...args: Parameters<Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>[E]>) => void =
-      (events, ...args) => {
-        this.emit(events, ...args)
-      }
+    const emit: <
+      E extends keyof Required<
+        WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>
+      >,
+    >(
+      event: E,
+      ...args: Parameters<
+        Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>[E]
+      >
+    ) => void = (events, ...args) => {
+      this.emit(events, ...args);
+    };
 
     this.remote = new Remote<EndpointMetadata, TrackMetadata>(
       emit,
@@ -85,12 +94,10 @@ export class WebRTCEndpoint<
       this.trackMetadataParser,
     );
 
-
     this.localTrackManager = new LocalTrackManager(this.local, sendEvent);
 
     this.commandsQueue = new CommandsQueue(this.localTrackManager);
   }
-
 
   /**
    * Tries to connect to the RTC Engine. If user is successfully connected then {@link WebRTCEndpointEvents.connected}
@@ -187,7 +194,8 @@ export class WebRTCEndpoint<
     selector?: MediaStreamTrack | null,
   ): Promise<RTCStatsReport> {
     return (
-      (await this.connectionManager?.getConnection().getStats(selector)) ?? new Map()
+      (await this.connectionManager?.getConnection().getStats(selector)) ??
+      new Map()
     );
   }
 
@@ -937,7 +945,7 @@ export class WebRTCEndpoint<
   private onConnectionStateChange = (event: Event) => {
     switch (
       this.localTrackManager.connection?.getConnection().connectionState
-      ) {
+    ) {
       case 'failed':
         this.emit('connectionError', {
           message: 'RTCPeerConnection failed',
@@ -950,7 +958,7 @@ export class WebRTCEndpoint<
   private onIceConnectionStateChange = (event: Event) => {
     switch (
       this.localTrackManager.connection?.getConnection().iceConnectionState
-      ) {
+    ) {
       case 'disconnected':
         console.warn('ICE connection: disconnected');
         // Requesting renegotiation on ICE connection state failed fixes RTCPeerConnection

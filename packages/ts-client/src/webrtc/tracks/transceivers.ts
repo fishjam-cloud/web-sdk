@@ -3,11 +3,12 @@ import type {
   SimulcastBandwidthLimit,
   TrackBandwidthLimit,
 } from '../types';
-import type { TrackContextImpl } from "../internal";
-import { splitBandwidth } from "./bandwidth";
+import type { TrackContextImpl } from '../internal';
+import { splitBandwidth } from './bandwidth';
 
-
-export const createTransceiverConfig = (trackContext: TrackContextImpl<unknown, unknown>): RTCRtpTransceiverInit => {
+export const createTransceiverConfig = (
+  trackContext: TrackContextImpl<unknown, unknown>,
+): RTCRtpTransceiverInit => {
   if (!trackContext.track)
     throw new Error(`Cannot create transceiver config for `);
 
@@ -18,7 +19,9 @@ export const createTransceiverConfig = (trackContext: TrackContextImpl<unknown, 
   return createVideoTransceiverConfig(trackContext, trackContext.maxBandwidth);
 };
 
-const createAudioTransceiverConfig = (stream: MediaStream | null): RTCRtpTransceiverInit => {
+const createAudioTransceiverConfig = (
+  stream: MediaStream | null,
+): RTCRtpTransceiverInit => {
   return {
     direction: 'sendonly',
     streams: stream ? [stream] : [],
@@ -27,38 +30,46 @@ const createAudioTransceiverConfig = (stream: MediaStream | null): RTCRtpTransce
 
 const createVideoTransceiverConfig = (
   trackContext: TrackContextImpl<unknown, unknown>,
-  maxBandwidth: TrackBandwidthLimit
+  maxBandwidth: TrackBandwidthLimit,
 ): RTCRtpTransceiverInit => {
   if (!trackContext.simulcastConfig)
-    throw new Error(`Simulcast config for track ${trackContext.trackId} not found.`);
+    throw new Error(
+      `Simulcast config for track ${trackContext.trackId} not found.`,
+    );
 
-  if (typeof maxBandwidth !== 'number' && trackContext.simulcastConfig.enabled) {
-    return createSimulcastTransceiverConfig(trackContext, maxBandwidth)
+  if (
+    typeof maxBandwidth !== 'number' &&
+    trackContext.simulcastConfig.enabled
+  ) {
+    return createSimulcastTransceiverConfig(trackContext, maxBandwidth);
   }
 
   if (typeof maxBandwidth === 'number') {
-    return createNonSimulcastTransceiverConfig(trackContext, maxBandwidth)
+    return createNonSimulcastTransceiverConfig(trackContext, maxBandwidth);
   }
 
-  throw new Error("LocalTrack is in invalid state!")
+  throw new Error('LocalTrack is in invalid state!');
 };
 
 const createNonSimulcastTransceiverConfig = (
   trackContext: TrackContextImpl<unknown, unknown>,
-  maxBandwidth: number): RTCRtpTransceiverInit => {
+  maxBandwidth: number,
+): RTCRtpTransceiverInit => {
   return {
     direction: 'sendonly',
     sendEncodings: splitBandwidth([{ active: true }], maxBandwidth),
     streams: trackContext.stream ? [trackContext.stream] : [],
   };
-}
+};
 
 const createSimulcastTransceiverConfig = (
   trackContext: TrackContextImpl<unknown, unknown>,
-  maxBandwidth: SimulcastBandwidthLimit
+  maxBandwidth: SimulcastBandwidthLimit,
 ): RTCRtpTransceiverInit => {
   if (!trackContext.simulcastConfig)
-    throw new Error(`Simulcast config for track ${trackContext.trackId} not found.`);
+    throw new Error(
+      `Simulcast config for track ${trackContext.trackId} not found.`,
+    );
 
   const activeEncodings = trackContext.simulcastConfig.activeEncodings;
 
@@ -81,7 +92,7 @@ const createSimulcastTransceiverConfig = (
       // maxBitrate: 4_000_000,
       // scalabilityMode: "L1T" + TEMPORAL_LAYERS_COUNT,
     },
-  ]
+  ];
 
   return {
     direction: 'sendonly',
@@ -89,12 +100,12 @@ const createSimulcastTransceiverConfig = (
     // in other case lower resolution encoding can get
     // higher max_bitrate
     sendEncodings: calculateSimulcastEncodings(encodings, maxBandwidth),
-  }
-}
+  };
+};
 
 const calculateSimulcastEncodings = (
   encodings: RTCRtpEncodingParameters[],
-  maxBandwidth: SimulcastBandwidthLimit
+  maxBandwidth: SimulcastBandwidthLimit,
 ) => {
   return encodings
     .filter((encoding) => encoding.rid)
@@ -103,6 +114,9 @@ const calculateSimulcastEncodings = (
 
       const limit = maxBandwidth.get(rid) || 0;
 
-      return ({ ...encoding, maxBitrate: limit > 0 ? limit * 1024 : undefined }) satisfies RTCRtpEncodingParameters
+      return {
+        ...encoding,
+        maxBitrate: limit > 0 ? limit * 1024 : undefined,
+      } satisfies RTCRtpEncodingParameters;
     });
-}
+};

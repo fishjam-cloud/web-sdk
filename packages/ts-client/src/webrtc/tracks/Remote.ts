@@ -32,17 +32,35 @@ export class Remote<EndpointMetadata, TrackMetadata> {
   private readonly endpointMetadataParser: MetadataParser<EndpointMetadata>;
   private readonly trackMetadataParser: MetadataParser<TrackMetadata>;
 
-  private readonly emit: <E extends keyof Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>>(event: E, ...args: Parameters<Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>[E]>) => void
-  private readonly sendMediaEvent: (mediaEvent: MediaEvent) => void
+  private readonly emit: <
+    E extends keyof Required<
+      WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>
+    >,
+  >(
+    event: E,
+    ...args: Parameters<
+      Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>[E]
+    >
+  ) => void;
+  private readonly sendMediaEvent: (mediaEvent: MediaEvent) => void;
 
   constructor(
-    emit: <E extends keyof Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>>(event: E, ...args: Parameters<Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>[E]>) => void,
+    emit: <
+      E extends keyof Required<
+        WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>
+      >,
+    >(
+      event: E,
+      ...args: Parameters<
+        Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>[E]
+      >
+    ) => void,
     sendMediaEvent: (mediaEvent: MediaEvent) => void,
     endpointMetadataParser: MetadataParser<EndpointMetadata>,
     trackMetadataParser: MetadataParser<TrackMetadata>,
   ) {
-    this.emit = emit
-    this.sendMediaEvent = sendMediaEvent
+    this.emit = emit;
+    this.sendMediaEvent = sendMediaEvent;
     this.endpointMetadataParser = endpointMetadataParser;
     this.trackMetadataParser = trackMetadataParser;
   }
@@ -229,11 +247,7 @@ export class Remote<EndpointMetadata, TrackMetadata> {
 
     remoteTrack.disableTrackEncoding(encoding);
 
-    this.emit(
-      'trackEncodingDisabled',
-      remoteTrack.trackContext,
-      encoding,
-    );
+    this.emit('trackEncodingDisabled', remoteTrack.trackContext, encoding);
   };
 
   public enableRemoteTrackEncoding = (trackId: TrackId, encoding: Encoding) => {
@@ -242,11 +256,7 @@ export class Remote<EndpointMetadata, TrackMetadata> {
 
     remoteTrack.enableTrackEncoding(encoding);
 
-    this.emit(
-      'trackEncodingEnabled',
-      remoteTrack.trackContext,
-      encoding,
-    );
+    this.emit('trackEncodingEnabled', remoteTrack.trackContext, encoding);
   };
 
   public setRemoteTrackEncoding = (

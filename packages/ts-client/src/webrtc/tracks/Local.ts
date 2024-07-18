@@ -16,7 +16,7 @@ import { generateCustomEvent, generateMediaEvent } from '../mediaEvent';
 import type { ConnectionManager } from '../ConnectionManager';
 import type { Bitrates } from '../bitrate';
 import type { EndpointId, TrackId } from './TrackCommon';
-import type { WebRTCEndpoint } from "../webRTCEndpoint";
+import type { WebRTCEndpoint } from '../webRTCEndpoint';
 
 export type MidToTrackId = Record<MLineId, TrackId>;
 
@@ -46,19 +46,37 @@ export class Local<EndpointMetadata, TrackMetadata> {
   private readonly endpointMetadataParser: MetadataParser<EndpointMetadata>;
   private readonly trackMetadataParser: MetadataParser<TrackMetadata>;
 
-  private readonly emit: <E extends keyof Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>>(event: E, ...args: Parameters<Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>[E]>) => void
-  private readonly sendMediaEvent: (mediaEvent: MediaEvent) => void
+  private readonly emit: <
+    E extends keyof Required<
+      WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>
+    >,
+  >(
+    event: E,
+    ...args: Parameters<
+      Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>[E]
+    >
+  ) => void;
+  private readonly sendMediaEvent: (mediaEvent: MediaEvent) => void;
 
   private connection: ConnectionManager | null = null;
 
   constructor(
-    emit: <E extends keyof Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>>(event: E, ...args: Parameters<Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>[E]>) => void,
+    emit: <
+      E extends keyof Required<
+        WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>
+      >,
+    >(
+      event: E,
+      ...args: Parameters<
+        Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>[E]
+      >
+    ) => void,
     sendMediaEvent: (mediaEvent: MediaEvent) => void,
     endpointMetadataParser: MetadataParser<EndpointMetadata>,
     trackMetadataParser: MetadataParser<TrackMetadata>,
   ) {
-    this.emit = emit
-    this.sendMediaEvent = sendMediaEvent
+    this.emit = emit;
+    this.sendMediaEvent = sendMediaEvent;
     this.endpointMetadataParser = endpointMetadataParser;
     this.trackMetadataParser = trackMetadataParser;
   }
@@ -86,7 +104,9 @@ export class Local<EndpointMetadata, TrackMetadata> {
     });
   };
 
-  public createSdpOfferEvent = (offer: RTCSessionDescriptionInit): MediaEvent => {
+  public createSdpOfferEvent = (
+    offer: RTCSessionDescriptionInit,
+  ): MediaEvent => {
     const trackIdToTrackMetadata = this.getTrackIdToMetadata();
     const trackIdToTrackBitrates = this.getTrackIdToTrackBitrates();
     const midToTrackId = this.getMidToTrackId();
@@ -100,7 +120,7 @@ export class Local<EndpointMetadata, TrackMetadata> {
         midToTrackId,
       },
     });
-  }
+  };
 
   public addTrack = (
     connection: ConnectionManager | undefined,
@@ -356,7 +376,6 @@ export class Local<EndpointMetadata, TrackMetadata> {
       encoding,
     });
   };
-
 
   private getTrackIdToMetadata = (): Record<
     TrackId,

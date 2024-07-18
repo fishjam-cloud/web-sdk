@@ -2,7 +2,7 @@ import type { SimulcastConfig, TrackBandwidthLimit } from '../types';
 import { generateCustomEvent, type MediaEvent } from '../mediaEvent';
 import type { ConnectionManager } from '../ConnectionManager';
 import type { Local } from './Local';
-import type { WebRTCEndpoint } from "../webRTCEndpoint";
+import type { WebRTCEndpoint } from '../webRTCEndpoint';
 
 /**
  * This class is responsible for handling asynchronous operations related to track management.
@@ -28,14 +28,14 @@ export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
    */
   public ongoingRenegotiation: boolean = false;
 
-  private readonly sendMediaEvent: (mediaEvent: MediaEvent) => void
+  private readonly sendMediaEvent: (mediaEvent: MediaEvent) => void;
 
   constructor(
     local: Local<EndpointMetadata, TrackMetadata>,
     sendMediaEvent: (mediaEvent: MediaEvent) => void,
   ) {
     this.local = local;
-    this.sendMediaEvent = sendMediaEvent
+    this.sendMediaEvent = sendMediaEvent;
   }
 
   public isNegotiationInProgress = () => {
@@ -57,11 +57,15 @@ export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
     }
 
     if (!simulcastConfig.enabled && !(typeof maxBandwidth === 'number')) {
-      throw new Error('Invalid type of `maxBandwidth` argument for a non-simulcast track, expected: number');
+      throw new Error(
+        'Invalid type of `maxBandwidth` argument for a non-simulcast track, expected: number',
+      );
     }
 
     if (this.connection?.isTrackInUse(track)) {
-      throw new Error("This track was already added to peerConnection, it can't be added again!");
+      throw new Error(
+        "This track was already added to peerConnection, it can't be added again!",
+      );
     }
   };
 
@@ -113,7 +117,12 @@ export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
   ): Promise<void> => {
     this.ongoingTrackReplacement = true;
     try {
-      await this.local.replaceTrack(webrtc, trackId, newTrack, newTrackMetadata);
+      await this.local.replaceTrack(
+        webrtc,
+        trackId,
+        newTrack,
+        newTrackMetadata,
+      );
     } catch (e) {
       this.ongoingTrackReplacement = false;
     }

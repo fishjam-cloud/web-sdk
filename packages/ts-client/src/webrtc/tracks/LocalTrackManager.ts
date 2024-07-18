@@ -2,6 +2,7 @@ import type { SimulcastConfig, TrackBandwidthLimit } from '../types';
 import { generateCustomEvent, type MediaEvent } from '../mediaEvent';
 import type { ConnectionManager } from '../ConnectionManager';
 import type { Local } from './Local';
+import type { WebRTCEndpoint } from "../webRTCEndpoint";
 
 /**
  * This class is responsible for handling asynchronous operations related to track management.
@@ -103,13 +104,16 @@ export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
   };
 
   public replaceTrackHandler = async (
+    // todo remove webrtc with newTrackMetadata
+    webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
     trackId: string,
     newTrack: MediaStreamTrack | null,
+    // todo remove webrtc with newTrackMetadata
     newTrackMetadata?: TrackMetadata,
   ): Promise<void> => {
     this.ongoingTrackReplacement = true;
     try {
-      await this.local.replaceTrack(trackId, newTrack, newTrackMetadata);
+      await this.local.replaceTrack(webrtc, trackId, newTrack, newTrackMetadata);
     } catch (e) {
       this.ongoingTrackReplacement = false;
     }

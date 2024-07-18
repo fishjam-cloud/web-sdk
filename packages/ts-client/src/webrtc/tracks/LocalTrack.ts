@@ -229,7 +229,9 @@ export class LocalTrack<EndpointMetadata, TrackMetadata>
   //  so it could be chained by the user.
   public replaceTrack = async (
     newTrack: MediaStreamTrack | null,
+    // todo remove webrtc with newTrackMetadata
     newTrackMetadata: TrackMetadata | undefined,
+    // todo remove webrtc with newTrackMetadata
     webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
   ): Promise<void> => {
     const trackId = this.id;

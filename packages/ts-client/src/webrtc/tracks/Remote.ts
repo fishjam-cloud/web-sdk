@@ -5,13 +5,13 @@ import type {
   MLineId,
   SimulcastConfig,
   TrackContext,
+  WebRTCEndpointEvents,
 } from '../types';
 import { RemoteTrack } from './RemoteTrack';
 import type { EndpointWithTrackContext } from '../internal';
 import { TrackContextImpl } from '../internal';
-import type { WebRTCEndpoint } from '../webRTCEndpoint';
 import { isVadStatus } from '../voiceActivityDetection';
-import { generateCustomEvent } from '../mediaEvent';
+import { generateCustomEvent, type MediaEvent } from '../mediaEvent';
 import type { EndpointId, TrackId } from './TrackCommon';
 
 type SDPTrack = {
@@ -32,15 +32,17 @@ export class Remote<EndpointMetadata, TrackMetadata> {
   private readonly endpointMetadataParser: MetadataParser<EndpointMetadata>;
   private readonly trackMetadataParser: MetadataParser<TrackMetadata>;
 
-  // temporary for webrtc.emit and webrtc.sendMediaEvent
-  private readonly webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>;
+  private readonly emit: <E extends keyof Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>>(event: E, ...args: Parameters<Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>[E]>) => void
+  private readonly sendMediaEvent: (mediaEvent: MediaEvent) => void
 
   constructor(
-    webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
+    emit: <E extends keyof Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>>(event: E, ...args: Parameters<Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>[E]>) => void,
+    sendMediaEvent: (mediaEvent: MediaEvent) => void,
     endpointMetadataParser: MetadataParser<EndpointMetadata>,
     trackMetadataParser: MetadataParser<TrackMetadata>,
   ) {
-    this.webrtc = webrtc;
+    this.emit = emit
+    this.sendMediaEvent = sendMediaEvent
     this.endpointMetadataParser = endpointMetadataParser;
     this.trackMetadataParser = trackMetadataParser;
   }
@@ -84,7 +86,7 @@ export class Remote<EndpointMetadata, TrackMetadata> {
       .forEach((remoteTrack) => {
         this.remoteTracks[remoteTrack.id] = remoteTrack;
         endpoint.tracks.set(remoteTrack.id, remoteTrack.trackContext);
-        this.webrtc.emit('trackAdded', remoteTrack.trackContext);
+        this.emit('trackAdded', remoteTrack.trackContext);
       });
   };
 
@@ -108,7 +110,7 @@ export class Remote<EndpointMetadata, TrackMetadata> {
     remoteEndpoint.tracks.delete(trackId);
     delete this.remoteTracks[trackId];
 
-    this.webrtc.emit('trackRemoved', remoteTrack.trackContext);
+    this.emit('trackRemoved', remoteTrack.trackContext);
   };
 
   public addRemoteEndpoint = (
@@ -134,7 +136,7 @@ export class Remote<EndpointMetadata, TrackMetadata> {
     this.addTracks(newEndpoint.id, endpoint.tracks, endpoint.trackIdToMetadata);
 
     if (sendNotification) {
-      this.webrtc.emit('endpointAdded', endpoint);
+      this.emit('endpointAdded', endpoint);
     }
   };
 
@@ -153,7 +155,7 @@ export class Remote<EndpointMetadata, TrackMetadata> {
     // mutation in place
     this.updateEndpointMetadata(endpoint, data.metadata);
 
-    this.webrtc.emit('endpointUpdated', endpoint);
+    this.emit('endpointUpdated', endpoint);
   };
 
   private updateEndpointMetadata = (
@@ -184,7 +186,7 @@ export class Remote<EndpointMetadata, TrackMetadata> {
 
     delete this.remoteEndpoints[endpointId];
 
-    this.webrtc.emit('endpointRemoved', endpoint);
+    this.emit('endpointRemoved', endpoint);
   };
 
   public updateRemoteTrack = (data: any) => {
@@ -201,7 +203,7 @@ export class Remote<EndpointMetadata, TrackMetadata> {
 
     this.updateTrackMetadata(remoteTrack.trackContext, data.metadata);
 
-    this.webrtc.emit('trackUpdated', remoteTrack.trackContext);
+    this.emit('trackUpdated', remoteTrack.trackContext);
   };
 
   private updateTrackMetadata = (
@@ -227,7 +229,7 @@ export class Remote<EndpointMetadata, TrackMetadata> {
 
     remoteTrack.disableTrackEncoding(encoding);
 
-    this.webrtc.emit(
+    this.emit(
       'trackEncodingDisabled',
       remoteTrack.trackContext,
       encoding,
@@ -240,7 +242,7 @@ export class Remote<EndpointMetadata, TrackMetadata> {
 
     remoteTrack.enableTrackEncoding(encoding);
 
-    this.webrtc.emit(
+    this.emit(
       'trackEncodingEnabled',
       remoteTrack.trackContext,
       encoding,
@@ -320,8 +322,8 @@ export class Remote<EndpointMetadata, TrackMetadata> {
         },
       });
 
-      this.webrtc.sendMediaEvent(mediaEvent);
-      this.webrtc.emit('targetTrackEncodingRequested', {
+      this.sendMediaEvent(mediaEvent);
+      this.emit('targetTrackEncodingRequested', {
         trackId,
         variant,
       });

@@ -65,23 +65,32 @@ export class WebRTCEndpoint<
     this.trackMetadataParser =
       config?.trackMetadataParser ?? ((x) => x as TrackMetadata);
 
+    const sendEvent = (mediaEvent: MediaEvent) => this.sendMediaEvent(mediaEvent);
+
+    const emit: <E extends keyof Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>>(event: E, ...args: Parameters<Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>[E]>) => void =
+      (events, ...args) => {
+        this.emit(events, ...args)
+      }
+
     this.remote = new Remote<EndpointMetadata, TrackMetadata>(
-      this,
+      emit,
+      sendEvent,
       this.endpointMetadataParser,
       this.trackMetadataParser,
     );
     this.local = new Local<EndpointMetadata, TrackMetadata>(
-      this,
+      emit,
+      sendEvent,
       this.endpointMetadataParser,
       this.trackMetadataParser,
     );
 
-    const sendEvent = (mediaEvent: MediaEvent) => this.sendMediaEvent(mediaEvent);
 
     this.localTrackManager = new LocalTrackManager(this.local, sendEvent);
 
     this.commandsQueue = new CommandsQueue(this.localTrackManager);
   }
+
 
   /**
    * Tries to connect to the RTC Engine. If user is successfully connected then {@link WebRTCEndpointEvents.connected}
@@ -568,6 +577,7 @@ export class WebRTCEndpoint<
       this.commandsQueue.pushCommand({
         handler: () => {
           this.localTrackManager.replaceTrackHandler(
+            this,
             trackId,
             newTrack,
             newMetadata,

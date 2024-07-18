@@ -7,14 +7,16 @@ import type {
   RemoteTrackId,
   SimulcastConfig,
   TrackBandwidthLimit,
+  WebRTCEndpointEvents,
 } from '../types';
 import type { EndpointWithTrackContext } from '../internal';
 import { isTrackKind, TrackContextImpl } from '../internal';
-import type { WebRTCEndpoint } from '../webRTCEndpoint';
+import type { MediaEvent } from '../mediaEvent';
 import { generateCustomEvent, generateMediaEvent } from '../mediaEvent';
 import type { ConnectionManager } from '../ConnectionManager';
 import type { Bitrates } from '../bitrate';
 import type { EndpointId, TrackId } from './TrackCommon';
+import type { WebRTCEndpoint } from "../webRTCEndpoint";
 
 export type MidToTrackId = Record<MLineId, TrackId>;
 
@@ -44,17 +46,19 @@ export class Local<EndpointMetadata, TrackMetadata> {
   private readonly endpointMetadataParser: MetadataParser<EndpointMetadata>;
   private readonly trackMetadataParser: MetadataParser<TrackMetadata>;
 
-  // temporary for webrtc.emit and webrtc.sendMediaEvent
-  private readonly webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>;
+  private readonly emit: <E extends keyof Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>>(event: E, ...args: Parameters<Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>[E]>) => void
+  private readonly sendMediaEvent: (mediaEvent: MediaEvent) => void
 
   private connection: ConnectionManager | null = null;
 
   constructor(
-    webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
+    emit: <E extends keyof Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>>(event: E, ...args: Parameters<Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>[E]>) => void,
+    sendMediaEvent: (mediaEvent: MediaEvent) => void,
     endpointMetadataParser: MetadataParser<EndpointMetadata>,
     trackMetadataParser: MetadataParser<TrackMetadata>,
   ) {
-    this.webrtc = webrtc;
+    this.emit = emit
+    this.sendMediaEvent = sendMediaEvent
     this.endpointMetadataParser = endpointMetadataParser;
     this.trackMetadataParser = trackMetadataParser;
   }
@@ -145,15 +149,18 @@ export class Local<EndpointMetadata, TrackMetadata> {
     trackManager.removeFromConnection();
 
     const mediaEvent = generateCustomEvent({ type: 'renegotiateTracks' });
-    this.webrtc.sendMediaEvent(mediaEvent);
+    this.sendMediaEvent(mediaEvent);
 
     this.localEndpoint.tracks.delete(trackId);
     delete this.localTracks[trackId];
   };
 
   public replaceTrack = async (
+    // todo remove webrtc with newTrackMetadata
+    webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
     trackId: TrackId,
     newTrack: MediaStreamTrack | null,
+    // todo remove webrtc with newTrackMetadata
     newTrackMetadata: TrackMetadata | undefined,
   ) => {
     // TODO add validation to track.kind, you cannot replace video with audio
@@ -161,7 +168,7 @@ export class Local<EndpointMetadata, TrackMetadata> {
     const trackManager = this.localTracks[trackId];
     if (!trackManager) throw new Error(`Cannot find ${trackId}`);
 
-    await trackManager.replaceTrack(newTrack, newTrackMetadata, this.webrtc);
+    await trackManager.replaceTrack(newTrack, newTrackMetadata, webrtc);
   };
 
   public setEndpointMetadata = (metadata: EndpointMetadata) => {
@@ -195,8 +202,8 @@ export class Local<EndpointMetadata, TrackMetadata> {
     await trackManager.setTrackBandwidth(bandwidth);
     const mediaEvent = trackManager.createTrackVariantBitratesEvent();
 
-    this.webrtc.sendMediaEvent(mediaEvent);
-    this.webrtc.emit('localTrackBandwidthSet', {
+    this.sendMediaEvent(mediaEvent);
+    this.emit('localTrackBandwidthSet', {
       trackId,
       bandwidth,
     });
@@ -236,9 +243,9 @@ export class Local<EndpointMetadata, TrackMetadata> {
         variantBitrates: trackManager.getTrackBitrates(),
       },
     });
-    this.webrtc.sendMediaEvent(mediaEvent);
+    this.sendMediaEvent(mediaEvent);
 
-    this.webrtc.emit('localTrackEncodingBandwidthSet', {
+    this.emit('localTrackEncodingBandwidthSet', {
       trackId,
       rid,
       bandwidth,
@@ -253,8 +260,8 @@ export class Local<EndpointMetadata, TrackMetadata> {
     const mediaEvent = generateMediaEvent('updateEndpointMetadata', {
       metadata: this.localEndpoint.metadata,
     });
-    this.webrtc.sendMediaEvent(mediaEvent);
-    this.webrtc.emit('localEndpointMetadataChanged', {
+    this.sendMediaEvent(mediaEvent);
+    this.emit('localEndpointMetadataChanged', {
       metadata: this.localEndpoint.metadata,
     });
   };
@@ -274,9 +281,9 @@ export class Local<EndpointMetadata, TrackMetadata> {
 
     switch (trackContext.negotiationStatus) {
       case 'done':
-        this.webrtc.sendMediaEvent(mediaEvent);
+        this.sendMediaEvent(mediaEvent);
 
-        this.webrtc.emit('localTrackMetadataChanged', {
+        this.emit('localTrackMetadataChanged', {
           trackId,
           metadata: trackContext.metadata!,
         });
@@ -306,8 +313,8 @@ export class Local<EndpointMetadata, TrackMetadata> {
       encoding: encoding,
     });
 
-    this.webrtc.sendMediaEvent(mediaEvent);
-    this.webrtc.emit('localTrackEncodingEnabled', {
+    this.sendMediaEvent(mediaEvent);
+    this.emit('localTrackEncodingEnabled', {
       trackId,
       encoding,
     });
@@ -327,8 +334,8 @@ export class Local<EndpointMetadata, TrackMetadata> {
       encoding: encoding,
     });
 
-    this.webrtc.sendMediaEvent(mediaEvent);
-    this.webrtc.emit('localTrackEncodingEnabled', {
+    this.sendMediaEvent(mediaEvent);
+    this.emit('localTrackEncodingEnabled', {
       trackId,
       encoding,
     });

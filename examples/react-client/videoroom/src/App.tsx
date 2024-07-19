@@ -1,30 +1,83 @@
-function RoomCredentials() {
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="">
-        <label htmlFor="roomName">Fishjam url</label>
-        <input id="roomName" type="text" />
-      </div>
-
-      <div>
-        <label htmlFor="roomName">Room name</label>
-        <input id="roomName" type="text" />
-      </div>
-
-      <div>
-        <label htmlFor="username">Username</label>
-        <input name="username" type="text" />
-      </div>
-    </div>
-  );
-}
+import { useEffect } from "react";
+import { useClient, useSelector } from "./client";
+import { DevicePicker } from "./DevicePicker";
+import { RoomConnector } from "./RoomConnector";
+import VideoPlayer from "./VideoPlayer";
+import AudioPlayer from "./AudioPlayer";
 
 function App() {
-  return (
-    <main className="w-screen h-screen bg-zinc-100 p-4">
-      <h1 className="text-xl">Videoroom example</h1>
+  const client = useClient();
+  const localVideoTrack = useSelector(
+    (state) => Object.values(state.local?.tracks ?? {})[0]
+  );
 
-      <RoomCredentials />
+  useEffect(() => {
+    client.initializeDevices({
+      videoTrackConstraints: true,
+      audioTrackConstraints: true,
+    });
+  }, [client]);
+
+  return (
+    <main className="w-screen h-screen flex">
+      <section className="max-w-sm bg-zinc-200 p-4 h-full space-y-4">
+        <h1 className="text-xl">Videoroom example</h1>
+
+        <RoomConnector />
+
+        <DevicePicker />
+      </section>
+
+      <div>
+        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 p-4">
+          {localVideoTrack && (
+            <div className="aspect-video overflow-hidden grid place-content-center bg-zinc-300 rounded-md relative">
+              <VideoPlayer
+                className="rounded-md z-20"
+                key={localVideoTrack.trackId}
+                stream={localVideoTrack.stream}
+                peerId={"0"}
+              />
+
+              <div className="absolute bottom-2 left-0 w-full grid place-content-center text-center text-xs">
+                <p className="bg-slate-100/60 px-1 rounded-sm">You</p>
+              </div>
+            </div>
+          )}
+
+          {Object.values(client.peers).map(({ id, tracks }) => {
+            const tracklist = Object.values(tracks);
+            const videoTrack = tracklist.find((track) =>
+              track.stream?.getTracks().some((track) => track.kind === "video")
+            );
+            const audioTrack = tracklist.find((track) =>
+              track.stream?.getTracks().some((track) => track.kind === "audio")
+            );
+
+            return (
+              <div
+                className="aspect-video relative bg-zinc-300 rounded-md"
+                key={id}
+              >
+                {audioTrack && <AudioPlayer stream={audioTrack?.stream} />}
+
+                {videoTrack && (
+                  <VideoPlayer
+                    className="rounded-md z-20"
+                    key={videoTrack.trackId}
+                    stream={videoTrack.stream}
+                    peerId={id}
+                  />
+                )}
+
+                <div className="absolute bottom-2 left-0 w-full grid place-content-center text-center text-xs">
+                  <p className="bg-slate-100/60 px-1 rounded-sm">{id}</p>
+                </div>
+              </div>
+            );
+          })}
+        </section>
+      </div>
     </main>
   );
 }

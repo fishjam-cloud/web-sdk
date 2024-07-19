@@ -17,7 +17,6 @@ import type { ReconnectConfig } from './reconnection';
 import { ReconnectManager } from './reconnection';
 import type { AuthErrorReason } from './auth';
 import { isAuthError } from './auth';
-import { generateMediaEvent, serializeMediaEvent } from './webrtc/mediaEvent';
 
 const STATISTICS_INTERVAL = 10_000;
 
@@ -738,11 +737,8 @@ export class FishjamClient<
           tracksStatistics[key] = report;
       });
 
-      const mediaEvent = generateMediaEvent('RTCStatsReport', tracksStatistics);
-      const serializedMediaEvent = serializeMediaEvent(mediaEvent);
-
       const message = PeerMessage.encode({
-        mediaEvent: { data: serializedMediaEvent },
+        rtcStatsReport: { data: JSON.stringify(tracksStatistics) },
       }).finish();
 
       this.websocket?.send(message);

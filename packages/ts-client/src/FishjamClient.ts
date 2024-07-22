@@ -725,24 +725,24 @@ export class FishjamClient<
     });
   }
 
-  private sendStatistics() {
-    this.getStatistics(null).then((statistics) => {
-      const tracksStatistics: Record<
-        string,
-        RTCInboundRtpStreamStats | RTCOutboundRtpStreamStats
-      > = {};
+  private async sendStatistics() {
+    const statistics = await this.getStatistics();
 
-      statistics.forEach((report, key) => {
-        if (report.type === 'inbound-rtp' || report.type === 'outbound-rtp')
-          tracksStatistics[key] = report;
-      });
+    const tracksStatistics: Record<
+      string,
+      RTCInboundRtpStreamStats | RTCOutboundRtpStreamStats
+    > = {};
 
-      const message = PeerMessage.encode({
-        rtcStatsReport: { data: JSON.stringify(tracksStatistics) },
-      }).finish();
-
-      this.websocket?.send(message);
+    statistics.forEach((report, key) => {
+      if (report.type === 'inbound-rtp' || report.type === 'outbound-rtp')
+        tracksStatistics[key] = report;
     });
+
+    const message = PeerMessage.encode({
+      rtcStatsReport: { data: JSON.stringify(tracksStatistics) },
+    }).finish();
+
+    this.websocket?.send(message);
   }
 
   /**

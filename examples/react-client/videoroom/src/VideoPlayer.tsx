@@ -2,7 +2,7 @@ import { FC, useEffect, useRef } from "react";
 
 interface VideoPlayerProps extends React.HTMLAttributes<HTMLVideoElement> {
   stream?: MediaStream | null;
-  peerId: string;
+  peerId?: string;
 }
 
 const VideoPlayer: FC<VideoPlayerProps> = ({ stream, peerId, ...props }) => {

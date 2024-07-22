@@ -1,65 +1,70 @@
-import { useCamera, useMicrophone } from "./client";
+import { FC } from "react";
+import AudioVisualizer from "./AudioVisualizer";
+import { useCamera, useMicrophone, useStatus } from "./client";
+import VideoPlayer from "./VideoPlayer";
+import { GenericTrackManager, UserMediaAPI } from "@fishjam-dev/react-client";
+import { Button } from "./Button";
+
+interface DeviceSelectProps {
+  device: UserMediaAPI<unknown> & GenericTrackManager<unknown>;
+}
+
+const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
+  const hasJoinedRoom = useStatus() === "joined";
+
+  return (
+    <div className="flex gap-4 justify-between">
+      <select
+        className="w-64"
+        onChange={(e) => device.initialize(e.target.value)}
+      >
+        {device.devices?.map((device) => (
+          <option key={device.deviceId} value={device.deviceId}>
+            {device.label}
+          </option>
+        ))}
+      </select>
+
+      {device.broadcast?.trackId ? (
+        <Button
+          disabled={!hasJoinedRoom}
+          onClick={async () => {
+            await device.stopStreaming();
+          }}
+        >
+          Stop
+        </Button>
+      ) : (
+        <Button
+          disabled={!hasJoinedRoom}
+          onClick={async () => {
+            await device.startStreaming();
+          }}
+        >
+          Stream
+        </Button>
+      )}
+    </div>
+  );
+};
 
 export function DevicePicker() {
   const camera = useCamera();
   const microphone = useMicrophone();
 
-  const onCameraSelect = async (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    if (!event.target.value) {
-      return camera.cleanup();
-    }
-    await camera.initialize(event.target.value);
-  };
-
-  const onAudioSelect = async (event: React.ChangeEvent<HTMLSelectElement>) => {
-    if (!event.target.value) {
-      return microphone.cleanup();
-    }
-    await microphone.initialize(event.target.value);
-  };
-
   return (
-    <section className="space-y-4">
+    <section className="space-y-8">
       <div className="flex flex-col gap-4">
-        <select onChange={onCameraSelect}>
-          <option value={""}>Disable camera</option>
+        <DeviceSelect device={camera} />
 
-          {camera.devices?.map((device) => (
-            <option key={device.deviceId} value={device.deviceId}>
-              {device.label}
-            </option>
-          ))}
-        </select>
-
-        <select onChange={onAudioSelect}>
-          <option value="">Disable microphone</option>
-
-          {microphone.devices?.map((device) => (
-            <option key={device.deviceId} value={device.deviceId}>
-              {device.label}
-            </option>
-          ))}
-        </select>
+        <DeviceSelect device={microphone} />
       </div>
 
-      <div className="flex gap-4">
-        <button
-          onClick={async () => {
-            await camera.startStreaming();
-          }}
-        >
-          Stream camera
-        </button>
-
-        <button
-          onClick={async () => {
-            await camera.startStreaming();
-          }}
-        >
-          Stop streaming camera
-        </button>
+      <div>
+        {camera.stream && (
+          <VideoPlayer className="w-64" stream={camera.stream} />
+        )}
+        {microphone.stream && <AudioVisualizer stream={microphone.stream} />}
       </div>
     </section>
   );

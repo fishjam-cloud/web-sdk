@@ -1,18 +1,20 @@
-import { useEffect } from "react";
-import { useConnect, useStatus, useDisconnect, useClient } from "./client";
+import { Button } from "./Button";
+import { useConnect, useStatus, useDisconnect } from "./client";
 
 export function RoomConnector() {
   const connect = useConnect();
   const status = useStatus();
   const disconnect = useDisconnect();
 
-  const client = useClient();
-
   const isUserConnected = status === "joined";
 
-  const connectToRoom = async ({ roomName, username, fishjamUrl }: any) => {
+  const connectToRoom = async ({
+    roomName,
+    username,
+    fishjamUrl,
+  }: Record<string, unknown>) => {
     const res = await fetch(
-      `https://server823sf.membrane.work/api/rooms/${roomName}/users/${username}`
+      `${fishjamUrl}/room-manager/${roomName}/users/${username}`
     );
 
     const data = (await res.json()) as { token: string };
@@ -22,7 +24,7 @@ export function RoomConnector() {
       token: data.token,
       signaling: {
         protocol: "wss",
-        host: "cloud.fishjam.work/api/v1/connect/c72028d5f7b441c297c2f3f00aa17076",
+        host: `${fishjamUrl}`.replace("https://", ""),
       },
     });
   };
@@ -36,7 +38,7 @@ export function RoomConnector() {
   };
 
   return (
-    <form className="flex flex-col gap-4 max-w-xs" onSubmit={handleSubmit}>
+    <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
       <div className="flex flex-col  justify-between">
         <label htmlFor="fishjamUrl">Fishjam url</label>
         <input
@@ -68,21 +70,13 @@ export function RoomConnector() {
       </div>
 
       <div className="flex justify-end gap-4">
-        <button
-          className="px-2 py-1 bg-gray-500 text-white rounded-md disabled:bg-gray-200"
-          onClick={disconnect}
-          disabled={!status || !isUserConnected}
-        >
+        <Button onClick={disconnect} disabled={!status || !isUserConnected}>
           Disconnect
-        </button>
+        </Button>
 
-        <button
-          className="px-2 py-1 bg-blue-500 text-white rounded-md disabled:bg-blue-200"
-          type="submit"
-          disabled={!!status || isUserConnected}
-        >
+        <Button type="submit" disabled={!!status || isUserConnected}>
           Connect
-        </button>
+        </Button>
       </div>
     </form>
   );

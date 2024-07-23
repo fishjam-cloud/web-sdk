@@ -1,4 +1,4 @@
-import type { ConnectConfig, Peer, SimulcastConfig, TrackBandwidthLimit } from "@fishjam-cloud/ts-client";
+import type { ConnectConfig, SimulcastConfig, TrackBandwidthLimit, TrackKind } from "@fishjam-cloud/ts-client";
 import type {
   PeerState,
   PeerStatus,
@@ -222,3 +222,6 @@ export type CreateFishjamClient<PeerMetadata, TrackMetadata> = {
   };
   useScreenShare: () => ReturnType<typeof useScreenShare<PeerMetadata, TrackMetadata>>;
 };
+
+export type TrackType = TrackKind | "audiovideo";
+export type MediaDeviceType = "displayMedia" | "userMedia";

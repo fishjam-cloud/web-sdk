@@ -5723,6 +5723,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "videoroom@workspace:examples/react-client/videoroom"
   dependencies:
+    "@fishjam-dev/react-client": "npm:*"
     "@types/react": "npm:^18.3.3"
     "@types/react-dom": "npm:^18.3.0"
     "@typescript-eslint/eslint-plugin": "npm:^7.15.0"

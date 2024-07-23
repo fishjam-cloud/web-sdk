@@ -1,4 +1,4 @@
-import type { DeviceManagerConfig, DeviceState, Media, GenericMediaManager, StorageConfig, DeviceError } from "./types";
+import type { DeviceManagerConfig, DeviceState, GenericMediaManager, StorageConfig, DeviceError } from "./types";
 
 import { prepareMediaTrackConstraints, toMediaTrackConstraints } from "./constraints";
 

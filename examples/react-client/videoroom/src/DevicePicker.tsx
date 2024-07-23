@@ -15,7 +15,7 @@ const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
   return (
     <div className="flex gap-4 justify-between">
       <select
-        className="w-64"
+        className="flex-shrink w-full"
         onChange={(e) => device.initialize(e.target.value)}
       >
         {device.devices?.map((device) => (
@@ -60,7 +60,7 @@ export function DevicePicker() {
         <DeviceSelect device={microphone} />
       </div>
 
-      <div>
+      <div className="flex flex-col items-center">
         {camera.stream && (
           <VideoPlayer className="w-64" stream={camera.stream} />
         )}

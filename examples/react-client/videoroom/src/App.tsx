@@ -27,7 +27,7 @@ function App() {
 
   return (
     <main className="w-screen h-screen flex">
-      <section className="max-w-sm bg-zinc-200 p-4 h-full space-y-8">
+      <section className="w-1/3 bg-zinc-200 p-4 h-full space-y-8">
         <h1 className="text-xl">Videoroom example</h1>
 
         <RoomConnector />
@@ -35,8 +35,8 @@ function App() {
         <DevicePicker />
       </section>
 
-      <div>
-        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 p-4 w-full h-full">
+      <div className="w-full h-full p-4">
+        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {localPeer && (
             <div className="aspect-video overflow-hidden grid place-content-center bg-zinc-300 rounded-md relative">
               {localVideoTrack && (

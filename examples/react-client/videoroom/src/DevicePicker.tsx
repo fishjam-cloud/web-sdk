@@ -50,6 +50,7 @@ export function DevicePicker() {
   const microphone = useMicrophone();
 
   const screenShare = useScreenShare();
+  const hasJoinedRoom = useStatus() === "joined";
 
   return (
     <section className="space-y-8">
@@ -59,11 +60,15 @@ export function DevicePicker() {
         <DeviceSelect device={microphone} />
 
         {screenShare.stream ? (
-          <Button onClick={() => screenShare.stopStreaming()}>
+          <Button
+            disabled={!hasJoinedRoom}
+            onClick={() => screenShare.stopStreaming()}
+          >
             Stop sharing
           </Button>
         ) : (
           <Button
+            disabled={!hasJoinedRoom}
             onClick={() => screenShare.startStreaming({ withAudio: true })}
           >
             Share the screen

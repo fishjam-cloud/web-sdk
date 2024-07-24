@@ -1,5 +1,6 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useSyncExternalStore } from "react";
+import { createContext, useCallback, useContext, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { PeerState, Selector, State, UseReconnection } from "./state.types";
+import type { ScreenshareState } from "./types";
 import type { ConnectConfig, CreateConfig } from "@fishjam-cloud/ts-client";
 import type {
   DeviceManagerConfig,
@@ -128,7 +129,9 @@ export function create<PeerMetadata, TrackMetadata>(
 
     const state = useSyncExternalStore(subscribe, getSnapshot);
 
-    return <FishjamContext.Provider value={{ state }}>{children}</FishjamContext.Provider>;
+    const screenshareState = useState<ScreenshareState>(null);
+
+    return <FishjamContext.Provider value={{ state, screenshareState }}>{children}</FishjamContext.Provider>;
   }
 
   function useFishjamContext(): FishjamContextType<PeerMetadata, TrackMetadata> {
@@ -225,9 +228,9 @@ export function create<PeerMetadata, TrackMetadata>(
   }
 
   function useScreenShare() {
-    const { state } = useFishjamContext();
+    const { state, screenshareState } = useFishjamContext();
 
-    return _useScreenShare(state.client.getTsClient());
+    return _useScreenShare(screenshareState, state.client.getTsClient());
   }
 
   return {

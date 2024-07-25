@@ -260,26 +260,20 @@ export const create = <PeerMetadata, TrackMetadata>(
     };
   };
 
+  const getPeerWithDistinguishedTracks = (peerState: PeerState<PeerMetadata, TrackMetadata>) => {
+    const localTracks = Object.values(peerState.tracks ?? {});
+
+    const videoTrack = localTracks.find(({ track }) => track?.kind === "video");
+    const audioTrack = localTracks.find(({ track }) => track?.kind === "audio");
+
+    return { ...peerState, videoTrack, audioTrack };
+  };
+
   const useParticipants = () => {
     const { state } = useFishjamContext();
 
-    const localParticipant = state.local;
-
-    const participants = Object.values(state.remote).map((peer) => {
-      const tracks = Object.values(peer.tracks);
-
-      const videoTrack = tracks.find(({ track }) => track?.kind === "video");
-      const audioTrack = tracks.find(({ track }) => track?.kind === "audio");
-
-      // const screenShareVideoTrack = tracks.find(
-      //   ({ track, metadata }) => track?.kind === "video" && "check for screen share in metadata",
-      // );
-      // const screenShareAudioTrack = tracks.find(
-      //   ({ track, metadata }) => track?.kind === "video" && "check for screen share in metadata",
-      // );
-
-      return { ...peer, audioTrack, videoTrack };
-    });
+    const localParticipant = state.local ? getPeerWithDistinguishedTracks(state.local) : null;
+    const participants = Object.values(state.remote).map(getPeerWithDistinguishedTracks);
 
     return { localParticipant, participants };
   };

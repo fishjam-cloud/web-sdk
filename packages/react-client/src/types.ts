@@ -1,6 +1,15 @@
 import type { ConnectConfig, SimulcastConfig, TrackBandwidthLimit } from "@fishjam-dev/ts-client";
 import type { ScreenShareManagerConfig } from "./ScreenShareManager";
-import type { PeerStatus, Selector, State, Track, TrackId, TrackWithOrigin, UseReconnection } from "./state.types";
+import type {
+  PeerState,
+  PeerStatus,
+  Selector,
+  State,
+  Track,
+  TrackId,
+  TrackWithOrigin,
+  UseReconnection,
+} from "./state.types";
 import type { JSX, ReactNode } from "react";
 import type { Client } from "./Client";
 
@@ -220,4 +229,11 @@ export type CreateFishjamClient<PeerMetadata, TrackMetadata> = {
   useScreenShare: () => ScreenShareAPI<TrackMetadata>;
   useClient: () => Client<PeerMetadata, TrackMetadata>;
   useReconnection: () => UseReconnection;
+  useParticipants: () => {
+    localParticipant: PeerState<PeerMetadata, TrackMetadata> | null;
+    participants: (PeerState<PeerMetadata, TrackMetadata> & {
+      videoTrack?: Track<TrackMetadata>;
+      audioTrack?: Track<TrackMetadata>;
+    })[];
+  };
 };

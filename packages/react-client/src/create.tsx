@@ -11,6 +11,7 @@ import type {
   FishjamContextProviderProps,
   UseConnect,
   GenericTrackManager,
+  PeerStateWithTracks,
 } from "./types";
 import { Client } from "./Client";
 import type { ScreenShareManagerConfig } from "./ScreenShareManager";
@@ -260,7 +261,9 @@ export const create = <PeerMetadata, TrackMetadata>(
     };
   };
 
-  const getPeerWithDistinguishedTracks = (peerState: PeerState<PeerMetadata, TrackMetadata>) => {
+  const getPeerWithDistinguishedTracks = (
+    peerState: PeerState<PeerMetadata, TrackMetadata>,
+  ): PeerStateWithTracks<PeerMetadata, TrackMetadata> => {
     const localTracks = Object.values(peerState.tracks ?? {});
 
     const videoTrack = localTracks.find(({ track }) => track?.kind === "video");
@@ -272,8 +275,13 @@ export const create = <PeerMetadata, TrackMetadata>(
   const useParticipants = () => {
     const { state } = useFishjamContext();
 
-    const localParticipant = state.local ? getPeerWithDistinguishedTracks(state.local) : null;
-    const participants = Object.values(state.remote).map(getPeerWithDistinguishedTracks);
+    const localParticipant: PeerStateWithTracks<PeerMetadata, TrackMetadata> | null = state.local
+      ? getPeerWithDistinguishedTracks(state.local)
+      : null;
+
+    const participants: PeerStateWithTracks<PeerMetadata, TrackMetadata>[] = Object.values(state.remote).map(
+      getPeerWithDistinguishedTracks,
+    );
 
     return { localParticipant, participants };
   };

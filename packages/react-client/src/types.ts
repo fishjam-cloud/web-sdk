@@ -221,6 +221,9 @@ type DistinguishedTracks<TrackMetadata> = {
   audioTrack?: Track<TrackMetadata>;
 };
 
+export type PeerStateWithTracks<PeerMetadata, TrackMetadata> = PeerState<PeerMetadata, TrackMetadata> &
+  DistinguishedTracks<TrackMetadata>;
+
 export type CreateFishjamClient<PeerMetadata, TrackMetadata> = {
   FishjamContextProvider: ({ children }: FishjamContextProviderProps) => JSX.Element;
   useConnect: () => (config: ConnectConfig<PeerMetadata>) => () => void;
@@ -235,7 +238,7 @@ export type CreateFishjamClient<PeerMetadata, TrackMetadata> = {
   useClient: () => Client<PeerMetadata, TrackMetadata>;
   useReconnection: () => UseReconnection;
   useParticipants: () => {
-    localParticipant: (PeerState<PeerMetadata, TrackMetadata> & DistinguishedTracks<TrackMetadata>) | null;
-    participants: (PeerState<PeerMetadata, TrackMetadata> & DistinguishedTracks<TrackMetadata>)[];
+    localParticipant: PeerStateWithTracks<PeerMetadata, TrackMetadata> | null;
+    participants: PeerStateWithTracks<PeerMetadata, TrackMetadata>[];
   };
 };

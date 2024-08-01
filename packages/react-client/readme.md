@@ -6,7 +6,7 @@ the [TS client](../ts-client/README.md).
 
 ## Documentation
 
-Documentation is available [here](https://fishjam-dev.github.io/react-client-sdk/) or you can generate it locally:
+Documentation is available [here](https://fishjam-cloud.github.io/web-client-sdk/modules/_fishjam_dev_react_client.html or you can generate it locally:
 
 ```bash
 yarn run docs

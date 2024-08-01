@@ -2,5 +2,7 @@
   "entryPoints": ["packages/*"],
   "name": "Fishjam Cloud Web SDK",
   "entryPointStrategy": "packages",
-  "includeVersion": true
+  "includeVersion": true,
+  "plugin": ["typedoc-material-theme"],
+  "themeColor": "#FCF6E7"
 }

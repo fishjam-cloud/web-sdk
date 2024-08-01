@@ -1,4 +1,4 @@
-[![NPM Version](https://img.shields.io/npm/v/@fishjam-dev/ts-client)](https://www.npmjs.com/package/@fishjam-cloud/ts-client)
+[![NPM Version](https://img.shields.io/npm/v/@fishjam-cloud/ts-client)](https://www.npmjs.com/package/@fishjam-cloud/ts-client)
 [![TypeScript Strict](https://badgen.net/badge/TS/Strict)](https://www.typescriptlang.org)
 [![TypeDoc](https://img.shields.io/badge/TypeDoc-8A2BE2)](https://fishjam-cloud.github.io/web-client-sdk/)
 
@@ -40,7 +40,7 @@ The following code snippet is based on the
 [minimal](../../examples/ts-client//minimal/) example.
 
 ```ts
-import { FishjamClient, WebRTCEndpoint } from '@fishjam-dev/ts-client';
+import { FishjamClient, WebRTCEndpoint } from '@fishjam-cloud/ts-client';
 
 const SCREEN_SHARING_MEDIA_CONSTRAINTS = {
   video: {

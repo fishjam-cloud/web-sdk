@@ -1,10 +1,6 @@
-import type {
-  PeerStatus,
-  UserMediaAPI,
-  ScreenShareAPI,
-} from "@fishjam-dev/react-client";
+import type { PeerStatus, UserMediaAPI, ScreenShareAPI } from "@fishjam-cloud/react-client";
 import type { TrackMetadata } from "./fishjamSetup";
-import type { GenericTrackManager } from "@fishjam-dev/react-client";
+import type { GenericTrackManager } from "@fishjam-cloud/react-client";
 
 type DeviceControlsProps = {
   status: PeerStatus;
@@ -24,12 +20,7 @@ type DeviceControlsProps = {
     }
 );
 
-export const DeviceControls = ({
-  device,
-  type,
-  status,
-  metadata,
-}: DeviceControlsProps) => {
+export const DeviceControls = ({ device, type, status, metadata }: DeviceControlsProps) => {
   return (
     <div className="flex flex-col gap-2">
       <button
@@ -70,9 +61,7 @@ export const DeviceControls = ({
       </button>
       <button
         className="btn btn-success btn-sm"
-        disabled={
-          status !== "joined" || !device?.stream || !!device?.broadcast?.trackId
-        }
+        disabled={status !== "joined" || !device?.stream || !!device?.broadcast?.trackId}
         onClick={() => {
           device?.startStreaming(metadata);
         }}
@@ -81,9 +70,7 @@ export const DeviceControls = ({
       </button>
       <button
         className="btn btn-error btn-sm"
-        disabled={
-          status !== "joined" || !device?.stream || !device?.broadcast?.trackId
-        }
+        disabled={status !== "joined" || !device?.stream || !device?.broadcast?.trackId}
         onClick={() => {
           device?.stopStreaming();
         }}

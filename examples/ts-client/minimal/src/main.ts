@@ -1,4 +1,4 @@
-import { FishjamClient } from "@fishjam-dev/ts-client";
+import { FishjamClient } from "@fishjam-cloud/ts-client";
 
 /* eslint-disable no-console */
 
@@ -73,12 +73,8 @@ client.on("trackRemoved", (ctx) => {
 
 async function startScreenSharing() {
   // Get screen sharing MediaStream
-  const screenStream = await navigator.mediaDevices.getDisplayMedia(
-    SCREEN_SHARING_MEDIA_CONSTRAINTS,
-  );
+  const screenStream = await navigator.mediaDevices.getDisplayMedia(SCREEN_SHARING_MEDIA_CONSTRAINTS);
 
   // Add local MediaStream to the client
-  screenStream
-    .getTracks()
-    .forEach((track) => client.addTrack(track, { type: "screen" }));
+  screenStream.getTracks().forEach((track) => client.addTrack(track, { type: "screen" }));
 }

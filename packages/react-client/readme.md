@@ -56,8 +56,8 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 
 // components/App.tsx
 import VideoPlayer from "./VideoPlayer";
-import { SCREEN_SHARING_MEDIA_CONSTRAINTS } from "@fishjam-dev/react-client";
-import { create } from "@fishjam-dev/react-client";
+import { SCREEN_SHARING_MEDIA_CONSTRAINTS } from "@fishjam-cloud/react-client";
+import { create } from "@fishjam-cloud/react-client";
 import { useState } from "react";
 
 // Example metadata types for peer and track

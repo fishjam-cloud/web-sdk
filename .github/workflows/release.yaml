@@ -76,8 +76,8 @@ jobs:
       - name: Build and bump package version in examples
         run: |
           npm ci && cd examples
-          cd minimal && npm i @fishjam-dev/ts-client && cd ..
-          cd simple-app && npm i @fishjam-dev/ts-client && cd ..
+          cd minimal && npm i @fishjam-cloud/ts-client && cd ..
+          cd simple-app && npm i @fishjam-cloud/ts-client && cd ..
 
       # Commit changes
       - name: Commit changed files and create a new tag

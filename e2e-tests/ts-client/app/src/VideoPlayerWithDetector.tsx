@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Pixel } from "./mocks";
 import { getPixel } from "./mocks";
-import type { WebRTCEndpoint } from "@fishjam-dev/ts-client";
+import type { WebRTCEndpoint } from "@fishjam-cloud/ts-client";
 
 type Props = {
   stream?: MediaStream;
@@ -21,7 +21,7 @@ const rgbToText = (pixel: Pixel): string => {
 };
 
 const getTrackIdentifierToInboundRtp = (
-  stats: RTCStatsReport,
+  stats: RTCStatsReport
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 ): Record<string, any> => {
   const result: Record<string, object> = {};
@@ -49,9 +49,7 @@ export const VideoPlayerWithDetector = ({ stream, id, webrtc }: Props) => {
     const connection = webrtc?.["connectionManager"];
     if (!connection) return 0;
 
-    const inbound = getTrackIdentifierToInboundRtp(
-      await connection.getConnection().getStats(),
-    );
+    const inbound = getTrackIdentifierToInboundRtp(await connection.getConnection().getStats());
 
     const trackId = stream?.getVideoTracks()?.[0]?.id ?? "";
 
@@ -97,15 +95,7 @@ export const VideoPlayerWithDetector = ({ stream, id, webrtc }: Props) => {
         Decoded frames:
         <span data-decoded-frames={decodedFrames}>{decodedFrames}</span>
       </div>
-      <video
-        id={id}
-        style={{ maxHeight: "90px" }}
-        autoPlay
-        playsInline
-        controls={false}
-        muted
-        ref={videoElementRef}
-      />
+      <video id={id} style={{ maxHeight: "90px" }} autoPlay playsInline controls={false} muted ref={videoElementRef} />
     </div>
   );
 };

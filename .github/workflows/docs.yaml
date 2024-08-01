@@ -35,8 +35,8 @@ jobs:
         uses: actions/configure-pages@v3
       - name: Install node dependencies
         run: yarn
-      - name: Generate TS files
-        run: yarn typecheck
+      - name: Build project
+        run: yarn build
       - name: Run typedoc
         run: yarn docs
       - name: Upload artifact

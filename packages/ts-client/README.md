@@ -42,7 +42,7 @@ The following code snippet is based on the
 [minimal](../../examples/ts-client/minimal/) example.
 
 ```ts
-import { FishjamClient, WebRTCEndpoint } from '@fishjam-dev/ts-client';
+import { FishjamClient, WebRTCEndpoint } from '@fishjam-cloud/ts-client';
 
 const SCREEN_SHARING_MEDIA_CONSTRAINTS = {
   video: {

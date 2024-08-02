@@ -25,13 +25,23 @@ export type TrackMetadata = {
 };
 
 function endpointMetadataParser(a: unknown): EndpointMetadata {
-  if (typeof a !== "object" || a === null || !("goodStuff" in a) || typeof a.goodStuff !== "string")
+  if (
+    typeof a !== "object" ||
+    a === null ||
+    !("goodStuff" in a) ||
+    typeof a.goodStuff !== "string"
+  )
     throw "Invalid metadata!!!";
   return { goodStuff: a.goodStuff };
 }
 
 function trackMetadataParser(a: unknown): TrackMetadata {
-  if (typeof a !== "object" || a === null || !("goodTrack" in a) || typeof a.goodTrack !== "string")
+  if (
+    typeof a !== "object" ||
+    a === null ||
+    !("goodTrack" in a) ||
+    typeof a.goodTrack !== "string"
+  )
     throw "Invalid track metadata!!!";
   return { goodTrack: a.goodTrack };
 }
@@ -46,7 +56,9 @@ class RemoteStore {
   > = {};
   invalidateCache: boolean = false;
 
-  constructor(private webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>) {}
+  constructor(
+    private webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
+  ) {}
 
   subscribe(callback: () => void) {
     const cb = () => {
@@ -54,16 +66,25 @@ class RemoteStore {
       callback();
     };
 
-    const trackCb: TrackContextEvents<EndpointMetadata, TrackMetadata>["encodingChanged"] = () => cb();
+    const trackCb: TrackContextEvents<
+      EndpointMetadata,
+      TrackMetadata
+    >["encodingChanged"] = () => cb();
 
-    const trackAddedCb: WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>["trackAdded"] = (context) => {
+    const trackAddedCb: WebRTCEndpointEvents<
+      EndpointMetadata,
+      TrackMetadata
+    >["trackAdded"] = (context) => {
       context.on("encodingChanged", () => trackCb);
       context.on("voiceActivityChanged", () => trackCb);
 
       callback();
     };
 
-    const removeCb: WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>["trackRemoved"] = (context) => {
+    const removeCb: WebRTCEndpointEvents<
+      EndpointMetadata,
+      TrackMetadata
+    >["trackRemoved"] = (context) => {
       context.removeListener("encodingChanged", () => trackCb);
       context.removeListener("voiceActivityChanged", () => trackCb);
 
@@ -92,7 +113,9 @@ class RemoteStore {
   snapshot() {
     const newTracks = webrtc.getRemoteTracks();
     const newEndpoints = webrtc.getRemoteEndpoints();
-    const ids = Object.keys(newTracks).sort().join(":") + Object.keys(newEndpoints).sort().join(":");
+    const ids =
+      Object.keys(newTracks).sort().join(":") +
+      Object.keys(newEndpoints).sort().join(":");
     if (!(ids in this.cache) || this.invalidateCache) {
       this.cache[ids] = [newEndpoints, newTracks];
       this.invalidateCache = false;
@@ -139,9 +162,15 @@ function connect(token: string, metadata: EndpointMetadata) {
       if (data?.mediaEvent) {
         // @ts-ignore
         const mediaEvent = JSON.parse(data?.mediaEvent?.data);
-        console.log(`%c(${clientId}) - Received: ${JSON.stringify(mediaEvent)}`, "color:green");
+        console.log(
+          `%c(${clientId}) - Received: ${JSON.stringify(mediaEvent)}`,
+          "color:green",
+        );
       } else {
-        console.log(`%c(${clientId}) - Received: ${JSON.stringify(data)}`, "color:green");
+        console.log(
+          `%c(${clientId}) - Received: ${JSON.stringify(data)}`,
+          "color:green",
+        );
       }
 
       if (data.authenticated !== undefined) {
@@ -193,8 +222,12 @@ async function addScreenshareTrack(): Promise<string> {
 }
 
 export function App() {
-  const [tokenInput, setTokenInput] = useState(localStorage.getItem("token") ?? "");
-  const [endpointMetadataInput, setEndpointMetadataInput] = useState(JSON.stringify({ goodStuff: "ye" }));
+  const [tokenInput, setTokenInput] = useState(
+    localStorage.getItem("token") ?? "",
+  );
+  const [endpointMetadataInput, setEndpointMetadataInput] = useState(
+    JSON.stringify({ goodStuff: "ye" }),
+  );
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
@@ -202,13 +235,19 @@ export function App() {
   }, [tokenInput]);
 
   const handleConnect = () =>
-    connect(tokenInput, endpointMetadataInput !== "" ? JSON.parse(endpointMetadataInput) : undefined);
+    connect(
+      tokenInput,
+      endpointMetadataInput !== ""
+        ? JSON.parse(endpointMetadataInput)
+        : undefined,
+    );
   const handleStartScreenshare = () => addScreenshareTrack();
-  const handleUpdateEndpointMetadata = () => webrtc.updateEndpointMetadata(JSON.parse(endpointMetadataInput));
+  const handleUpdateEndpointMetadata = () =>
+    webrtc.updateEndpointMetadata(JSON.parse(endpointMetadataInput));
 
   const [remoteEndpoints, remoteTracks] = useSyncExternalStore(
     (callback) => remoteTracksStore.subscribe(callback),
-    () => remoteTracksStore.snapshot()
+    () => remoteTracksStore.snapshot(),
   );
 
   const setEncoding = (trackId: string, encoding: Encoding) => {
@@ -229,7 +268,11 @@ export function App() {
     <div style={{ display: "flex" }}>
       <div>
         <div>
-          <input value={tokenInput} onChange={(e) => setTokenInput(e.target.value)} placeholder="token" />
+          <input
+            value={tokenInput}
+            onChange={(e) => setTokenInput(e.target.value)}
+            placeholder="token"
+          />
           <input
             value={endpointMetadataInput}
             onChange={(e) => setEndpointMetadataInput(e.target.value)}
@@ -237,23 +280,47 @@ export function App() {
           />
           <button onClick={handleConnect}>Connect</button>
           <button onClick={handleStartScreenshare}>Start screenshare</button>
-          <button onClick={handleUpdateEndpointMetadata}>Update metadata</button>
+          <button onClick={handleUpdateEndpointMetadata}>
+            Update metadata
+          </button>
         </div>
         <div id="connection-status">{connected ? "true" : "false"}</div>
         <hr />
         <MockComponent webrtc={webrtc} />
         <div style={{ width: "100%" }}>
           {Object.values(remoteTracks).map(
-            ({ stream, trackId, endpoint, metadata, rawMetadata, metadataParsingError }) => (
-              <div key={trackId} data-endpoint-id={endpoint.id} data-stream-id={stream?.id}>
+            ({
+              stream,
+              trackId,
+              endpoint,
+              metadata,
+              rawMetadata,
+              metadataParsingError,
+            }) => (
+              <div
+                key={trackId}
+                data-endpoint-id={endpoint.id}
+                data-stream-id={stream?.id}
+              >
                 <div>Endpoint id: {endpoint.id}</div>
-                Metadata: <code className="metadata">{JSON.stringify(metadata)}</code>
+                Metadata:{" "}
+                <code className="metadata">{JSON.stringify(metadata)}</code>
                 <br />
-                Raw: <code className="raw-metadata">{JSON.stringify(rawMetadata)}</code>
+                Raw:{" "}
+                <code className="raw-metadata">
+                  {JSON.stringify(rawMetadata)}
+                </code>
                 <br />
-                Error: <code className="metadata-parsing-error">{metadataParsingError}</code>
+                Error:{" "}
+                <code className="metadata-parsing-error">
+                  {metadataParsingError}
+                </code>
                 <div style={{ display: "flex", flexDirection: "column" }}>
-                  <VideoPlayerWithDetector id={endpoint.id} stream={stream ?? undefined} webrtc={webrtc} />
+                  <VideoPlayerWithDetector
+                    id={endpoint.id}
+                    stream={stream ?? undefined}
+                    webrtc={webrtc}
+                  />
                 </div>
                 <div data-name="stream-id">{stream?.id}</div>
                 <div>
@@ -262,29 +329,38 @@ export function App() {
                   <button onClick={() => setEncoding(trackId, "h")}>h</button>
                 </div>
               </div>
-            )
+            ),
           )}
         </div>
       </div>
       <div style={{ borderLeft: "1px solid gray" }}>
         Our metadata:
-        <input value={endpointMetadataInput} onChange={(e) => setEndpointMetadataInput(e.target.value)}></input>
+        <input
+          value={endpointMetadataInput}
+          onChange={(e) => setEndpointMetadataInput(e.target.value)}
+        ></input>
         <hr />
         <div id="endpoints-container">
           Endpoints:
-          {Object.values(remoteEndpoints).map(({ id, metadata, rawMetadata, metadataParsingError }) => (
-            <details key={id} open>
-              <summary>{id}</summary>
-              metadata: <code id={`metadata-${id}`}>{JSON.stringify(metadata)}</code>
-              <br />
-              raw metadata: <code id={`raw-metadata-${id}`}>{JSON.stringify(rawMetadata)}</code>
-              <br />
-              metadata parsing error:{" "}
-              <code id={`metadata-parsing-error-${id}`}>
-                {metadataParsingError?.toString?.() ?? metadataParsingError}
-              </code>
-            </details>
-          ))}
+          {Object.values(remoteEndpoints).map(
+            ({ id, metadata, rawMetadata, metadataParsingError }) => (
+              <details key={id} open>
+                <summary>{id}</summary>
+                metadata:{" "}
+                <code id={`metadata-${id}`}>{JSON.stringify(metadata)}</code>
+                <br />
+                raw metadata:{" "}
+                <code id={`raw-metadata-${id}`}>
+                  {JSON.stringify(rawMetadata)}
+                </code>
+                <br />
+                metadata parsing error:{" "}
+                <code id={`metadata-parsing-error-${id}`}>
+                  {metadataParsingError?.toString?.() ?? metadataParsingError}
+                </code>
+              </details>
+            ),
+          )}
         </div>
       </div>
     </div>

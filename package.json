@@ -11,7 +11,7 @@
     "e2e-tests/ts-client/app",
     "e2e-tests/react-client/app"
   ],
-  "packageManager": "yarn@4.3.0",
+  "packageManager": "yarn@4.4.0",
   "scripts": {
     "build": "yarn workspaces foreach -Apt run build",
     "test:e2e": "yarn workspace @fishjam-e2e/ts-client-e2e e2e && yarn workspace @fishjam-e2e/react-client-e2e e2e",

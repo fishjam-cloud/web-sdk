@@ -17,6 +17,55 @@ import { Client } from "./Client";
 import type { ScreenShareManagerConfig } from "./ScreenShareManager";
 import { createUseSetupMediaHook } from "./useSetupMedia";
 
+const eventNames = [
+  "socketOpen",
+  "socketError",
+  "socketClose",
+  "authSuccess",
+  "authError",
+  "disconnected",
+  "joined",
+  "joinError",
+  "peerJoined",
+  "peerUpdated",
+  "peerLeft",
+  "reconnected",
+  "reconnectionRetriesLimitReached",
+  "reconnectionStarted",
+  "componentAdded",
+  "componentUpdated",
+  "componentRemoved",
+  "trackReady",
+  "trackAdded",
+  "trackRemoved",
+  "trackUpdated",
+  "bandwidthEstimationChanged",
+  "encodingChanged",
+  "voiceActivityChanged",
+  "deviceDisabled",
+  "deviceEnabled",
+  "managerInitialized",
+  "managerStarted",
+  "deviceStopped",
+  "deviceReady",
+  "devicesStarted",
+  "devicesReady",
+  "error",
+  "targetTrackEncodingRequested",
+  "localTrackAdded",
+  "localTrackRemoved",
+  "localTrackReplaced",
+  "localTrackMuted",
+  "localTrackUnmuted",
+  "localTrackBandwidthSet",
+  "localTrackEncodingBandwidthSet",
+  "localTrackEncodingEnabled",
+  "localTrackEncodingDisabled",
+  "localPeerMetadataChanged",
+  "localTrackMetadataChanged",
+  "disconnectRequested",
+] as const;
+
 /**
  * Create a client that can be used with a context.
  * Returns context provider, and two hooks to interact with the context.
@@ -51,117 +100,10 @@ export const create = <PeerMetadata, TrackMetadata>(
         mutationRef.current = true;
         cb();
       };
-
-      client.on("socketOpen", callback);
-      client.on("socketError", callback);
-      client.on("socketClose", callback);
-      client.on("authSuccess", callback);
-      client.on("authError", callback);
-      client.on("disconnected", callback);
-      client.on("joined", callback);
-      client.on("joinError", callback);
-      client.on("peerJoined", callback);
-      client.on("peerUpdated", callback);
-      client.on("peerLeft", callback);
-
-      client.on("reconnected", callback);
-      client.on("reconnectionRetriesLimitReached", callback);
-      client.on("reconnectionStarted", callback);
-
-      client.on("componentAdded", callback);
-      client.on("componentUpdated", callback);
-      client.on("componentRemoved", callback);
-
-      client.on("trackReady", callback);
-      client.on("trackAdded", callback);
-      client.on("trackRemoved", callback);
-      client.on("trackUpdated", callback);
-      client.on("bandwidthEstimationChanged", callback);
-
-      client.on("encodingChanged", callback);
-      client.on("voiceActivityChanged", callback);
-
-      client.on("deviceDisabled", callback);
-      client.on("deviceEnabled", callback);
-      client.on("managerInitialized", callback);
-      client.on("managerStarted", callback);
-      client.on("deviceStopped", callback);
-      client.on("deviceReady", callback);
-      client.on("devicesStarted", callback);
-      client.on("devicesReady", callback);
-      client.on("error", callback);
-
-      client.on("targetTrackEncodingRequested", callback);
-
-      client.on("localTrackAdded", callback);
-      client.on("localTrackRemoved", callback);
-      client.on("localTrackReplaced", callback);
-      client.on("localTrackMuted", callback);
-      client.on("localTrackUnmuted", callback);
-      client.on("localTrackBandwidthSet", callback);
-      client.on("localTrackEncodingBandwidthSet", callback);
-      client.on("localTrackEncodingEnabled", callback);
-      client.on("localTrackEncodingDisabled", callback);
-      client.on("localPeerMetadataChanged", callback);
-      client.on("localTrackMetadataChanged", callback);
-
-      client.on("disconnectRequested", callback);
+      eventNames.forEach((eventName) => client.on(eventName, callback));
 
       return () => {
-        client.removeListener("socketOpen", callback);
-        client.removeListener("socketError", callback);
-        client.removeListener("socketClose", callback);
-        client.removeListener("authSuccess", callback);
-        client.removeListener("authError", callback);
-        client.removeListener("disconnected", callback);
-        client.removeListener("joined", callback);
-        client.removeListener("joinError", callback);
-        client.removeListener("peerJoined", callback);
-        client.removeListener("peerUpdated", callback);
-        client.removeListener("peerLeft", callback);
-
-        client.removeListener("reconnected", callback);
-        client.removeListener("reconnectionRetriesLimitReached", callback);
-        client.removeListener("reconnectionStarted", callback);
-
-        client.removeListener("componentAdded", callback);
-        client.removeListener("componentUpdated", callback);
-        client.removeListener("componentRemoved", callback);
-
-        client.removeListener("trackReady", callback);
-        client.removeListener("trackAdded", callback);
-        client.removeListener("trackRemoved", callback);
-        client.removeListener("trackUpdated", callback);
-        client.removeListener("bandwidthEstimationChanged", callback);
-
-        client.removeListener("encodingChanged", callback);
-        client.removeListener("voiceActivityChanged", callback);
-
-        client.removeListener("deviceDisabled", callback);
-        client.removeListener("deviceEnabled", callback);
-        client.removeListener("managerInitialized", callback);
-        client.removeListener("managerStarted", callback);
-        client.removeListener("deviceStopped", callback);
-        client.removeListener("devicesStarted", callback);
-        client.removeListener("devicesReady", callback);
-        client.removeListener("error", callback);
-
-        client.removeListener("targetTrackEncodingRequested", callback);
-
-        client.removeListener("localTrackAdded", callback);
-        client.removeListener("localTrackRemoved", callback);
-        client.removeListener("localTrackReplaced", callback);
-        client.removeListener("localTrackMuted", callback);
-        client.removeListener("localTrackUnmuted", callback);
-
-        client.removeListener("localTrackBandwidthSet", callback);
-        client.removeListener("localTrackEncodingBandwidthSet", callback);
-        client.removeListener("localTrackEncodingEnabled", callback);
-        client.removeListener("localTrackEncodingDisabled", callback);
-        client.removeListener("localPeerMetadataChanged", callback);
-        client.removeListener("localTrackMetadataChanged", callback);
-
-        client.removeListener("disconnectRequested", callback);
+        eventNames.forEach((eventName) => client.removeListener(eventName, callback));
       };
     }, []);
 

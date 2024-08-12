@@ -434,7 +434,7 @@ export const MainControls = () => {
               {screenShare.audioTrack && (
                 <AudioVisualizer
                   trackId={screenShare.audioTrack.id}
-                  stream={screenShare?.stream}
+                  stream={screenShare.stream}
                 />
               )}
             </div>

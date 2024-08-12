@@ -428,7 +428,7 @@ export const MainControls = () => {
               )}
 
               {screenShare.videoTrack && (
-                <VideoPlayer stream={screenShare?.stream} />
+                <VideoPlayer stream={screenShare.stream} />
               )}
 
               {screenShare.audioTrack && (

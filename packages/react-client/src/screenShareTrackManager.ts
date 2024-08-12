@@ -11,6 +11,7 @@ const getTracks = (stream: MediaStream): { video: MediaStreamTrack; audio: Media
 };
 
 export const useScreenShare = <PeerMetadata, TrackMetadata>(
+  // these arguments will be removed after we get rid of create() fn, we will just use the context
   [state, setState]: [ScreenshareState, React.Dispatch<React.SetStateAction<ScreenshareState>>],
   tsClient: FishjamClient<PeerMetadata, TrackMetadata>,
 ) => {

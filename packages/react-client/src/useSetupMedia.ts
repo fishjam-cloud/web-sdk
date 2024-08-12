@@ -1,4 +1,4 @@
-import type { FishjamContextType, MediaDeviceType, UseSetupMediaConfig, UseSetupMediaResult } from "./types";
+import type { FishjamContextType, UseSetupMediaConfig, UseSetupMediaResult } from "./types";
 import { useEffect, useMemo, useRef } from "react";
 import type { ClientApi, ClientEvents } from "./Client";
 import type { PeerStatus } from "./state.types";

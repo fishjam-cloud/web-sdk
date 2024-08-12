@@ -1,7 +1,7 @@
-import { FishjamClient } from "@fishjam-cloud/ts-client";
+import type { FishjamClient } from "@fishjam-cloud/ts-client";
 import { useCallback, useEffect } from "react";
 import { getRemoteOrLocalTrack } from "./utils/track";
-import { ScreenshareState } from "./types";
+import type { ScreenshareState } from "./types";
 
 const getTracks = (stream: MediaStream): { video: MediaStreamTrack; audio: MediaStreamTrack | null } => {
   const video = stream.getVideoTracks()[0];
@@ -42,7 +42,7 @@ export const useScreenShare = <PeerMetadata, TrackMetadata>(
     await Promise.all(removeTrackPromises);
 
     setState(null);
-  }, [state, tsClient]);
+  }, [state, tsClient, setState]);
 
   useEffect(() => {
     if (!state) return;

@@ -1,5 +1,5 @@
-import { FishjamClient, TrackContext } from "@fishjam-cloud/ts-client";
-import { Track } from "../state.types";
+import type { FishjamClient, TrackContext } from "@fishjam-cloud/ts-client";
+import type { Track } from "../state.types";
 
 // In most cases, the track is identified by its remote track ID.
 // This ID comes from the ts-client `addTrack` method.

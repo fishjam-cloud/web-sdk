@@ -11,7 +11,7 @@ import type {
 } from "./state.types";
 import type { JSX, ReactNode } from "react";
 import type { Client } from "./Client";
-import { useScreenShare } from "./screenShareTrackManager";
+import type { useScreenShare } from "./screenShareTrackManager";
 
 export type DevicesStatus = "OK" | "Error" | "Not requested" | "Requesting";
 export type MediaStatus = "OK" | "Error" | "Not requested" | "Requesting";

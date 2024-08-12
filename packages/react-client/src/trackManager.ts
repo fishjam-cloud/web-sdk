@@ -50,7 +50,7 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackMa
 
     if (track) return track.trackId;
 
-    // see `getRemoteOrLocalTrack()` explanation
+    // see `getRemoteOrLocalTrackContext()` explanation
     this.currentTrackId = media.track.id;
 
     const remoteTrackId = await this.tsClient.addTrack(media.track, trackMetadata, simulcastConfig, maxBandwidth);

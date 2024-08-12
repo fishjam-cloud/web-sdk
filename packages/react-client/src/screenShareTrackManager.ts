@@ -1,7 +1,7 @@
 import type { FishjamClient } from "@fishjam-cloud/ts-client";
 import { useCallback, useEffect } from "react";
 import { getRemoteOrLocalTrack } from "./utils/track";
-import type { ScreenshareState } from "./types";
+import type { ScreenshareApi, ScreenshareState } from "./types";
 
 const getTracks = (stream: MediaStream): { video: MediaStreamTrack; audio: MediaStreamTrack | null } => {
   const video = stream.getVideoTracks()[0];
@@ -14,7 +14,7 @@ export const useScreenShare = <PeerMetadata, TrackMetadata>(
   // these arguments will be removed after we get rid of create() fn, we will just use the context
   [state, setState]: [ScreenshareState, React.Dispatch<React.SetStateAction<ScreenshareState>>],
   tsClient: FishjamClient<PeerMetadata, TrackMetadata>,
-) => {
+): ScreenshareApi => {
   const startStreaming = async (props?: { metadata?: TrackMetadata; requestAudio?: boolean }) => {
     const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: props?.requestAudio ?? true });
     const { video, audio } = getTracks(stream);
@@ -72,7 +72,8 @@ export const useScreenShare = <PeerMetadata, TrackMetadata>(
     };
   }, [stopStreaming, tsClient]);
 
-  const tracks = state ? getTracks(state.stream) : { video: null, audio: null };
+  const stream = state?.stream ?? null;
+  const tracks = stream ? getTracks(stream) : { video: null, audio: null };
 
   const videoTrack = tracks.video;
   const audioTrack = tracks.audio;
@@ -83,7 +84,7 @@ export const useScreenShare = <PeerMetadata, TrackMetadata>(
   return {
     startStreaming,
     stopStreaming,
-    stream: state?.stream,
+    stream,
     videoTrack,
     audioTrack,
     videoBroadcast,

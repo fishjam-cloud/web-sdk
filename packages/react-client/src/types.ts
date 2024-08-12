@@ -181,6 +181,16 @@ export type UserMediaAPI<TrackMetadata> = {
   devices: MediaDeviceInfo[] | null;
 };
 
+export type ScreenshareApi = {
+  startStreaming: () => Promise<void>;
+  stopStreaming: () => Promise<void>;
+  stream: MediaStream | null;
+  videoTrack: MediaStreamTrack | null;
+  audioTrack: MediaStreamTrack | null;
+  videoBroadcast: any;
+  audioBroadcast: any;
+};
+
 export type Devices<TrackMetadata> = {
   camera: UserMediaAPI<TrackMetadata>;
   microphone: UserMediaAPI<TrackMetadata>;
@@ -226,7 +236,7 @@ export type CreateFishjamClient<PeerMetadata, TrackMetadata> = {
     localParticipant: PeerStateWithTracks<PeerMetadata, TrackMetadata> | null;
     participants: PeerStateWithTracks<PeerMetadata, TrackMetadata>[];
   };
-  useScreenShare: () => ReturnType<typeof useScreenShare<PeerMetadata, TrackMetadata>>;
+  useScreenShare: () => ScreenshareApi;
 };
 
 export type TrackType = TrackKind | "audiovideo";

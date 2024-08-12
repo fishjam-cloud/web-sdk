@@ -15,12 +15,12 @@ export const useScreenShare = <PeerMetadata, TrackMetadata>(
   [state, setState]: [ScreenshareState, React.Dispatch<React.SetStateAction<ScreenshareState>>],
   tsClient: FishjamClient<PeerMetadata, TrackMetadata>,
 ) => {
-  const startStreaming = async (props: { metadata?: TrackMetadata; withAudio?: boolean }) => {
-    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: props.withAudio });
+  const startStreaming = async (props?: { metadata?: TrackMetadata; requestAudio?: boolean }) => {
+    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: props?.requestAudio ?? true });
     const { video, audio } = getTracks(stream);
 
-    const addTrackPromises = [tsClient.addTrack(video, props.metadata)];
-    if (audio) addTrackPromises.push(tsClient.addTrack(audio, props.metadata));
+    const addTrackPromises = [tsClient.addTrack(video, props?.metadata)];
+    if (audio) addTrackPromises.push(tsClient.addTrack(audio, props?.metadata));
 
     const [videoId, audioId] = await Promise.all(addTrackPromises);
     setState({ stream, trackIds: { videoId, audioId } });
@@ -77,8 +77,8 @@ export const useScreenShare = <PeerMetadata, TrackMetadata>(
   const videoTrack = tracks.video;
   const audioTrack = tracks.audio;
 
-  const videoBroadcast = state ? getRemoteOrLocalTrack(tsClient, state.trackIds?.videoId) : null;
-  const audioBroadcast = state?.trackIds?.audioId ? getRemoteOrLocalTrack(tsClient, state.trackIds.audioId) : null;
+  const videoBroadcast = state ? getRemoteOrLocalTrack(tsClient, state.trackIds.videoId) : null;
+  const audioBroadcast = state?.trackIds.audioId ? getRemoteOrLocalTrack(tsClient, state.trackIds.audioId) : null;
 
   return {
     startStreaming,

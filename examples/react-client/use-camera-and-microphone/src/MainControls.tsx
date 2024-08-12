@@ -29,6 +29,7 @@ import {
 import { Badge } from "./Badge";
 import { DeviceControls } from "./DeviceControls";
 import { Radio } from "./Radio";
+import { ScreenShareControls } from "./ScreenShareControls";
 
 type OnDeviceChange = "remove" | "replace" | undefined;
 type OnDeviceStop = "remove" | "mute" | undefined;
@@ -43,41 +44,41 @@ const tokenAtom = atomWithStorage("token", "");
 
 const broadcastVideoOnConnectAtom = atomWithStorage<boolean | undefined>(
   "broadcastVideoOnConnect",
-  undefined,
+  undefined
 );
 const broadcastVideoOnDeviceStartAtom = atomWithStorage<boolean | undefined>(
   "broadcastVideoOnDeviceStart",
-  undefined,
+  undefined
 );
 const videoOnDeviceChangeAtom = atomWithStorage<OnDeviceChange>(
   "videoOnDeviceChange",
-  undefined,
+  undefined
 );
 const videoOnDeviceStopAtom = atomWithStorage<OnDeviceStop>(
   "videoOnDeviceStop",
-  undefined,
+  undefined
 );
 
 const broadcastAudioOnConnectAtom = atomWithStorage<boolean | undefined>(
   "broadcastAudioOnConnect",
-  undefined,
+  undefined
 );
 const broadcastAudioOnDeviceStartAtom = atomWithStorage<boolean | undefined>(
   "broadcastAudioOnDeviceStart",
-  undefined,
+  undefined
 );
 const audioOnDeviceChangeAtom = atomWithStorage<OnDeviceChange>(
   "audioOnDeviceChange",
-  undefined,
+  undefined
 );
 const audioOnDeviceStopAtom = atomWithStorage<OnDeviceStop>(
   "audioOnDeviceStop",
-  undefined,
+  undefined
 );
 
 const broadcastScreenShareOnConnectAtom = atomWithStorage<boolean | undefined>(
   "broadcastScreenShareOnConnect",
-  undefined,
+  undefined
 );
 const broadcastScreenShareOnDeviceStartAtom = atomWithStorage<
   boolean | undefined
@@ -99,27 +100,27 @@ export const MainControls = () => {
   const authError = useAuthErrorReason();
 
   const [broadcastVideoOnConnect, setBroadcastVideoOnConnect] = useAtom(
-    broadcastVideoOnConnectAtom,
+    broadcastVideoOnConnectAtom
   );
   const [broadcastVideoOnDeviceStart, setBroadcastVideoOnDeviceStart] = useAtom(
-    broadcastVideoOnDeviceStartAtom,
+    broadcastVideoOnDeviceStartAtom
   );
   const [broadcastVideoOnDeviceChange, setBroadcastVideoOnDeviceChange] =
     useAtom(videoOnDeviceChangeAtom);
   const [broadcastVideoOnDeviceStop, setBroadcastVideoOnDeviceStop] = useAtom(
-    videoOnDeviceStopAtom,
+    videoOnDeviceStopAtom
   );
 
   const [broadcastAudioOnConnect, setBroadcastAudioOnConnect] = useAtom(
-    broadcastAudioOnConnectAtom,
+    broadcastAudioOnConnectAtom
   );
   const [broadcastAudioOnDeviceStart, setBroadcastAudioOnDeviceStart] = useAtom(
-    broadcastAudioOnDeviceStartAtom,
+    broadcastAudioOnDeviceStartAtom
   );
   const [broadcastAudioOnDeviceChange, setBroadcastAudioOnDeviceChange] =
     useAtom(audioOnDeviceChangeAtom);
   const [broadcastAudioOnDeviceStop, setBroadcastAudioOnDeviceStop] = useAtom(
-    audioOnDeviceStopAtom,
+    audioOnDeviceStopAtom
   );
 
   const [broadcastScreenShareOnConnect, setBroadcastScreenShareOnConnect] =
@@ -156,11 +157,6 @@ export const MainControls = () => {
     screenShare: {
       broadcastOnConnect: broadcastScreenShareOnConnect,
       broadcastOnDeviceStart: broadcastScreenShareOnDeviceStart,
-      streamConfig: {
-        videoTrackConstraints: true,
-        // todo handle audio on gui and inside client
-        audioTrackConstraints: true,
-      },
       defaultTrackMetadata: DEFAULT_VIDEO_TRACK_METADATA,
     },
     startOnMount: autostart,
@@ -411,12 +407,8 @@ export const MainControls = () => {
             status={status}
             metadata={MANUAL_AUDIO_TRACK_METADATA}
           />
-          <DeviceControls
-            device={screenShare}
-            type="screenshare"
-            status={status}
-            metadata={MANUAL_SCREEN_SHARE_TRACK_METADATA}
-          />
+
+          <ScreenShareControls />
         </div>
       </div>
       <div>
@@ -427,16 +419,24 @@ export const MainControls = () => {
             <p>Audio {audio.track?.label}</p>
             <div className="max-w-[500px]">
               {video?.track?.kind === "video" && (
-                <VideoPlayer stream={video?.stream} />
+                <VideoPlayer stream={video.stream} />
               )}
               {audio?.track?.kind === "audio" && (
                 <AudioVisualizer
-                  stream={audio?.stream}
-                  trackId={audio?.track?.id ?? null}
+                  stream={audio.stream}
+                  trackId={audio.track.id ?? null}
                 />
               )}
-              {screenShare?.track?.kind === "video" && (
+
+              {screenShare.videoTrack && (
                 <VideoPlayer stream={screenShare?.stream} />
+              )}
+
+              {screenShare.audioTrack && (
+                <AudioVisualizer
+                  trackId={screenShare.audioTrack.id}
+                  stream={screenShare?.stream}
+                />
               )}
             </div>
           </div>

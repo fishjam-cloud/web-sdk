@@ -14,7 +14,10 @@ const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
 
   return (
     <div className="flex gap-4 justify-between">
-      <select className="flex-shrink w-full" onChange={(e) => device.initialize(e.target.value)}>
+      <select
+        className="flex-shrink w-full"
+        onChange={(e) => device.initialize(e.target.value)}
+      >
         {device.devices?.map((device) => (
           <option key={device.deviceId} value={device.deviceId}>
             {device.label}
@@ -69,7 +72,7 @@ export function DevicePicker() {
         ) : (
           <Button
             disabled={!hasJoinedRoom}
-            onClick={() => screenShare.startStreaming({ withAudio: true })}
+            onClick={() => screenShare.startStreaming()}
           >
             Share the screen
           </Button>
@@ -77,7 +80,9 @@ export function DevicePicker() {
       </div>
 
       <div className="flex flex-col items-center">
-        {camera.stream && <VideoPlayer className="w-64" stream={camera.stream} />}
+        {camera.stream && (
+          <VideoPlayer className="w-64" stream={camera.stream} />
+        )}
         {microphone.stream && <AudioVisualizer stream={microphone.stream} />}
       </div>
     </section>

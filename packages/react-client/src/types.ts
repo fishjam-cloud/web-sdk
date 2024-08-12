@@ -11,7 +11,6 @@ import type {
 } from "./state.types";
 import type { JSX, ReactNode } from "react";
 import type { Client } from "./Client";
-import type { useScreenShare } from "./screenShareTrackManager";
 
 export type DevicesStatus = "OK" | "Error" | "Not requested" | "Requesting";
 export type MediaStatus = "OK" | "Error" | "Not requested" | "Requesting";
@@ -181,14 +180,14 @@ export type UserMediaAPI<TrackMetadata> = {
   devices: MediaDeviceInfo[] | null;
 };
 
-export type ScreenshareApi = {
+export type ScreenshareApi<TrackMetadata> = {
   startStreaming: () => Promise<void>;
   stopStreaming: () => Promise<void>;
   stream: MediaStream | null;
   videoTrack: MediaStreamTrack | null;
   audioTrack: MediaStreamTrack | null;
-  videoBroadcast: any;
-  audioBroadcast: any;
+  videoBroadcast: Track<TrackMetadata> | null;
+  audioBroadcast: Track<TrackMetadata> | null;
 };
 
 export type Devices<TrackMetadata> = {
@@ -236,7 +235,7 @@ export type CreateFishjamClient<PeerMetadata, TrackMetadata> = {
     localParticipant: PeerStateWithTracks<PeerMetadata, TrackMetadata> | null;
     participants: PeerStateWithTracks<PeerMetadata, TrackMetadata>[];
   };
-  useScreenShare: () => ScreenshareApi;
+  useScreenShare: () => ScreenshareApi<TrackMetadata>;
 };
 
 export type TrackType = TrackKind | "audiovideo";

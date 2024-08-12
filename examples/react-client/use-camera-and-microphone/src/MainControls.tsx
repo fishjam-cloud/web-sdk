@@ -87,7 +87,7 @@ const autostartAtom = atomWithStorage<boolean>("autostart", false, undefined, {
   getOnInit: true,
 });
 
-const url = "ws://localhost:5002/socket/peer/websocket";
+const url = "ws://localhost:5002";
 
 export const MainControls = () => {
   const [token, setToken] = useAtom(tokenAtom);

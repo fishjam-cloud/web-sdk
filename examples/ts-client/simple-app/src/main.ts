@@ -359,7 +359,7 @@ connectButton.addEventListener("click", () => {
   client.connect({
     peerMetadata: { name: peerNameInput.value || "" },
     token: peerTokenInput.value,
-    url: "ws://localhost:5002/socket/peer/websocket",
+    url: "ws://localhost:5002",
   });
   elementsToShowIfConnected.forEach((e) => e.classList.remove("hidden"));
 });

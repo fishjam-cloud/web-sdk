@@ -52,7 +52,7 @@ export const App = () => {
             connect({
               peerMetadata: { name: "John Doe" }, // example metadata
               token: token,
-              url: "ws://localhost:5002/socket/peer/websocket",
+              url: "ws://localhost:5002",
             });
           }}
         >

@@ -87,6 +87,8 @@ const autostartAtom = atomWithStorage<boolean>("autostart", false, undefined, {
   getOnInit: true,
 });
 
+const url = "ws://localhost:5002/socket/peer/websocket";
+
 export const MainControls = () => {
   const [token, setToken] = useAtom(tokenAtom);
 
@@ -223,6 +225,7 @@ export const MainControls = () => {
               connect({
                 peerMetadata: EXAMPLE_PEER_METADATA,
                 token: token,
+                url,
               });
             }}
           >
@@ -244,6 +247,7 @@ export const MainControls = () => {
               connect({
                 peerMetadata: { name: "John Doe" }, // example metadata
                 token: token,
+                url,
               });
             }}
           >

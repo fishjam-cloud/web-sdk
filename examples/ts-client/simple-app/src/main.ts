@@ -355,9 +355,11 @@ client.on("tracksPriorityChanged", (_enabledTracks, _disabledTracks) => {});
 
 connectButton.addEventListener("click", () => {
   console.log("Connect");
+
   client.connect({
     peerMetadata: { name: peerNameInput.value || "" },
     token: peerTokenInput.value,
+    url: "ws://localhost:5002/socket/peer/websocket",
   });
   elementsToShowIfConnected.forEach((e) => e.classList.remove("hidden"));
 });

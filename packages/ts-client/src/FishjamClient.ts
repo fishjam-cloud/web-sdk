@@ -1,12 +1,12 @@
 import type {
   BandwidthLimit,
+  Encoding,
   Endpoint,
+  MetadataParser,
   SerializedMediaEvent,
   SimulcastConfig,
   TrackBandwidthLimit,
   TrackContext,
-  Encoding,
-  MetadataParser,
   WebRTCEndpointEvents,
 } from './webrtc';
 import { WebRTCEndpoint } from './webrtc';
@@ -215,26 +215,6 @@ export interface MessageEvents<PeerMetadata, TrackMetadata> {
   ) => void;
 }
 
-export type SignalingUrl = {
-  /**
-   * Protocol of the websocket server
-   * Default is `"ws"`
-   */
-  protocol?: string;
-
-  /**
-   * Host of the websocket server
-   * Default is `"localhost:5002"`
-   */
-  host?: string;
-
-  /**
-   * Path of the websocket server
-   * Default is `"/socket/peer/websocket"`
-   */
-  path?: string;
-};
-
 /** Configuration object for the client */
 export interface ConnectConfig<PeerMetadata> {
   /** Metadata for the peer */
@@ -243,7 +223,8 @@ export interface ConnectConfig<PeerMetadata> {
   /** Token for authentication */
   token: string;
 
-  signaling?: SignalingUrl;
+  /** Fishjam url */
+  url: string;
 }
 
 export type CreateConfig<PeerMetadata, TrackMetadata> = {
@@ -357,15 +338,9 @@ export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as
   private initWebsocket(peerMetadata: PeerMetadata) {
     if (!this.connectConfig) throw Error('ConnectConfig is null');
 
-    const { token, signaling } = this.connectConfig;
+    const { token, url } = this.connectConfig;
 
-    const protocol = signaling?.protocol ?? 'ws';
-    const host = signaling?.host ?? 'localhost:5002';
-    const path = signaling?.path ?? '/socket/peer/websocket';
-
-    const websocketUrl = protocol + '://' + host + path;
-
-    this.websocket = new WebSocket(websocketUrl);
+    this.websocket = new WebSocket(url);
     this.websocket.binaryType = 'arraybuffer';
 
     const socketOpenHandler = (event: Event) => {

@@ -268,7 +268,7 @@ export type CreateConfig<PeerMetadata, TrackMetadata> = {
  * ```
  */
 export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as {
-  new<PeerMetadata, TrackMetadata>(): TypedEmitter<Required<MessageEvents<PeerMetadata, TrackMetadata>>>;
+  new <PeerMetadata, TrackMetadata>(): TypedEmitter<Required<MessageEvents<PeerMetadata, TrackMetadata>>>;
 })<PeerMetadata, TrackMetadata> {
   private websocket: WebSocket | null = null;
   private webrtc: WebRTCEndpoint<PeerMetadata, TrackMetadata> | null = null;
@@ -341,7 +341,7 @@ export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as
     const { token, url } = this.connectConfig;
 
     // todo remove `url.endsWith...` when room-manager returns URL without `/socket/peer/websocket`
-    const websocketUrl = url.endsWith("/socket/peer/websocket") ? url : `${url}/socket/peer/websocket`
+    const websocketUrl = url.endsWith('/socket/peer/websocket') ? url : `${url}/socket/peer/websocket`;
 
     this.websocket = new WebSocket(websocketUrl);
     this.websocket.binaryType = 'arraybuffer';

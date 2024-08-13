@@ -107,8 +107,6 @@ export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
     this.ongoingTrackReplacement = true;
     try {
       await this.local.replaceTrack(webrtc, trackId, newTrack);
-    } catch (_error) {
-      /* empty */
     } finally {
       this.ongoingTrackReplacement = false;
     }

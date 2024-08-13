@@ -335,13 +335,19 @@ export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as
     this.status = 'initialized';
   }
 
+  private getUrl(url: string) {
+    // todo remove `url.endsWith...` when room-manager returns URL without `/socket/peer/websocket`
+    if(url.endsWith("/socket/peer/websocket")) return url;
+    if(url.endsWith("/")) return url + "socket/peer/websocket"
+    return url + "/socket/peer/websocket"
+  }
+
   private initWebsocket(peerMetadata: PeerMetadata) {
     if (!this.connectConfig) throw Error('ConnectConfig is null');
 
     const { token, url } = this.connectConfig;
 
-    // todo remove `url.endsWith...` when room-manager returns URL without `/socket/peer/websocket`
-    const websocketUrl = url.endsWith('/socket/peer/websocket') ? url : `${url}/socket/peer/websocket`;
+    const websocketUrl = this.getUrl(url)
 
     this.websocket = new WebSocket(websocketUrl);
     this.websocket.binaryType = 'arraybuffer';

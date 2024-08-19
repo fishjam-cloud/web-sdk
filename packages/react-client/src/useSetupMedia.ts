@@ -3,16 +3,14 @@ import { useEffect, useMemo, useRef } from "react";
 import type { ClientApi, ClientEvents } from "./Client";
 import type { PeerStatus } from "./state.types";
 
-export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
-  useFishjamContext: () => FishjamContextType<PeerMetadata, TrackMetadata>,
-) => {
-  const isBroadcastedTrackChanged = (client: ClientApi<PeerMetadata, TrackMetadata>, pending: boolean) =>
+export const createUseSetupMediaHook = (useFishjamContext: () => FishjamContextType) => {
+  const isBroadcastedTrackChanged = (client: ClientApi, pending: boolean) =>
     client.status === "joined" && !pending && !client.isReconnecting();
 
   const isBroadcastedTrackStopped = (status: PeerStatus, stream: MediaStream | undefined | null) =>
     status === "joined" && stream;
 
-  return (config: UseSetupMediaConfig<TrackMetadata>): UseSetupMediaResult => {
+  return (config: UseSetupMediaConfig): UseSetupMediaResult => {
     const { state } = useFishjamContext();
     const configRef = useRef(config);
 
@@ -41,7 +39,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
     useEffect(() => {
       let pending = false;
 
-      const broadcastOnCameraStart = async (client: ClientApi<PeerMetadata, TrackMetadata>) => {
+      const broadcastOnCameraStart = async (client: ClientApi) => {
         const config = configRef.current.camera;
         const videoTrackManager = client.videoTrackManager;
         const onDeviceChange = config.onDeviceChange ?? "replace";
@@ -73,7 +71,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
         }
       };
 
-      const managerInitialized: ClientEvents<PeerMetadata, TrackMetadata>["managerInitialized"] = async (
+      const managerInitialized: ClientEvents["managerInitialized"] = async (
         event,
         client,
       ) => {
@@ -82,13 +80,13 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
         }
       };
 
-      const devicesReady: ClientEvents<PeerMetadata, TrackMetadata>["devicesReady"] = async (event, client) => {
+      const devicesReady: ClientEvents["devicesReady"] = async (event, client) => {
         if (event.trackType === "video" && event.restarted && event?.media?.stream) {
           await broadcastOnCameraStart(client);
         }
       };
 
-      const deviceReady: ClientEvents<PeerMetadata, TrackMetadata>["deviceReady"] = async (event, client) => {
+      const deviceReady: ClientEvents["deviceReady"] = async (event, client) => {
         if (event.trackType === "video") {
           await broadcastOnCameraStart(client);
         }
@@ -106,10 +104,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
     }, [state.client]);
 
     useEffect(() => {
-      const removeOnCameraStopped: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (
-        event,
-        client,
-      ) => {
+      const removeOnCameraStopped: ClientEvents["deviceStopped"] = async (event, client) => {
         const camera = client.devices.camera;
         const videoTrackManager = client.videoTrackManager;
         const stream = camera.broadcast?.stream;
@@ -136,7 +131,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
     }, [state.client]);
 
     useEffect(() => {
-      const broadcastCameraOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
+      const broadcastCameraOnConnect: ClientEvents["joined"] = async (_, client) => {
         const camera = client.devices.camera;
         const stream = camera.stream;
         const config = configRef.current.camera;
@@ -160,7 +155,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
     useEffect(() => {
       let pending = false;
 
-      const broadcastOnMicrophoneStart = async (client: ClientApi<PeerMetadata, TrackMetadata>) => {
+      const broadcastOnMicrophoneStart = async (client: ClientApi) => {
         const microphone = client.devices.microphone;
         const audioTrackManager = client.audioTrackManager;
         const stream = microphone.broadcast?.stream;
@@ -192,7 +187,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
         }
       };
 
-      const managerInitialized: ClientEvents<PeerMetadata, TrackMetadata>["managerInitialized"] = async (
+      const managerInitialized: ClientEvents["managerInitialized"] = async (
         event,
         client,
       ) => {
@@ -201,13 +196,13 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
         }
       };
 
-      const devicesReady: ClientEvents<PeerMetadata, TrackMetadata>["devicesReady"] = async (event, client) => {
+      const devicesReady: ClientEvents["devicesReady"] = async (event, client) => {
         if (event.trackType === "audio" && event.restarted && event?.media?.stream) {
           await broadcastOnMicrophoneStart(client);
         }
       };
 
-      const deviceReady: ClientEvents<PeerMetadata, TrackMetadata>["deviceReady"] = async (event, client) => {
+      const deviceReady: ClientEvents["deviceReady"] = async (event, client) => {
         if (event.trackType === "audio") {
           await broadcastOnMicrophoneStart(client);
         }
@@ -225,7 +220,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
     }, [state.client]);
 
     useEffect(() => {
-      const onMicrophoneStopped: ClientEvents<PeerMetadata, TrackMetadata>["deviceStopped"] = async (event, client) => {
+      const onMicrophoneStopped: ClientEvents["deviceStopped"] = async (event, client) => {
         const audioTrackManager = client.audioTrackManager;
         const stream = client.devices.microphone.broadcast?.stream;
         const onDeviceStop = configRef.current.microphone.onDeviceStop ?? "mute";
@@ -249,7 +244,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
     }, [state.client]);
 
     useEffect(() => {
-      const broadcastMicrophoneOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
+      const broadcastMicrophoneOnConnect: ClientEvents["joined"] = async (_, client) => {
         const config = configRef.current.microphone;
         const microphone = client.devices.microphone;
 

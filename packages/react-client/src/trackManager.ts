@@ -1,9 +1,9 @@
 import type { FishjamClient, SimulcastConfig, TrackBandwidthLimit } from "@fishjam-cloud/ts-client";
-import type { GenericMediaManager, GenericTrackManager } from "./types";
+import type { GenericMediaManager, GenericTrackManager, PeerMetadata, TrackMetadata } from "./types";
 import type { Track } from "./state.types";
 import { getRemoteOrLocalTrack } from "./utils/track";
 
-export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackManager<TrackMetadata> {
+export class TrackManager implements GenericTrackManager {
   private readonly mediaManager: GenericMediaManager;
   private readonly tsClient: FishjamClient<PeerMetadata, TrackMetadata>;
   private currentTrackId: string | null = null;
@@ -13,18 +13,18 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackMa
     this.tsClient = tsClient;
   }
 
-  private getPreviousTrack = (): Track<TrackMetadata> => {
+  private getPreviousTrack = (): Track => {
     if (!this.currentTrackId) throw Error("There is no current track id");
 
-    const prevTrack = getRemoteOrLocalTrack<PeerMetadata, TrackMetadata>(this.tsClient, this.currentTrackId);
+    const prevTrack = getRemoteOrLocalTrack(this.tsClient, this.currentTrackId);
 
     if (!prevTrack) throw Error("There is no previous track");
 
     return prevTrack;
   };
 
-  public getCurrentTrack = (): Track<TrackMetadata> | null => {
-    return getRemoteOrLocalTrack<PeerMetadata, TrackMetadata>(this.tsClient, this.currentTrackId);
+  public getCurrentTrack = (): Track | null => {
+    return getRemoteOrLocalTrack(this.tsClient, this.currentTrackId);
   };
 
   public initialize = async (deviceId?: string) => {

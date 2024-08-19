@@ -181,7 +181,7 @@ export type UserMediaAPI<TrackMetadata> = {
 };
 
 export type ScreenshareApi<TrackMetadata> = {
-  startStreaming: () => Promise<void>;
+  startStreaming: (props?: { metadata?: TrackMetadata; requestAudio?: boolean }) => Promise<void>;
   stopStreaming: () => Promise<void>;
   stream: MediaStream | null;
   videoTrack: MediaStreamTrack | null;

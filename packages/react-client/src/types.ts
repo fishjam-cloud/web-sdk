@@ -155,7 +155,7 @@ export interface GenericMediaManager {
 
 export interface GenericTrackManager<TrackMetadata> {
   initialize: (deviceId?: string) => Promise<void>;
-  cleanup: () => Promise<void>;
+  stop: () => Promise<void>;
   startStreaming: (
     trackMetadata?: TrackMetadata,
     simulcastConfig?: SimulcastConfig,

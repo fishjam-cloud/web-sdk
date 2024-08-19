@@ -36,7 +36,7 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackMa
   };
 
   public cleanup = () => {
-    this.currentTrackId = null
+    this.currentTrackId = null;
   };
 
   public startStreaming = async (

@@ -29,7 +29,7 @@ export const useScreenShare = (
     setState({ stream, trackIds: { videoId, audioId } });
   };
 
-  const stopStreaming = useCallback(async () => {
+  const stopStreaming: ScreenshareApi["stopStreaming"] = useCallback(async () => {
     if (!state) {
       console.warn("No stream to stop");
       return;

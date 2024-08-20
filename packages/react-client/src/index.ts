@@ -47,7 +47,7 @@ export type {
   VadStatus,
   EncodingReason,
   MetadataParser,
-  ConnectConfig,
+  ConnectConfig as TSClientConnectConfig,
   AuthErrorReason,
   Encoding,
 } from "@fishjam-cloud/ts-client";

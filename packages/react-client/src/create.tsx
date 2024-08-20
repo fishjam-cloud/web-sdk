@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { PeerState, Selector, State, UseReconnection } from "./state.types";
 import type {
+  ConnectConfig,
   CreateFishjamClient,
   DeviceManagerConfig,
   FishjamContextProviderProps,
@@ -13,7 +14,7 @@ import type {
   UseConnect,
   UserMediaAPI
 } from "./types";
-import type { ConnectConfig, CreateConfig } from "@fishjam-cloud/ts-client";
+import type { CreateConfig } from "@fishjam-cloud/ts-client";
 import { Client } from "./Client";
 import { createUseSetupMediaHook } from "./useSetupMedia";
 import { useScreenShare as _useScreenShare } from "./screenShareTrackManager";
@@ -145,7 +146,7 @@ export function create(
     const { state }: FishjamContextType = useFishjamContext();
 
     return useMemo(() => {
-      return (config: ConnectConfig<PeerMetadata>): (() => void) => {
+      return (config: ConnectConfig): (() => void) => {
         state.client.connect(config);
         return () => {
           state.client.disconnect();

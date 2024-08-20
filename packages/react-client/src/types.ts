@@ -1,4 +1,9 @@
-import type { ConnectConfig, SimulcastConfig, TrackBandwidthLimit, TrackKind } from "@fishjam-cloud/ts-client";
+import type {
+  ConnectConfig as TSClientConnectConfig,
+  SimulcastConfig,
+  TrackBandwidthLimit,
+  TrackKind
+} from "@fishjam-cloud/ts-client";
 import type {
   PeerState,
   PeerStatus,
@@ -212,7 +217,8 @@ export type FishjamContextType = {
   screenshareState: [ScreenshareState, React.Dispatch<React.SetStateAction<ScreenshareState>>];
 };
 
-export type UseConnect = (config: ConnectConfig<PeerMetadata>) => () => void;
+export type ConnectConfig = Omit<TSClientConnectConfig<PeerMetadata>, "peerMetadata"> & { peerMetadata?: PeerMetadata };
+export type UseConnect = (config: ConnectConfig) => () => void;
 
 type DistinguishedTracks = {
   videoTrack?: Track;
@@ -223,7 +229,7 @@ export type PeerStateWithTracks = PeerState & DistinguishedTracks;
 
 export type CreateFishjamClient = {
   FishjamContextProvider: ({ children }: FishjamContextProviderProps) => JSX.Element;
-  useConnect: () => (config: ConnectConfig<PeerMetadata>) => () => void;
+  useConnect: () => (config: ConnectConfig) => () => void;
   useDisconnect: () => () => void;
   useStatus: () => PeerStatus;
   useSelector: <Result>(selector: Selector<Result>) => Result;

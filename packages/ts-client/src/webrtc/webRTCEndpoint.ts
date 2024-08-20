@@ -92,6 +92,7 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
   public connect = (metadata: EndpointMetadata): void => {
     this.local.setEndpointMetadata(metadata);
     const mediaEvent = generateMediaEvent('connect', {
+      // todo will Fishjam accept undefined metadata?
       metadata: metadata,
     });
     this.sendMediaEvent(mediaEvent);

@@ -1,10 +1,8 @@
 import type { PeerStatus, UserMediaAPI } from "@fishjam-cloud/react-client";
-import type { TrackMetadata } from "./fishjamSetup";
 import type { GenericTrackManager } from "@fishjam-cloud/react-client";
 
 type DeviceControlsProps = {
   status: PeerStatus;
-  metadata: TrackMetadata;
 } & (
   | {
       device: UserMediaAPI & GenericTrackManager;
@@ -20,7 +18,6 @@ export const DeviceControls = ({
   device,
   type,
   status,
-  metadata,
 }: DeviceControlsProps) => {
   return (
     <div className="flex flex-col gap-2">
@@ -70,7 +67,7 @@ export const DeviceControls = ({
           status !== "joined" || !device?.stream || !!device?.broadcast?.trackId
         }
         onClick={() => {
-          device?.startStreaming(metadata);
+          device?.startStreaming();
         }}
       >
         Stream {type} track

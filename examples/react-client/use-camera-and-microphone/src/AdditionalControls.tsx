@@ -1,6 +1,4 @@
 import {
-  MANUAL_AUDIO_TRACK_METADATA,
-  MANUAL_VIDEO_TRACK_METADATA,
   useCamera,
   useMicrophone,
   useStatus,
@@ -43,13 +41,11 @@ export const AdditionalControls = () => {
               device={camera}
               type={"video"}
               status={status}
-              metadata={MANUAL_VIDEO_TRACK_METADATA}
             />
             <DeviceControls
               device={microphone}
               type={"audio"}
               status={status}
-              metadata={MANUAL_AUDIO_TRACK_METADATA}
             />
           </div>
           <div>

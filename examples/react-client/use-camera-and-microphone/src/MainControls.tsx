@@ -1,9 +1,4 @@
 import {
-  DEFAULT_AUDIO_TRACK_METADATA,
-  DEFAULT_VIDEO_TRACK_METADATA,
-  EXAMPLE_PEER_METADATA,
-  MANUAL_AUDIO_TRACK_METADATA,
-  MANUAL_VIDEO_TRACK_METADATA,
   useAuthErrorReason,
   useCamera,
   useClient,
@@ -138,7 +133,6 @@ export const MainControls = () => {
       broadcastOnDeviceStart: broadcastVideoOnDeviceStart,
       onDeviceChange: broadcastVideoOnDeviceChange,
       onDeviceStop: broadcastVideoOnDeviceStop,
-      defaultTrackMetadata: DEFAULT_VIDEO_TRACK_METADATA,
       defaultSimulcastConfig: {
         enabled: true,
         activeEncodings: ["l", "m", "h"],
@@ -151,12 +145,10 @@ export const MainControls = () => {
       broadcastOnDeviceStart: broadcastAudioOnDeviceStart,
       onDeviceChange: broadcastAudioOnDeviceChange,
       onDeviceStop: broadcastAudioOnDeviceStop,
-      defaultTrackMetadata: DEFAULT_AUDIO_TRACK_METADATA,
     },
     screenShare: {
       broadcastOnConnect: broadcastScreenShareOnConnect,
       broadcastOnDeviceStart: broadcastScreenShareOnDeviceStart,
-      defaultTrackMetadata: DEFAULT_VIDEO_TRACK_METADATA,
     },
     startOnMount: autostart,
     storage: true,
@@ -216,7 +208,6 @@ export const MainControls = () => {
             onClick={() => {
               if (!token || token === "") throw Error("Token is empty");
               connect({
-                peerMetadata: { displayName: "John Doe" },
                 token: token,
               });
             }}
@@ -237,7 +228,7 @@ export const MainControls = () => {
               disconnect();
 
               connect({
-                peerMetadata: { name: "John Doe" }, // example metadata
+                peerMetadata: { displayName: "John Doe" }, // example metadata
                 token: token,
               });
             }}
@@ -398,13 +389,11 @@ export const MainControls = () => {
             device={video}
             type="video"
             status={status}
-            metadata={MANUAL_VIDEO_TRACK_METADATA}
           />
           <DeviceControls
             device={audio}
             type="audio"
             status={status}
-            metadata={MANUAL_AUDIO_TRACK_METADATA}
           />
 
           <ScreenShareControls/>

@@ -4,7 +4,6 @@ import type {
   AuthErrorReason,
   BandwidthLimit,
   Component,
-  ConnectConfig,
   CreateConfig,
   MessageEvents,
   Peer,
@@ -17,6 +16,7 @@ import type {
 import { FishjamClient } from "@fishjam-cloud/ts-client";
 import type { PeerId, PeerState, PeerStatus, Track, TrackId, TrackWithOrigin } from "./state.types";
 import type {
+  ConnectConfig,
   DeviceManagerConfig,
   DeviceManagerInitConfig,
   DeviceManagerStartConfig,
@@ -716,9 +716,9 @@ export class Client extends (EventEmitter as new () => TypedEmitter<Required<Cli
 
   public getTsClient = () => this.tsClient;
 
-  public connect(config: ConnectConfig<PeerMetadata>): void {
+  public connect(config: ConnectConfig): void {
     this.status = "connecting";
-    this.tsClient.connect(config);
+    this.tsClient.connect({ ...config, peerMetadata: {} });
   }
 
   public disconnect() {

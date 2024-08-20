@@ -2,7 +2,7 @@ import type {
   ConnectConfig as TSClientConnectConfig,
   SimulcastConfig,
   TrackBandwidthLimit,
-  TrackKind
+  TrackKind,
 } from "@fishjam-cloud/ts-client";
 import type {
   PeerState,
@@ -20,14 +20,14 @@ import type { Client } from "./Client";
 // todo change to Inner / Hidden metadata
 export type PeerMetadata = {
   displayName?: string;
-}
+};
 
 export type TrackMetadata = {
   type: "camera" | "microphone" | "screenShareVideo" | "screenShareAudio";
-  active: boolean,
+  active: boolean;
   // required for recordings
-  displayName?: string,
-}
+  displayName?: string;
+};
 
 export type DevicesStatus = "OK" | "Error" | "Not requested" | "Requesting";
 export type MediaStatus = "OK" | "Error" | "Not requested" | "Requesting";
@@ -165,10 +165,7 @@ export interface GenericMediaManager {
 export interface GenericTrackManager {
   initialize: (deviceId?: string) => Promise<void>;
   stop: () => Promise<void>;
-  startStreaming: (
-    simulcastConfig?: SimulcastConfig,
-    maxBandwidth?: TrackBandwidthLimit,
-  ) => Promise<string>;
+  startStreaming: (simulcastConfig?: SimulcastConfig, maxBandwidth?: TrackBandwidthLimit) => Promise<string>;
   stopStreaming: () => Promise<void>;
   pauseStreaming: () => Promise<void>;
   resumeStreaming: () => Promise<void>;

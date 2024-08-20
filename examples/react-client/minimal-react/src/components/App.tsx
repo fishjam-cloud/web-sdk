@@ -10,7 +10,6 @@ import {
   useTracks,
 } from "./client";
 
-
 export const App = () => {
   const [token, setToken] = useState("");
 
@@ -23,9 +22,7 @@ export const App = () => {
   {
     // for e2e test
     const client = useClient();
-    (
-      window as unknown as { client: Client }
-    ).client = client!;
+    (window as unknown as { client: Client }).client = client!;
   }
 
   return (
@@ -66,9 +63,7 @@ export const App = () => {
                 // Add local MediaStream to webrtc
                 screenStream
                   .getTracks()
-                  .forEach((track) =>
-                    client.addTrack(track),
-                  );
+                  .forEach((track) => client.addTrack(track));
               });
           }}
         >

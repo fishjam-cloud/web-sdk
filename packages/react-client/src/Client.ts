@@ -23,7 +23,9 @@ import type {
   Devices,
   DeviceState,
   MediaDeviceType,
-  MediaState, PeerMetadata, TrackMetadata,
+  MediaState,
+  PeerMetadata,
+  TrackMetadata,
   TrackType,
 } from "./types";
 import type { DeviceManagerEvents } from "./DeviceManager";
@@ -133,18 +135,12 @@ export interface ClientEvents {
    *
    * It will also be called before {@link MessageEvents.peerLeft} for each track of this peer.
    */
-  trackRemoved: (
-    ctx: TrackContext<PeerMetadata, TrackMetadata>,
-    client: ClientApi,
-  ) => void;
+  trackRemoved: (ctx: TrackContext<PeerMetadata, TrackMetadata>, client: ClientApi) => void;
 
   /**
    * Called each time peer has its track metadata updated.
    */
-  trackUpdated: (
-    ctx: TrackContext<PeerMetadata, TrackMetadata>,
-    client: ClientApi,
-  ) => void;
+  trackUpdated: (ctx: TrackContext<PeerMetadata, TrackMetadata>, client: ClientApi) => void;
 
   /**
    * Called each time new peer joins the room.
@@ -164,26 +160,17 @@ export interface ClientEvents {
   /**
    * Called each time new Component is added to the room.
    */
-  componentAdded: (
-    peer: Component<PeerMetadata, TrackMetadata>,
-    client: ClientApi,
-  ) => void;
+  componentAdded: (peer: Component<PeerMetadata, TrackMetadata>, client: ClientApi) => void;
 
   /**
    * Called each time Component is removed from the room.
    */
-  componentRemoved: (
-    peer: Component<PeerMetadata, TrackMetadata>,
-    client: ClientApi,
-  ) => void;
+  componentRemoved: (peer: Component<PeerMetadata, TrackMetadata>, client: ClientApi) => void;
 
   /**
    * Called each time Component has its metadata updated.
    */
-  componentUpdated: (
-    peer: Component<PeerMetadata, TrackMetadata>,
-    client: ClientApi,
-  ) => void;
+  componentUpdated: (peer: Component<PeerMetadata, TrackMetadata>, client: ClientApi) => void;
 
   /**
    * Called in case of errors related to multimedia session e.g. ICE connection.
@@ -202,40 +189,25 @@ export interface ClientEvents {
   bandwidthEstimationChanged: (estimation: bigint, client: ClientApi) => void;
 
   // track context events
-  encodingChanged: (
-    context: TrackContext<PeerMetadata, TrackMetadata>,
-    client: ClientApi,
-  ) => void;
+  encodingChanged: (context: TrackContext<PeerMetadata, TrackMetadata>, client: ClientApi) => void;
 
   /**
    * Emitted every time an update about voice activity is received from the server.
    */
-  voiceActivityChanged: (
-    context: TrackContext<PeerMetadata, TrackMetadata>,
-    client: ClientApi,
-  ) => void;
+  voiceActivityChanged: (context: TrackContext<PeerMetadata, TrackMetadata>, client: ClientApi) => void;
 
   // device manager events
   managerStarted: (
     event: Parameters<DeviceManagerEvents["managerInitialized"]>[0] & DeviceTypeInfo,
     client: ClientApi,
   ) => void;
-  managerInitialized: (
-    event: { audio?: DeviceState; video?: DeviceState },
-    client: ClientApi,
-  ) => void;
-  deviceReady: (
-    event: Parameters<DeviceManagerEvents["deviceReady"]>[0] & DeviceTypeInfo,
-    client: ClientApi,
-  ) => void;
+  managerInitialized: (event: { audio?: DeviceState; video?: DeviceState }, client: ClientApi) => void;
+  deviceReady: (event: Parameters<DeviceManagerEvents["deviceReady"]>[0] & DeviceTypeInfo, client: ClientApi) => void;
   devicesStarted: (
     event: Parameters<DeviceManagerEvents["devicesStarted"]>[0] & DeviceTypeInfo,
     client: ClientApi,
   ) => void;
-  devicesReady: (
-    event: Parameters<DeviceManagerEvents["devicesReady"]>[0] & DeviceTypeInfo,
-    client: ClientApi,
-  ) => void;
+  devicesReady: (event: Parameters<DeviceManagerEvents["devicesReady"]>[0] & DeviceTypeInfo, client: ClientApi) => void;
   deviceStopped: (event: DeviceTypeInfo, client: ClientApi) => void;
   deviceEnabled: (event: DeviceTypeInfo, client: ClientApi) => void;
   deviceDisabled: (event: DeviceTypeInfo, client: ClientApi) => void;
@@ -929,12 +901,12 @@ export class Client extends (EventEmitter as new () => TypedEmitter<Required<Cli
     this.media = deviceManagerSnapshot || null;
     this.local = localEndpoint
       ? {
-        id: localEndpoint.id,
-        metadata: localEndpoint.metadata,
-        metadataParsingError: localEndpoint.metadataParsingError,
-        rawMetadata: localEndpoint.rawMetadata,
-        tracks: localTracks, // to record
-      }
+          id: localEndpoint.id,
+          metadata: localEndpoint.metadata,
+          metadataParsingError: localEndpoint.metadataParsingError,
+          rawMetadata: localEndpoint.rawMetadata,
+          tracks: localTracks, // to record
+        }
       : null;
     this.peers = peers;
     this.components = components;

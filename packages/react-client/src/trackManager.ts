@@ -39,10 +39,7 @@ export class TrackManager implements GenericTrackManager {
     this.currentTrackId = null;
   };
 
-  public startStreaming = async (
-    simulcastConfig?: SimulcastConfig,
-    maxBandwidth?: TrackBandwidthLimit,
-  ) => {
+  public startStreaming = async (simulcastConfig?: SimulcastConfig, maxBandwidth?: TrackBandwidthLimit) => {
     if (this.currentTrackId) throw Error("Track already added");
 
     const media = this.mediaManager.getMedia();

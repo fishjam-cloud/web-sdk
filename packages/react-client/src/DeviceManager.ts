@@ -27,7 +27,10 @@ export type DeviceManagerEvents = {
 
 export type DeviceManagerStatus = "uninitialized" | "initializing" | "initialized" | "error";
 
-export class DeviceManager extends (EventEmitter as new () => TypedEmitter<DeviceManagerEvents>) implements GenericMediaManager {
+export class DeviceManager
+  extends (EventEmitter as new () => TypedEmitter<DeviceManagerEvents>)
+  implements GenericMediaManager
+{
   private constraints: MediaTrackConstraints | undefined;
   private storageConfig: StorageConfig | null;
 

@@ -250,7 +250,7 @@ export const MainControls = () => {
         </div>
 
         <div className="flex w-full flex-row flex-wrap items-center gap-2">
-          <Badge status={status}/>
+          <Badge status={status} />
 
           {authError && (
             <div className="flex items-center gap-1">
@@ -385,18 +385,10 @@ export const MainControls = () => {
         />
 
         <div className="grid grid-cols-3 gap-2">
-          <DeviceControls
-            device={video}
-            type="video"
-            status={status}
-          />
-          <DeviceControls
-            device={audio}
-            type="audio"
-            status={status}
-          />
+          <DeviceControls device={video} type="video" status={status} />
+          <DeviceControls device={audio} type="audio" status={status} />
 
-          <ScreenShareControls/>
+          <ScreenShareControls />
         </div>
       </div>
       <div>
@@ -407,7 +399,7 @@ export const MainControls = () => {
             <p>Audio {audio.track?.label}</p>
             <div className="max-w-[500px]">
               {video?.track?.kind === "video" && (
-                <VideoPlayer stream={video.stream}/>
+                <VideoPlayer stream={video.stream} />
               )}
               {audio?.track?.kind === "audio" && (
                 <AudioVisualizer
@@ -417,7 +409,7 @@ export const MainControls = () => {
               )}
 
               {screenShare.videoTrack && (
-                <VideoPlayer stream={screenShare.stream}/>
+                <VideoPlayer stream={screenShare.stream} />
               )}
 
               {screenShare.audioTrack && (
@@ -436,10 +428,10 @@ export const MainControls = () => {
                 <div key={trackId} className="max-w-[500px] border">
                   <span>trackId: {trackId}</span>
                   {track?.kind === "audio" && (
-                    <AudioVisualizer trackId={track.id} stream={stream}/>
+                    <AudioVisualizer trackId={track.id} stream={stream} />
                   )}
                   {track?.kind === "video" && (
-                    <VideoPlayer key={trackId} stream={stream}/>
+                    <VideoPlayer key={trackId} stream={stream} />
                   )}
                 </div>
               ))}

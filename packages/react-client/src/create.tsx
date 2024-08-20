@@ -12,7 +12,7 @@ import type {
   ScreenshareState,
   TrackMetadata,
   UseConnect,
-  UserMediaAPI
+  UserMediaAPI,
 } from "./types";
 import type { CreateConfig } from "@fishjam-cloud/ts-client";
 import { Client } from "./Client";
@@ -214,9 +214,7 @@ export function create(
       ? getPeerWithDistinguishedTracks(state.local)
       : null;
 
-    const participants: PeerStateWithTracks[] = Object.values(state.remote).map(
-      getPeerWithDistinguishedTracks,
-    );
+    const participants: PeerStateWithTracks[] = Object.values(state.remote).map(getPeerWithDistinguishedTracks);
 
     return { localParticipant, participants };
   }

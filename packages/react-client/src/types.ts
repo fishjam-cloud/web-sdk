@@ -99,7 +99,6 @@ export type UseSetupMediaConfig = {
     onDeviceStop?: "remove" | "mute";
 
     trackConstraints: boolean | MediaTrackConstraints;
-    defaultTrackMetadata?: TrackMetadata;
     defaultSimulcastConfig?: SimulcastConfig;
     defaultMaxBandwidth?: TrackBandwidthLimit;
   };
@@ -127,7 +126,6 @@ export type UseSetupMediaConfig = {
     onDeviceStop?: "remove" | "mute";
 
     trackConstraints: boolean | MediaTrackConstraints;
-    defaultTrackMetadata?: TrackMetadata;
     defaultMaxBandwidth?: TrackBandwidthLimit;
   };
   screenShare: {
@@ -140,7 +138,6 @@ export type UseSetupMediaConfig = {
      */
     broadcastOnDeviceStart?: boolean;
 
-    defaultTrackMetadata?: TrackMetadata;
     defaultMaxBandwidth?: TrackBandwidthLimit;
   };
   startOnMount?: boolean;
@@ -164,7 +161,6 @@ export interface GenericTrackManager {
   initialize: (deviceId?: string) => Promise<void>;
   stop: () => Promise<void>;
   startStreaming: (
-    trackMetadata?: TrackMetadata,
     simulcastConfig?: SimulcastConfig,
     maxBandwidth?: TrackBandwidthLimit,
   ) => Promise<string>;
@@ -216,7 +212,7 @@ export type FishjamContextType = {
   screenshareState: [ScreenshareState, React.Dispatch<React.SetStateAction<ScreenshareState>>];
 };
 
-export type UseConnect<PeerMetadata> = (config: ConnectConfig<PeerMetadata>) => () => void;
+export type UseConnect = (config: ConnectConfig<PeerMetadata>) => () => void;
 
 type DistinguishedTracks = {
   videoTrack?: Track;

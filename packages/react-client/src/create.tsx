@@ -141,7 +141,7 @@ export function create(
     return useMemo(() => selector(state), [selector, state]);
   }
 
-  function useConnect(): UseConnect<PeerMetadata> {
+  function useConnect(): UseConnect {
     const { state }: FishjamContextType = useFishjamContext();
 
     return useMemo(() => {

@@ -51,7 +51,8 @@ export const createUseSetupMediaHook = (useFishjamContext: () => FishjamContextT
             pending = true;
 
             await videoTrackManager
-              .startStreaming(config.defaultTrackMetadata, config.defaultSimulcastConfig, config.defaultMaxBandwidth)
+              // todo how to update metadata?
+              .startStreaming(config.defaultSimulcastConfig, config.defaultMaxBandwidth)
               .finally(() => {
                 pending = false;
               });
@@ -137,8 +138,8 @@ export const createUseSetupMediaHook = (useFishjamContext: () => FishjamContextT
         const config = configRef.current.camera;
 
         if (stream && config.broadcastOnConnect) {
+          // todo how to update metadata?
           await client.videoTrackManager.startStreaming(
-            config.defaultTrackMetadata,
             config.defaultSimulcastConfig,
             config.defaultMaxBandwidth,
           );
@@ -167,7 +168,8 @@ export const createUseSetupMediaHook = (useFishjamContext: () => FishjamContextT
             pending = true;
 
             await audioTrackManager
-              .startStreaming(config.defaultTrackMetadata, undefined, config.defaultMaxBandwidth)
+              // todo how to update metadata?
+              .startStreaming(undefined, config.defaultMaxBandwidth)
               .finally(() => {
                 pending = false;
               });
@@ -249,8 +251,8 @@ export const createUseSetupMediaHook = (useFishjamContext: () => FishjamContextT
         const microphone = client.devices.microphone;
 
         if (microphone.stream && config.broadcastOnConnect) {
+          // todo how to update metadata?
           await client.audioTrackManager.startStreaming(
-            config.defaultTrackMetadata,
             undefined,
             config.defaultMaxBandwidth,
           );

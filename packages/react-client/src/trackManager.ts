@@ -40,7 +40,6 @@ export class TrackManager implements GenericTrackManager {
   };
 
   public startStreaming = async (
-    trackMetadata?: TrackMetadata,
     simulcastConfig?: SimulcastConfig,
     maxBandwidth?: TrackBandwidthLimit,
   ) => {
@@ -57,7 +56,7 @@ export class TrackManager implements GenericTrackManager {
     // see `getRemoteOrLocalTrackContext()` explanation
     this.currentTrackId = media.track.id;
 
-    const remoteTrackId = await this.tsClient.addTrack(media.track, trackMetadata, simulcastConfig, maxBandwidth);
+    const remoteTrackId = await this.tsClient.addTrack(media.track, undefined, simulcastConfig, maxBandwidth);
 
     this.currentTrackId = remoteTrackId;
 

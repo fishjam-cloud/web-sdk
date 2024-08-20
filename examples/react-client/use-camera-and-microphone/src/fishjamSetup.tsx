@@ -40,20 +40,6 @@ export const MANUAL_AUDIO_TRACK_METADATA: TrackMetadata = {
   mode: "manual",
 };
 
-export const DEFAULT_SCREEN_SHARE_TRACK_METADATA: TrackMetadata = {
-  type: "screenshare",
-  mode: "auto",
-};
-
-export const MANUAL_SCREEN_SHARE_TRACK_METADATA: TrackMetadata = {
-  type: "screenshare",
-  mode: "manual",
-};
-
-export const EXAMPLE_PEER_METADATA: PeerMetadata = {
-  name: "John Doe",
-};
-
 export const {
   useStatus,
   useConnect,
@@ -65,26 +51,18 @@ export const {
   useScreenShare,
   useSelector,
   useClient,
-} = create<PeerMetadata, TrackMetadata>({
-  peerMetadataParser: (obj) => peerMetadataSchema.parse(obj),
-  trackMetadataParser: (obj) => trackMetadataSchema.passthrough().parse(obj),
-});
+} = create();
 
 export const useAuthErrorReason = () => {
   const client = useClient();
   const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
-    const authError: ClientEvents<PeerMetadata, TrackMetadata>["authError"] = (
-      reason,
-    ) => {
+    const authError: ClientEvents["authError"] = (reason) => {
       setAuthError(reason);
     };
 
-    const authSuccess: ClientEvents<
-      PeerMetadata,
-      TrackMetadata
-    >["authSuccess"] = () => {
+    const authSuccess: ClientEvents["authSuccess"] = () => {
       setAuthError(null);
     };
 

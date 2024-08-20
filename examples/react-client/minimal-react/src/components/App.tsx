@@ -10,15 +10,6 @@ import {
   useTracks,
 } from "./client";
 
-// Example metadata types for peer and track
-// You can define your own metadata types just make sure they are serializable
-export type PeerMetadata = {
-  name: string;
-};
-
-export type TrackMetadata = {
-  type: "camera" | "screen";
-};
 
 export const App = () => {
   const [token, setToken] = useState("");
@@ -33,7 +24,7 @@ export const App = () => {
     // for e2e test
     const client = useClient();
     (
-      window as unknown as { client: Client<PeerMetadata, TrackMetadata> }
+      window as unknown as { client: Client }
     ).client = client!;
   }
 
@@ -50,7 +41,7 @@ export const App = () => {
           onClick={() => {
             if (!token || token === "") throw Error("Token is empty");
             connect({
-              peerMetadata: { name: "John Doe" }, // example metadata
+              peerMetadata: { displayName: "John Doe" }, // example metadata
               token: token,
             });
           }}
@@ -76,7 +67,7 @@ export const App = () => {
                 screenStream
                   .getTracks()
                   .forEach((track) =>
-                    client.addTrack(track, { type: "screen" }),
+                    client.addTrack(track),
                   );
               });
           }}

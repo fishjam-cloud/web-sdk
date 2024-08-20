@@ -728,11 +728,10 @@ export class Client extends (EventEmitter as new () => TypedEmitter<Required<Cli
 
   public addTrack(
     track: MediaStreamTrack,
-    trackMetadata?: TrackMetadata,
     simulcastConfig: SimulcastConfig = { enabled: false, activeEncodings: [], disabledEncodings: [] },
     maxBandwidth: TrackBandwidthLimit = 0, // unlimited bandwidth
   ): Promise<string> {
-    return this.tsClient.addTrack(track, trackMetadata, simulcastConfig, maxBandwidth);
+    return this.tsClient.addTrack(track, undefined, simulcastConfig, maxBandwidth);
   }
 
   public removeTrack(trackId: string): Promise<void> {

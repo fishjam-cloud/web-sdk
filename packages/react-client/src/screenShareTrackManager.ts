@@ -15,12 +15,15 @@ export const useScreenShare = (
   [state, setState]: [ScreenshareState, React.Dispatch<React.SetStateAction<ScreenshareState>>],
   tsClient: FishjamClient<PeerMetadata, TrackMetadata>,
 ): ScreenshareApi => {
-  const startStreaming = async (props?: { metadata?: TrackMetadata; requestAudio?: boolean }) => {
-    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: props?.requestAudio ?? true });
+  const startStreaming: ScreenshareApi["startStreaming"] = async (props) => {
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: props?.videoConstraints ?? true,
+      audio: props?.audioConstraints ?? true,
+    });
     const { video, audio } = getTracks(stream);
 
-    const addTrackPromises = [tsClient.addTrack(video, props?.metadata)];
-    if (audio) addTrackPromises.push(tsClient.addTrack(audio, props?.metadata));
+    const addTrackPromises = [tsClient.addTrack(video)];
+    if (audio) addTrackPromises.push(tsClient.addTrack(audio));
 
     const [videoId, audioId] = await Promise.all(addTrackPromises);
     setState({ stream, trackIds: { videoId, audioId } });

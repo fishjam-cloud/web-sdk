@@ -186,7 +186,10 @@ export type UserMediaAPI = {
 };
 
 export type ScreenshareApi = {
-  startStreaming: () => Promise<void>;
+  startStreaming: (props?: {
+    audioConstraints?: MediaTrackConstraints | boolean;
+    videoConstraints?: MediaTrackConstraints | boolean;
+  }) => Promise<void>;
   stopStreaming: () => Promise<void>;
   stream: MediaStream | null;
   videoTrack: MediaStreamTrack | null;

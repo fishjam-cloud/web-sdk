@@ -304,8 +304,8 @@ export class Client extends (EventEmitter as new () => TypedEmitter<Required<Cli
     this.videoDeviceManager = new DeviceManager("video", config?.deviceManagerDefaultConfig);
     this.audioDeviceManager = new DeviceManager("audio", config?.deviceManagerDefaultConfig);
 
-    this.videoTrackManager = new TrackManager(this.tsClient, this.videoDeviceManager);
-    this.audioTrackManager = new TrackManager(this.tsClient, this.audioDeviceManager);
+    this.videoTrackManager = new TrackManager(this.tsClient, this.videoDeviceManager, "camera");
+    this.audioTrackManager = new TrackManager(this.tsClient, this.audioDeviceManager, "microphone");
 
     this.devices = {
       camera: {

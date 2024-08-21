@@ -926,6 +926,7 @@ export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as
    * be emitted for other peers in the room.
    */
   public updateTrackMetadata = (trackId: string, trackMetadata: TrackMetadata): void => {
+    console.trace("updateTrackMetadata")
     if (!this.webrtc) throw this.handleWebRTCNotInitialized();
 
     this.webrtc.updateTrackMetadata(trackId, trackMetadata);

@@ -6,7 +6,7 @@ import { GenericTrackManager, UserMediaAPI } from "@fishjam-cloud/react-client";
 import { Button } from "./Button";
 
 interface DeviceSelectProps {
-  device: UserMediaAPI<unknown> & GenericTrackManager<unknown>;
+  device: UserMediaAPI & GenericTrackManager;
 }
 
 const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {

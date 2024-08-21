@@ -54,7 +54,7 @@
     "typescript": "^5.5.4"
   },
   "dependencies": {
-    "@fishjam-cloud/ts-client": "*",
+    "@fishjam-cloud/ts-client": "workspace:*",
     "events": "3.3.0",
     "lodash.isequal": "4.5.0"
   },

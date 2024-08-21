@@ -27,7 +27,7 @@ import { ConnectionManager } from './ConnectionManager';
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
  */
 export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends (EventEmitter as {
-  new <EndpointMetadata, TrackMetadata>(): TypedEmitter<
+  new<EndpointMetadata, TrackMetadata>(): TypedEmitter<
     Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>
   >;
 })<EndpointMetadata, TrackMetadata> {
@@ -49,7 +49,10 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
     this.endpointMetadataParser = config?.endpointMetadataParser ?? ((x) => x as EndpointMetadata);
     this.trackMetadataParser = config?.trackMetadataParser ?? ((x) => x as TrackMetadata);
 
-    const sendEvent = (mediaEvent: MediaEvent) => this.sendMediaEvent(mediaEvent);
+    const sendEvent = (mediaEvent: MediaEvent) => {
+      console.log({ name: "sendMediaEvent", mediaEvent })
+      this.sendMediaEvent(mediaEvent);
+    }
 
     const emit: <E extends keyof Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>>(
       event: E,
@@ -659,6 +662,8 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
    * event `trackUpdated` will be emitted for other endpoints in the room.
    */
   public updateTrackMetadata = (trackId: string, trackMetadata: any): void => {
+    console.trace("updateTrackMetadata")
+
     this.local.updateLocalTrackMetadata(trackId, trackMetadata);
   };
 

@@ -6,11 +6,17 @@ import { getRemoteOrLocalTrack } from "./utils/track";
 export class TrackManager implements GenericTrackManager {
   private readonly mediaManager: GenericMediaManager;
   private readonly tsClient: FishjamClient<PeerMetadata, TrackMetadata>;
+  private readonly type: TrackMetadata["type"];
   private currentTrackId: string | null = null;
 
-  constructor(tsClient: FishjamClient<PeerMetadata, TrackMetadata>, deviceManager: GenericMediaManager) {
+  constructor(
+    tsClient: FishjamClient<PeerMetadata, TrackMetadata>,
+    deviceManager: GenericMediaManager,
+    type: TrackMetadata["type"]
+  ) {
     this.mediaManager = deviceManager;
     this.tsClient = tsClient;
+    this.type = type;
   }
 
   private getPreviousTrack = (): Track => {
@@ -53,7 +59,12 @@ export class TrackManager implements GenericTrackManager {
     // see `getRemoteOrLocalTrackContext()` explanation
     this.currentTrackId = media.track.id;
 
-    const remoteTrackId = await this.tsClient.addTrack(media.track, undefined, simulcastConfig, maxBandwidth);
+    const metadata: TrackMetadata = {
+      type: this.type,
+      active: true,
+      // todo displayName: ""
+    }
+    const remoteTrackId = await this.tsClient.addTrack(media.track, metadata, simulcastConfig, maxBandwidth);
 
     this.currentTrackId = remoteTrackId;
 
@@ -78,6 +89,12 @@ export class TrackManager implements GenericTrackManager {
   public pauseStreaming = async () => {
     const prevTrack = this.getPreviousTrack();
     await this.tsClient.replaceTrack(prevTrack.trackId, null);
+    const metadata: TrackMetadata = {
+      type: this.type,
+      active: true,
+      // todo displayName: ""
+    }
+    this.tsClient.updateTrackMetadata(prevTrack.trackId, metadata)
   };
 
   public isMuted = () => {
@@ -95,6 +112,12 @@ export class TrackManager implements GenericTrackManager {
     if (!media) throw Error("Device is unavailable");
 
     await this.tsClient.replaceTrack(prevTrack.trackId, media.track);
+    const metadata: TrackMetadata = {
+      type: this.type,
+      active: true,
+      // todo displayName: ""
+    }
+    this.tsClient.updateTrackMetadata(prevTrack.trackId, metadata)
   };
 
   public disableTrack = async () => {

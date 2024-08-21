@@ -38,7 +38,7 @@ const isComponent = <PeerMetadata, TrackMetadata>(
   endpoint.type === 'rtsp' ||
   endpoint.type === 'sip';
 
-const WEBSOCKET_PATH = "socket/peer/websocket";
+const WEBSOCKET_PATH = 'socket/peer/websocket';
 
 /**
  * Events emitted by the client with their arguments.
@@ -338,8 +338,8 @@ export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as
   }
 
   private getUrl(url: string) {
-    if(url.endsWith("/")) return url + WEBSOCKET_PATH
-    return url + "/" + WEBSOCKET_PATH
+    if (url.endsWith('/')) return url + WEBSOCKET_PATH;
+    return url + '/' + WEBSOCKET_PATH;
   }
 
   private initWebsocket(peerMetadata: PeerMetadata) {
@@ -347,7 +347,7 @@ export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as
 
     const { token, url } = this.connectConfig;
 
-    const websocketUrl = this.getUrl(url)
+    const websocketUrl = this.getUrl(url);
 
     this.websocket = new WebSocket(websocketUrl);
     this.websocket.binaryType = 'arraybuffer';

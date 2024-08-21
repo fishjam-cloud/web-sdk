@@ -399,8 +399,10 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
     this.tsClient.on("disconnected", () => {
       this.status = null;
-      this.videoTrackManager.stopStreaming();
-      this.audioTrackManager.stopStreaming();
+
+      this.videoTrackManager.cleanup();
+      this.audioTrackManager.cleanup();
+
       this.stateToSnapshot();
 
       this.emit("disconnected", this);
@@ -739,12 +741,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
     return this.tsClient.removeTrack(trackId);
   }
 
-  public replaceTrack(
-    trackId: string,
-    newTrack: MediaStreamTrack | null,
-    newTrackMetadata?: TrackMetadata,
-  ): Promise<void> {
-    return this.tsClient.replaceTrack(trackId, newTrack, newTrackMetadata);
+  public replaceTrack(trackId: string, newTrack: MediaStreamTrack | null): Promise<void> {
+    return this.tsClient.replaceTrack(trackId, newTrack);
   }
 
   public getStatistics(selector?: MediaStreamTrack | null): Promise<RTCStatsReport> {

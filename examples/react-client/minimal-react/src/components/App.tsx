@@ -20,6 +20,8 @@ export type TrackMetadata = {
   type: "camera" | "screen";
 };
 
+const FISHJAM_URL = "ws://localhost:5002";
+
 export const App = () => {
   const [token, setToken] = useState("");
 
@@ -52,7 +54,7 @@ export const App = () => {
             connect({
               peerMetadata: { name: "John Doe" }, // example metadata
               token: token,
-              url: "ws://localhost:5002",
+              url: FISHJAM_URL,
             });
           }}
         >

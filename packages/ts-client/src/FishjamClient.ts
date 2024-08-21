@@ -338,8 +338,8 @@ export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as
   }
 
   private getUrl(url: string) {
-    if (url.endsWith('/')) return url + WEBSOCKET_PATH;
-    return url + '/' + WEBSOCKET_PATH;
+    if (url.endsWith('/')) return `${url}${WEBSOCKET_PATH}`;
+    return `${url}/${WEBSOCKET_PATH}`;
   }
 
   private initWebsocket(peerMetadata: PeerMetadata) {

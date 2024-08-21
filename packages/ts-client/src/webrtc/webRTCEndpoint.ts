@@ -50,7 +50,6 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
     this.trackMetadataParser = config?.trackMetadataParser ?? ((x) => x as TrackMetadata);
 
     const sendEvent = (mediaEvent: MediaEvent) => {
-      console.log({ name: "sendMediaEvent", mediaEvent })
       this.sendMediaEvent(mediaEvent);
     }
 

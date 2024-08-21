@@ -271,8 +271,13 @@ export class Local<EndpointMetadata, TrackMetadata> {
       trackMetadata: metadata,
     });
 
-    switch (trackContext.negotiationStatus) {
+    const negotiationStatus = trackContext.negotiationStatus;
+
+    console.log({ negotiationStatus })
+
+    switch (negotiationStatus) {
       case 'done':
+        console.log("negotiationStatus-done => updating metadata")
         this.sendMediaEvent(mediaEvent);
 
         this.emit('localTrackMetadataChanged', {

@@ -515,7 +515,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@fishjam-cloud/react-client@workspace:packages/react-client"
   dependencies:
-    "@fishjam-cloud/ts-client": "npm:*"
+    "@fishjam-cloud/ts-client": "workspace:*"
     "@playwright/test": "npm:^1.46.1"
     "@types/events": "npm:^3.0.3"
     "@types/lodash.isequal": "npm:^4.5.8"
@@ -531,7 +531,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fishjam-cloud/ts-client@npm:*, @fishjam-cloud/ts-client@workspace:*, @fishjam-cloud/ts-client@workspace:packages/ts-client":
+"@fishjam-cloud/ts-client@workspace:*, @fishjam-cloud/ts-client@workspace:packages/ts-client":
   version: 0.0.0-use.local
   resolution: "@fishjam-cloud/ts-client@workspace:packages/ts-client"
   dependencies:

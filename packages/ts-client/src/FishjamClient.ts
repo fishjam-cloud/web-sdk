@@ -38,6 +38,8 @@ const isComponent = <PeerMetadata, TrackMetadata>(
   endpoint.type === 'rtsp' ||
   endpoint.type === 'sip';
 
+const WEBSOCKET_PATH = "socket/peer/websocket";
+
 /**
  * Events emitted by the client with their arguments.
  */
@@ -336,10 +338,8 @@ export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as
   }
 
   private getUrl(url: string) {
-    // todo remove `url.endsWith...` when room-manager returns URL without `/socket/peer/websocket`
-    if(url.endsWith("/socket/peer/websocket")) return url;
-    if(url.endsWith("/")) return url + "socket/peer/websocket"
-    return url + "/socket/peer/websocket"
+    if(url.endsWith("/")) return url + WEBSOCKET_PATH
+    return url + "/" + WEBSOCKET_PATH
   }
 
   private initWebsocket(peerMetadata: PeerMetadata) {

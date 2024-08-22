@@ -3,7 +3,7 @@ import { useConnect, useStatus, useDisconnect } from "./client";
 
 type FormValues = {
   roomName: string;
-  username: string;
+  userName: string;
   roomManagerUrl: string;
 };
 
@@ -14,14 +14,17 @@ export function RoomConnector() {
 
   const isUserConnected = status === "joined";
 
-  const connectToRoom = async ({ roomName, username, roomManagerUrl }: FormValues) => {
+  const connectToRoom = async ({ roomManagerUrl, roomName, userName }: FormValues) => {
+    localStorage.setItem("roomManagerUrl", roomManagerUrl);
+    localStorage.setItem("roomName", roomName);
+    localStorage.setItem("userName", userName);
+
     // in case user copied url from admin panel
     const urlWithoutParams = roomManagerUrl.replace("/*roomName*/users/*username*", "");
 
     // trim slash from end
     const url = urlWithoutParams.endsWith("/") ? urlWithoutParams : urlWithoutParams + "/";
-
-    const res = await fetch(`${url}${roomName}/users/${username}`);
+    const res = await fetch(`${url}${roomName}/users/${userName}`);
 
     const { token, url: fishjamUrl } = (await res.json()) as { token: string; url: string };
 
@@ -31,6 +34,10 @@ export function RoomConnector() {
       url: fishjamUrl,
     });
   };
+
+  const defaultRoomManagerUrl = localStorage.getItem("roomManagerUrl") ?? "";
+  const defaultUserName = localStorage.getItem("userName") ?? "";
+  const defaultRoomName = localStorage.getItem("roomName") ?? "";
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -44,17 +51,23 @@ export function RoomConnector() {
     <form className="flex flex-col gap-4" onSubmit={handleSubmit} autoComplete="on">
       <div className="flex flex-col  justify-between">
         <label htmlFor="roomManagerUrl">Room url</label>
-        <input id="fishjamUrl" name="roomManagerUrl" type="text" disabled={isUserConnected} />
+        <input
+          id="fishjamUrl"
+          name="roomManagerUrl"
+          type="text"
+          disabled={isUserConnected}
+          defaultValue={defaultRoomManagerUrl}
+        />
       </div>
 
       <div className="flex flex-col justify-between">
         <label htmlFor="roomName">Room name</label>
-        <input id="roomName" name="roomName" type="text" disabled={isUserConnected} />
+        <input id="roomName" name="roomName" type="text" disabled={isUserConnected} defaultValue={defaultRoomName} />
       </div>
 
       <div className="flex flex-col  justify-between">
-        <label htmlFor="username">Username</label>
-        <input id="username" name="username" type="text" disabled={isUserConnected} />
+        <label htmlFor="userName">User name</label>
+        <input id="userName" name="userName" type="text" disabled={isUserConnected} defaultValue={defaultUserName} />
       </div>
 
       <div className="flex justify-end gap-4">

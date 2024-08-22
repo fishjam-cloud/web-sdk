@@ -17,17 +17,18 @@ export function RoomConnector() {
   const connectToRoom = async ({ roomName, username, roomManagerUrl }: FormValues) => {
     // in case user copied url from admin panel
     const urlWithoutParams = roomManagerUrl.replace("/*roomName*/users/*username*", "");
+
     // trim slash from end
     const url = urlWithoutParams.endsWith("/") ? urlWithoutParams : urlWithoutParams + "/";
 
-    const res = await fetch(`${url}/room-manager/${roomName}/users/${username}`);
+    const res = await fetch(`${url}${roomName}/users/${username}`);
 
     const { token, url: fishjamUrl } = (await res.json()) as { token: string; url: string };
 
     connect({
       peerMetadata: {},
       token,
-      url: `${fishjamUrl}/socket/peer/websocket`,
+      url: fishjamUrl,
     });
   };
 

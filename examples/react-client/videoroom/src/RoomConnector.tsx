@@ -39,7 +39,7 @@ export function RoomConnector() {
     const { token, url: fishjamUrl } = (await res.json()) as { token: string; url: string };
 
     connect({
-      peerMetadata: {},
+      peerMetadata: { name: userName },
       token,
       url: fishjamUrl,
     });

@@ -458,8 +458,6 @@ export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as
 
   private setupCallbacks() {
     this.webrtc?.on('sendMediaEvent', (mediaEvent: SerializedMediaEvent) => {
-      console.log("%cSend media event", "color:green");
-      console.log({ mediaEvent: JSON.parse(mediaEvent) })
       const message = PeerMessage.encode({
         mediaEvent: { data: mediaEvent },
       }).finish();
@@ -911,11 +909,10 @@ export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as
    * If the metadata is different from what is already tracked in the room, the event {@link MessageEvents.trackUpdated} will
    * be emitted for other peers in the room.
    */
-  public updateTrackMetadata = (trackId: string, trackMetadata: TrackMetadata): void => {
-    console.trace("updateTrackMetadata")
+  public updateTrackMetadata = (trackId: string, trackMetadata: TrackMetadata): Promise<void> => {
     if (!this.webrtc) throw this.handleWebRTCNotInitialized();
 
-    this.webrtc.updateTrackMetadata(trackId, trackMetadata);
+    return this.webrtc.updateTrackMetadata(trackId, trackMetadata);
   };
 
   public isReconnecting() {

@@ -199,17 +199,13 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
   }
 
   public updateTrackMetadata = (metadata: unknown) => {
-    console.trace()
     const trackContext = this.trackContext;
 
     try {
       trackContext.metadata = this.metadataParser(metadata);
       trackContext.rawMetadata = metadata;
       trackContext.metadataParsingError = undefined;
-      console.log("Metadata locally updated");
     } catch (error) {
-      console.log("Error during local metadata update");
-
       trackContext.metadata = undefined;
       trackContext.metadataParsingError = error;
       throw error;

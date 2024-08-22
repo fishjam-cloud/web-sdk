@@ -660,10 +660,31 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
    * If the metadata is different from what is already tracked in the room, the optional
    * event `trackUpdated` will be emitted for other endpoints in the room.
    */
-  public updateTrackMetadata = (trackId: string, trackMetadata: any): void => {
-    console.trace("updateTrackMetadata")
+  public updateTrackMetadata = async (trackId: string, trackMetadata: any): Promise<void> => {
+    const resolutionNotifier = new Deferred<void>();
 
-    this.local.updateLocalTrackMetadata(trackId, trackMetadata);
+    try {
+      this.local.updateLocalTrackMetadata(trackId, trackMetadata)
+
+      this.commandsQueue.pushCommand({
+        handler: () => {
+          const mediaEvent = generateMediaEvent('updateTrackMetadata', {
+            trackId,
+            trackMetadata: trackMetadata,
+          });
+
+          this.sendMediaEvent(mediaEvent);
+          this.emit('localTrackMetadataChanged', {
+            trackId,
+            metadata: trackMetadata,
+          });
+        },
+        resolve: "immediately",
+        resolutionNotifier,
+      })
+    } catch (e) {
+      resolutionNotifier.reject(e)
+    }
   };
 
   /**

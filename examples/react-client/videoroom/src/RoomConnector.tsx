@@ -1,6 +1,12 @@
 import { Button } from "./Button";
 import { useConnect, useStatus, useDisconnect } from "./client";
 
+type FormValues = {
+  roomName: string;
+  username: string;
+  roomManagerUrl: string;
+};
+
 export function RoomConnector() {
   const connect = useConnect();
   const status = useStatus();
@@ -8,19 +14,20 @@ export function RoomConnector() {
 
   const isUserConnected = status === "joined";
 
-  const connectToRoom = async ({
-    roomName,
-    username,
-    fishjamUrl,
-  }: Record<string, unknown>) => {
-    const res = await fetch(`${fishjamUrl}/room-manager/${roomName}/users/${username}`);
+  const connectToRoom = async ({ roomName, username, roomManagerUrl }: FormValues) => {
+    // in case user copied url from admin panel
+    const urlWithoutParams = roomManagerUrl.replace("/*roomName*/users/*username*", "");
+    // trim slash from end
+    const url = urlWithoutParams.endsWith("/") ? urlWithoutParams : urlWithoutParams + "/";
 
-    const { token, url } = (await res.json()) as { token: string, url: string };
+    const res = await fetch(`${url}/room-manager/${roomName}/users/${username}`);
+
+    const { token, url: fishjamUrl } = (await res.json()) as { token: string; url: string };
 
     connect({
       peerMetadata: {},
       token,
-      url,
+      url: `${fishjamUrl}/socket/peer/websocket`,
     });
   };
 
@@ -29,39 +36,24 @@ export function RoomConnector() {
     const formData = new FormData(e.currentTarget);
     const formProps = Object.fromEntries(formData);
 
-    await connectToRoom(formProps);
+    await connectToRoom(formProps as FormValues);
   };
 
   return (
-    <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+    <form className="flex flex-col gap-4" onSubmit={handleSubmit} autoComplete="on">
       <div className="flex flex-col  justify-between">
-        <label htmlFor="fishjamUrl">Fishjam url</label>
-        <input
-          id="fishjamUrl"
-          name="fishjamUrl"
-          type="text"
-          disabled={isUserConnected}
-        />
+        <label htmlFor="roomManagerUrl">Room url</label>
+        <input id="fishjamUrl" name="roomManagerUrl" type="text" disabled={isUserConnected} />
       </div>
 
       <div className="flex flex-col justify-between">
         <label htmlFor="roomName">Room name</label>
-        <input
-          id="roomName"
-          name="roomName"
-          type="text"
-          disabled={isUserConnected}
-        />
+        <input id="roomName" name="roomName" type="text" disabled={isUserConnected} />
       </div>
 
       <div className="flex flex-col  justify-between">
         <label htmlFor="username">Username</label>
-        <input
-          id="username"
-          name="username"
-          type="text"
-          disabled={isUserConnected}
-        />
+        <input id="username" name="username" type="text" disabled={isUserConnected} />
       </div>
 
       <div className="flex justify-end gap-4">

@@ -24,8 +24,8 @@ export type PeerMetadata = {
 
 export type TrackMetadata = {
   type: "camera" | "microphone" | "screenShareVideo" | "screenShareAudio";
-  active: boolean;
-  // required for recordings
+  paused: boolean;
+  // track label used in recordings
   displayName?: string;
 };
 
@@ -169,6 +169,7 @@ export interface GenericTrackManager {
   stopStreaming: () => Promise<void>;
   pauseStreaming: () => Promise<void>;
   resumeStreaming: () => Promise<void>;
+  isPaused: () => boolean;
   disableTrack: () => void;
   enableTrack: () => void;
 }

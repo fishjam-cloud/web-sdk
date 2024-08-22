@@ -434,7 +434,7 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
       stream.addTrack(track);
 
       this.commandsQueue.pushCommand({
-        handler: () => {
+        handler: async () => {
           this.localTrackManager.addTrackHandler(trackId, track, stream, parsedMetadata, simulcastConfig, maxBandwidth);
         },
         parse: () => this.localTrackManager.parseAddTrack(track, simulcastConfig, maxBandwidth),
@@ -505,8 +505,8 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
     const resolutionNotifier = new Deferred<void>();
 
     this.commandsQueue.pushCommand({
-      handler: () => {
-        this.localTrackManager.replaceTrackHandler(this, trackId, newTrack);
+      handler: async () => {
+        return this.localTrackManager.replaceTrackHandler(this, trackId, newTrack);
       },
       resolutionNotifier,
       resolve: 'immediately',
@@ -579,7 +579,7 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
     const resolutionNotifier = new Deferred<void>();
 
     this.commandsQueue.pushCommand({
-      handler: () => {
+      handler: async () => {
         this.localTrackManager.removeTrackHandler(trackId);
       },
       resolutionNotifier,
@@ -667,13 +667,14 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
       this.local.updateLocalTrackMetadata(trackId, trackMetadata)
 
       this.commandsQueue.pushCommand({
-        handler: () => {
+        handler: async () => {
           const mediaEvent = generateMediaEvent('updateTrackMetadata', {
             trackId,
             trackMetadata: trackMetadata,
           });
 
           this.sendMediaEvent(mediaEvent);
+
           this.emit('localTrackMetadataChanged', {
             trackId,
             metadata: trackMetadata,
@@ -685,6 +686,7 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
     } catch (e) {
       resolutionNotifier.reject(e)
     }
+    return resolutionNotifier.promise
   };
 
   /**

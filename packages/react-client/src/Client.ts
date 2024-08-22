@@ -690,7 +690,9 @@ export class Client extends (EventEmitter as new () => TypedEmitter<Required<Cli
 
   public connect(config: ConnectConfig): void {
     this.status = "connecting";
-    this.tsClient.connect({ ...config, peerMetadata: {} });
+    this.audioTrackManager.setDisplayName(config?.peerMetadata?.displayName)
+    this.videoTrackManager.setDisplayName(config?.peerMetadata?.displayName)
+    this.tsClient.connect({ ...config, peerMetadata: config?.peerMetadata ?? {} });
   }
 
   public disconnect() {
@@ -730,27 +732,19 @@ export class Client extends (EventEmitter as new () => TypedEmitter<Required<Cli
     return this.tsClient.setEncodingBandwidth(trackId, rid, bandwidth);
   }
 
-  public setTargetTrackEncoding(trackId: string, encoding: Encoding) {
+  public setTargetTrackEncoding(trackId: string, encoding: Encoding): void {
     return this.tsClient.setTargetTrackEncoding(trackId, encoding);
   }
 
-  public enableTrackEncoding(trackId: string, encoding: Encoding) {
+  public enableTrackEncoding(trackId: string, encoding: Encoding): Promise<void> {
     return this.tsClient.enableTrackEncoding(trackId, encoding);
   }
 
-  public disableTrackEncoding(trackId: string, encoding: Encoding) {
+  public disableTrackEncoding(trackId: string, encoding: Encoding): Promise<void> {
     return this.tsClient.disableTrackEncoding(trackId, encoding);
   }
 
-  public updatePeerMetadata = (peerMetadata: PeerMetadata): void => {
-    this.tsClient.updatePeerMetadata(peerMetadata);
-  };
-
-  // public updateTrackMetadata = (trackId: string, trackMetadata: TrackMetadata): void => {
-  //   this.tsClient.updateTrackMetadata(trackId, trackMetadata);
-  // };
-
-  public isReconnecting = () => {
+  public isReconnecting = (): boolean => {
     return this.tsClient.isReconnecting();
   };
 

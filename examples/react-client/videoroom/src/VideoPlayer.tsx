@@ -13,7 +13,16 @@ const VideoPlayer: FC<VideoPlayerProps> = ({ stream, peerId, ...props }) => {
     videoRef.current.srcObject = stream || null;
   }, [stream]);
 
-  return <video {...props} autoPlay playsInline muted data-peer-id={peerId} ref={videoRef} />;
+  return (
+    <video
+      {...props}
+      autoPlay
+      playsInline
+      muted
+      data-peer-id={peerId}
+      ref={videoRef}
+    />
+  );
 };
 
 export default VideoPlayer;

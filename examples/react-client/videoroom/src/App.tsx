@@ -50,7 +50,8 @@ function App() {
               <div
                 className="aspect-video overflow-hidden grid place-content-center relative bg-zinc-300 rounded-md"
                 style={{
-                  outline: audioTrack?.vadStatus === "speech" ? "solid red 2px" : "",
+                  outline:
+                    audioTrack?.vadStatus === "speech" ? "solid red 2px" : "",
                 }}
                 key={id}
               >
@@ -66,7 +67,9 @@ function App() {
                 )}
 
                 <div className="absolute bottom-2 left-0 w-full grid place-content-center text-center text-xs z-30">
-                  <p className="bg-slate-100/60 px-1 rounded-sm">{(metadata as { name?: string })?.name ?? id}</p>
+                  <p className="bg-slate-100/60 px-1 rounded-sm">
+                    {(metadata as { name?: string })?.name ?? id}
+                  </p>
                 </div>
               </div>
             );

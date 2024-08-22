@@ -7,6 +7,7 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackMa
   private readonly mediaManager: GenericMediaManager;
   private readonly tsClient: FishjamClient<PeerMetadata, TrackMetadata>;
   private currentTrackId: string | null = null;
+  private trackMiddleware: ((track: MediaStreamTrack) => MediaStreamTrack) | null = null;
 
   constructor(tsClient: FishjamClient<PeerMetadata, TrackMetadata>, deviceManager: GenericMediaManager) {
     this.mediaManager = deviceManager;
@@ -21,6 +22,17 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackMa
     if (!prevTrack) throw Error("There is no previous track");
 
     return prevTrack;
+  };
+
+  public registerTrackMiddleware = (middleware: ((track: MediaStreamTrack) => MediaStreamTrack) | null) => {
+    const currentTrack = this.getCurrentTrack();
+    if (!currentTrack || !currentTrack.track) return;
+
+    if (!middleware && this.trackMiddleware) {
+      this.tsClient.replaceTrack(currentTrack.trackId, currentTrack.track);
+    }
+
+    this.tsClient.replaceTrack(currentTrack.trackId, middleware(currentTrack.track));
   };
 
   public getCurrentTrack = (): Track<TrackMetadata> | null => {

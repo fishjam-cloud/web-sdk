@@ -1,13 +1,13 @@
 import type { FishjamClient } from "@fishjam-cloud/ts-client";
 import { useCallback, useEffect } from "react";
 import { getRemoteOrLocalTrack } from "./utils/track";
-import type { ScreenshareApi, ScreenshareState } from "./types";
+import type { ScreenshareApi, ScreenshareState, TracksMiddleware } from "./types";
 
-const getTracks = (stream: MediaStream): { video: MediaStreamTrack; audio: MediaStreamTrack | null } => {
+const getTracks = (stream: MediaStream): [MediaStreamTrack, MediaStreamTrack | null] => {
   const video = stream.getVideoTracks()[0];
   const audio = stream.getAudioTracks()[0] ?? null;
 
-  return { video, audio };
+  return [video, audio];
 };
 
 export const useScreenShare = <PeerMetadata, TrackMetadata>(
@@ -20,13 +20,38 @@ export const useScreenShare = <PeerMetadata, TrackMetadata>(
       video: props?.videoConstraints ?? true,
       audio: props?.audioConstraints ?? true,
     });
-    const { video, audio } = getTracks(stream);
+    const [video, audio] = getTracks(stream);
 
     const addTrackPromises = [tsClient.addTrack(video, props?.metadata)];
     if (audio) addTrackPromises.push(tsClient.addTrack(audio, props?.metadata));
 
     const [videoId, audioId] = await Promise.all(addTrackPromises);
     setState({ stream, trackIds: { videoId, audioId } });
+  };
+
+  const replaceTracks = async (newVideoTrack: MediaStreamTrack, newAudioTrack: MediaStreamTrack | null) => {
+    if (!state?.stream) return;
+
+    const addTrackPromises = [tsClient.replaceTrack(state.trackIds.videoId, newVideoTrack)];
+
+    if (newAudioTrack && state.trackIds.audioId) {
+      addTrackPromises.push(tsClient.replaceTrack(state.trackIds.audioId, newAudioTrack));
+    }
+
+    await Promise.all(addTrackPromises);
+  };
+
+  const modifyTracks = async (middleware?: TracksMiddleware): Promise<void> => {
+    if (!state?.stream) return;
+
+    const [videoTrack, audioTrack] = getTracks(state.stream);
+
+    if (!middleware) {
+      return await replaceTracks(videoTrack, audioTrack);
+    }
+
+    const [newVideoTrack, newAudioTrack] = middleware(videoTrack, audioTrack);
+    await replaceTracks(newVideoTrack, newAudioTrack);
   };
 
   const stopStreaming: ScreenshareApi<TrackMetadata>["stopStreaming"] = useCallback(async () => {
@@ -78,9 +103,6 @@ export const useScreenShare = <PeerMetadata, TrackMetadata>(
   const stream = state?.stream ?? null;
   const tracks = stream ? getTracks(stream) : { video: null, audio: null };
 
-  const videoTrack = tracks.video;
-  const audioTrack = tracks.audio;
-
   const videoBroadcast = state ? getRemoteOrLocalTrack(tsClient, state.trackIds.videoId) : null;
   const audioBroadcast = state?.trackIds.audioId ? getRemoteOrLocalTrack(tsClient, state.trackIds.audioId) : null;
 
@@ -88,8 +110,8 @@ export const useScreenShare = <PeerMetadata, TrackMetadata>(
     startStreaming,
     stopStreaming,
     stream,
-    videoTrack,
-    audioTrack,
+    videoTrack: tracks.video,
+    audioTrack: tracks.audio,
     videoBroadcast,
     audioBroadcast,
   };

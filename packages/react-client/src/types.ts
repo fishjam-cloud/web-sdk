@@ -203,9 +203,15 @@ export type FishjamContextProviderProps = {
   children: ReactNode;
 };
 
+export type TracksMiddleware = (
+  videoTrack: MediaStreamTrack,
+  audioTrack: MediaStreamTrack | null,
+) => [MediaStreamTrack, MediaStreamTrack | null];
+
 export type ScreenshareState = {
   stream: MediaStream;
   trackIds: { videoId: string; audioId?: string };
+  tracksMiddleware?: TracksMiddleware | null;
 } | null;
 
 export type FishjamContextType<PeerMetadata, TrackMetadata> = {

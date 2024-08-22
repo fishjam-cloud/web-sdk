@@ -1,11 +1,25 @@
 import { Button } from "./Button";
 import { useConnect, useStatus, useDisconnect } from "./client";
 
-type FormValues = {
+type FormProps = {
   roomName: string;
   userName: string;
   roomManagerUrl: string;
 };
+
+function psersistValues({ roomManagerUrl, roomName, userName }: FormProps) {
+  localStorage.setItem("roomManagerUrl", roomManagerUrl);
+  localStorage.setItem("roomName", roomName);
+  localStorage.setItem("userName", userName);
+}
+
+function getPersistedValues() {
+  return {
+    defaultRoomManagerUrl: localStorage.getItem("roomManagerUrl") ?? "",
+    defaultRoomName: localStorage.getItem("userName") ?? "",
+    defaultUserName: localStorage.getItem("roomName") ?? "",
+  };
+}
 
 export function RoomConnector() {
   const connect = useConnect();
@@ -14,11 +28,7 @@ export function RoomConnector() {
 
   const isUserConnected = status === "joined";
 
-  const connectToRoom = async ({ roomManagerUrl, roomName, userName }: FormValues) => {
-    localStorage.setItem("roomManagerUrl", roomManagerUrl);
-    localStorage.setItem("roomName", roomName);
-    localStorage.setItem("userName", userName);
-
+  const connectToRoom = async ({ roomManagerUrl, roomName, userName }: FormProps) => {
     // in case user copied url from admin panel
     const urlWithoutParams = roomManagerUrl.replace("/*roomName*/users/*username*", "");
 
@@ -35,24 +45,24 @@ export function RoomConnector() {
     });
   };
 
-  const defaultRoomManagerUrl = localStorage.getItem("roomManagerUrl") ?? "";
-  const defaultUserName = localStorage.getItem("userName") ?? "";
-  const defaultRoomName = localStorage.getItem("roomName") ?? "";
+  const { defaultRoomManagerUrl, defaultUserName, defaultRoomName } = getPersistedValues();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const formProps = Object.fromEntries(formData);
+    const formProps = Object.fromEntries(formData) as FormProps;
 
-    await connectToRoom(formProps as FormValues);
+    psersistValues(formProps);
+
+    await connectToRoom(formProps);
   };
 
   return (
     <form className="flex flex-col gap-4" onSubmit={handleSubmit} autoComplete="on">
       <div className="flex flex-col  justify-between">
-        <label htmlFor="roomManagerUrl">Room url</label>
+        <label htmlFor="roomManagerUrl">Room URL</label>
         <input
-          id="fishjamUrl"
+          id="roomManagerUrl"
           name="roomManagerUrl"
           type="text"
           disabled={isUserConnected}

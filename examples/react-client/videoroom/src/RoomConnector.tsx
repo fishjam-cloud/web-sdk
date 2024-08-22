@@ -16,8 +16,8 @@ function psersistValues({ roomManagerUrl, roomName, userName }: FormProps) {
 function getPersistedValues() {
   return {
     defaultRoomManagerUrl: localStorage.getItem("roomManagerUrl") ?? "",
-    defaultRoomName: localStorage.getItem("userName") ?? "",
-    defaultUserName: localStorage.getItem("roomName") ?? "",
+    defaultRoomName: localStorage.getItem("roomName") ?? "",
+    defaultUserName: localStorage.getItem("userName") ?? "",
   };
 }
 

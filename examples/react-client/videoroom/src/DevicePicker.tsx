@@ -19,7 +19,9 @@ const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
   const blurProcessorRef = useRef<BlurProcessor | null>(null);
 
   const blurMiddleware: TrackMiddleware = useCallback(
-    (videoTrack: MediaStreamTrack) => {
+    (videoTrack: MediaStreamTrack | null) => {
+      if (!videoTrack) return videoTrack;
+
       const stream = new MediaStream([videoTrack]);
       const blurProcessor = new BlurProcessor(stream);
       blurProcessorRef.current = blurProcessor;

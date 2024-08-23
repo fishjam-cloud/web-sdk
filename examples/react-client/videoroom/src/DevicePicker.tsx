@@ -2,12 +2,24 @@ import { FC } from "react";
 import AudioVisualizer from "./AudioVisualizer";
 import { useCamera, useMicrophone, useScreenShare, useStatus } from "./client";
 import VideoPlayer from "./VideoPlayer";
-import { GenericTrackManager, UserMediaAPI } from "@fishjam-cloud/react-client";
+import {
+  GenericTrackManager,
+  TrackMiddleware,
+  UserMediaAPI,
+} from "@fishjam-cloud/react-client";
 import { Button } from "./Button";
+import { BlurProcessor } from "./utils/blur/BlurProcessor";
 
 interface DeviceSelectProps {
   device: UserMediaAPI<unknown> & GenericTrackManager<unknown>;
 }
+
+const blurMiddleware: TrackMiddleware = (videoTrack) => {
+  const stream = new MediaStream([videoTrack]);
+  const blurredStream = new BlurProcessor(stream);
+
+  return blurredStream.track;
+};
 
 const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
   const hasJoinedRoom = useStatus() === "joined";
@@ -44,6 +56,15 @@ const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
           Stream
         </Button>
       )}
+
+      <Button
+        disabled={!device.stream}
+        onClick={async () => {
+          await device.setTrackMiddleware(blurMiddleware);
+        }}
+      >
+        Blur
+      </Button>
     </div>
   );
 };

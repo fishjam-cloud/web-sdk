@@ -41,7 +41,7 @@ export const useScreenShare = <PeerMetadata, TrackMetadata>(
     await Promise.all(addTrackPromises);
   };
 
-  const modifyTracks = async (middleware?: TracksMiddleware): Promise<void> => {
+  const setTracksMiddleware = async (middleware: TracksMiddleware | null): Promise<void> => {
     if (!state?.stream) return;
 
     const [videoTrack, audioTrack] = getTracks(state.stream);
@@ -54,12 +54,18 @@ export const useScreenShare = <PeerMetadata, TrackMetadata>(
     await replaceTracks(newVideoTrack, newAudioTrack);
   };
 
+  const removeTracksMiddleware = async (): Promise<void> => {
+    if (!state?.stream) return;
+    const [videoTrack, audioTrack] = getTracks(state.stream);
+    await replaceTracks(videoTrack, audioTrack);
+  };
+
   const stopStreaming: ScreenshareApi<TrackMetadata>["stopStreaming"] = useCallback(async () => {
     if (!state) {
       console.warn("No stream to stop");
       return;
     }
-    const { video, audio } = getTracks(state.stream);
+    const [video, audio] = getTracks(state.stream);
 
     video.stop();
     if (audio) audio.stop();
@@ -74,7 +80,7 @@ export const useScreenShare = <PeerMetadata, TrackMetadata>(
 
   useEffect(() => {
     if (!state) return;
-    const { video, audio } = getTracks(state.stream);
+    const [video, audio] = getTracks(state.stream);
 
     const trackEndedHandler = () => {
       stopStreaming();
@@ -101,7 +107,7 @@ export const useScreenShare = <PeerMetadata, TrackMetadata>(
   }, [stopStreaming, tsClient]);
 
   const stream = state?.stream ?? null;
-  const tracks = stream ? getTracks(stream) : { video: null, audio: null };
+  const [videoTrack, audioTrack] = stream ? getTracks(stream) : [null, null];
 
   const videoBroadcast = state ? getRemoteOrLocalTrack(tsClient, state.trackIds.videoId) : null;
   const audioBroadcast = state?.trackIds.audioId ? getRemoteOrLocalTrack(tsClient, state.trackIds.audioId) : null;
@@ -110,9 +116,10 @@ export const useScreenShare = <PeerMetadata, TrackMetadata>(
     startStreaming,
     stopStreaming,
     stream,
-    videoTrack: tracks.video,
-    audioTrack: tracks.audio,
+    videoTrack,
+    audioTrack,
     videoBroadcast,
     audioBroadcast,
+    setTracksMiddleware,
   };
 };

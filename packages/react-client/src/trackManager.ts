@@ -7,7 +7,7 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackMa
   private readonly mediaManager: GenericMediaManager;
   private readonly tsClient: FishjamClient<PeerMetadata, TrackMetadata>;
   private currentTrackId: string | null = null;
-  private trackMiddleware: ((track: MediaStreamTrack) => MediaStreamTrack) | null = null;
+  public currentTrackMiddleware: ((track: MediaStreamTrack) => MediaStreamTrack) | null = null;
 
   constructor(tsClient: FishjamClient<PeerMetadata, TrackMetadata>, deviceManager: GenericMediaManager) {
     this.mediaManager = deviceManager;
@@ -24,15 +24,21 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackMa
     return prevTrack;
   };
 
-  public registerTrackMiddleware = (middleware: ((track: MediaStreamTrack) => MediaStreamTrack) | null) => {
+  public setTrackMiddleware = async (
+    middleware: ((track: MediaStreamTrack) => MediaStreamTrack) | null,
+  ): Promise<void> => {
+    if (middleware === this.currentTrackMiddleware) return;
+
     const currentTrack = this.getCurrentTrack();
-    if (!currentTrack || !currentTrack.track) return;
+    const mediaTrack = this.mediaManager.getTracks().find((track) => track.id === this.currentTrackId);
 
-    if (!middleware && this.trackMiddleware) {
-      this.tsClient.replaceTrack(currentTrack.trackId, currentTrack.track);
-    }
+    if (!currentTrack || !mediaTrack) return;
 
-    this.tsClient.replaceTrack(currentTrack.trackId, middleware(currentTrack.track));
+    const trackToSet = middleware ? middleware(mediaTrack) : mediaTrack;
+
+    await this.tsClient.replaceTrack(currentTrack.trackId, trackToSet);
+
+    this.currentTrackMiddleware = middleware;
   };
 
   public getCurrentTrack = (): Track<TrackMetadata> | null => {

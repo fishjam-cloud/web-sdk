@@ -153,6 +153,8 @@ export interface GenericMediaManager {
   getMedia: () => { stream: MediaStream | null; track: MediaStreamTrack | null; enabled: boolean } | null;
 }
 
+export type TrackMiddleware = ((track: MediaStreamTrack) => MediaStreamTrack) | null;
+
 export interface GenericTrackManager<TrackMetadata> {
   initialize: (deviceId?: string) => Promise<void>;
   stop: () => Promise<void>;
@@ -166,6 +168,7 @@ export interface GenericTrackManager<TrackMetadata> {
   resumeStreaming: () => Promise<void>;
   disableTrack: () => void;
   enableTrack: () => void;
+  setTrackMiddleware: (middleware: TrackMiddleware) => Promise<void>;
 }
 
 export type UserMediaAPI<TrackMetadata> = {
@@ -192,6 +195,7 @@ export type ScreenshareApi<TrackMetadata> = {
   audioTrack: MediaStreamTrack | null;
   videoBroadcast: Track<TrackMetadata> | null;
   audioBroadcast: Track<TrackMetadata> | null;
+  setTracksMiddleware: (middleware: TracksMiddleware | null) => Promise<void>;
 };
 
 export type Devices<TrackMetadata> = {

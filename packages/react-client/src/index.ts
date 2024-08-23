@@ -27,6 +27,7 @@ export type {
   ScreenshareApi,
   UseConnect,
   GenericTrackManager,
+  TrackMiddleware,
 } from "./types";
 
 export { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS, SCREEN_SHARING_MEDIA_CONSTRAINTS } from "./constraints";

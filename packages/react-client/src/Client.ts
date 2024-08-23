@@ -352,6 +352,12 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
 
     this.stateToSnapshot();
 
+    this.tsClient.on("disconnected", () => {
+      this.status = null;
+      this.stateToSnapshot();
+      this.emit("disconnected", this);
+    });
+
     this.tsClient.on("socketOpen", (event) => {
       this.status = "connected";
       this.stateToSnapshot();

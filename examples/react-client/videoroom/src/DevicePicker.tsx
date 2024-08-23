@@ -3,7 +3,7 @@ import AudioVisualizer from "./AudioVisualizer";
 import { useCamera, useMicrophone, useScreenShare, useStatus } from "./client";
 import VideoPlayer from "./VideoPlayer";
 import {
-  GenericTrackManager,
+  TrackManager,
   TrackMiddleware,
   UserMediaAPI,
 } from "@fishjam-cloud/react-client";
@@ -11,7 +11,7 @@ import { Button } from "./Button";
 import { BlurProcessor } from "./utils/blur/BlurProcessor";
 
 interface DeviceSelectProps {
-  device: UserMediaAPI<unknown> & GenericTrackManager<unknown>;
+  device: UserMediaAPI<unknown> & TrackManager<unknown>;
 }
 
 const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
@@ -39,6 +39,8 @@ const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
 
   const isMiddlewareSet = device.currentTrackMiddleware === blurMiddleware;
 
+  const isTrackStreamed = !!device.getCurrentTrack()?.trackId;
+
   return (
     <div className="flex gap-4 justify-between">
       <select
@@ -52,7 +54,7 @@ const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
         ))}
       </select>
 
-      {device.broadcast?.trackId ? (
+      {isTrackStreamed ? (
         <Button
           disabled={!hasJoinedRoom}
           onClick={async () => {

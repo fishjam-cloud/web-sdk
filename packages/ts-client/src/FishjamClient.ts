@@ -387,6 +387,15 @@ export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as
         } else if (data.authRequest !== undefined) {
           console.warn('Received unexpected control message: authRequest');
         } else if (data.mediaEvent !== undefined) {
+          const receive = JSON.parse(data.mediaEvent?.data ?? "")
+          if (receive.data.type === "bandwidthEstimation" || receive.data.type === "vadNotification") {
+            // ignore
+          } else if (receive.type === "trackUpdated") {
+            console.log("%c trackUpdated - metadata: %O", "color:white; background-color: blue", receive);
+          } else {
+            console.log({ receive })
+          }
+
           this.webrtc?.receiveMediaEvent(data.mediaEvent.data);
         }
       } catch (e) {
@@ -458,6 +467,15 @@ export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as
 
   private setupCallbacks() {
     this.webrtc?.on('sendMediaEvent', (mediaEvent: SerializedMediaEvent) => {
+
+      const send = JSON.parse(mediaEvent)
+
+      if (send.type === "updateTrackMetadata") {
+        console.log("%c updateTrackMetadata: %O", "color:white; background-color: orange", send);
+      } else {
+        console.log({ send })
+      }
+
       const message = PeerMessage.encode({
         mediaEvent: { data: mediaEvent },
       }).finish();

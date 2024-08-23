@@ -293,6 +293,7 @@ export class Client extends (EventEmitter as new () => TypedEmitter<Required<Cli
 
   public videoDeviceManager: DeviceManager;
   public audioDeviceManager: DeviceManager;
+  private deviceInitialized: boolean = false;
 
   public videoTrackManager: TrackManager;
   public audioTrackManager: TrackManager;
@@ -749,6 +750,11 @@ export class Client extends (EventEmitter as new () => TypedEmitter<Required<Cli
   };
 
   public initializeDevices = async (config?: DeviceManagerInitConfig) => {
+    // In React Strict Mode, this function runs twice.
+    // In Chrome, this starts two media streams, and it's impossible to stop the first one.
+    if (this.deviceInitialized) return;
+    this.deviceInitialized = true;
+
     const constraints = {
       video: this.videoDeviceManager.getConstraints(config?.videoTrackConstraints),
       audio: this.audioDeviceManager.getConstraints(config?.audioTrackConstraints),
@@ -895,12 +901,12 @@ export class Client extends (EventEmitter as new () => TypedEmitter<Required<Cli
     this.media = deviceManagerSnapshot || null;
     this.local = localEndpoint
       ? {
-          id: localEndpoint.id,
-          metadata: localEndpoint.metadata,
-          metadataParsingError: localEndpoint.metadataParsingError,
-          rawMetadata: localEndpoint.rawMetadata,
-          tracks: localTracks, // to record
-        }
+        id: localEndpoint.id,
+        metadata: localEndpoint.metadata,
+        metadataParsingError: localEndpoint.metadataParsingError,
+        rawMetadata: localEndpoint.rawMetadata,
+        tracks: localTracks, // to record
+      }
       : null;
     this.peers = peers;
     this.components = components;

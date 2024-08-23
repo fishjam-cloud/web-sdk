@@ -24,15 +24,10 @@ export const createUseSetupMediaHook = (useFishjamContext: () => FishjamContextT
 
     useEffect(() => {
       if (!configRef.current.startOnMount) return;
-      if (
-        state.client.audioDeviceManager.getStatus() === "uninitialized" ||
-        state.client.videoDeviceManager.getStatus() === "uninitialized"
-      ) {
-        state.client.initializeDevices({
-          audioTrackConstraints: configRef?.current.microphone.trackConstraints,
-          videoTrackConstraints: configRef?.current.camera.trackConstraints,
-        });
-      }
+      state.client.initializeDevices({
+        audioTrackConstraints: configRef?.current.microphone.trackConstraints,
+        videoTrackConstraints: configRef?.current.camera.trackConstraints,
+      });
       // eslint-disable-next-line
     }, []);
 

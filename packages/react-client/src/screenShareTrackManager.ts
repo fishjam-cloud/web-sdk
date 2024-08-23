@@ -121,5 +121,6 @@ export const useScreenShare = <PeerMetadata, TrackMetadata>(
     videoBroadcast,
     audioBroadcast,
     setTracksMiddleware,
+    currentTracksMiddleware: state?.tracksMiddleware ?? null,
   };
 };

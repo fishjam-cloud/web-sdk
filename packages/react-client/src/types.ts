@@ -155,6 +155,12 @@ export interface GenericMediaManager {
 
 export type TrackMiddleware = ((track: MediaStreamTrack) => MediaStreamTrack) | null;
 
+export type ScreenshareState = {
+  stream: MediaStream;
+  trackIds: { videoId: string; audioId?: string };
+  tracksMiddleware?: TracksMiddleware | null;
+} | null;
+
 export interface GenericTrackManager<TrackMetadata> {
   initialize: (deviceId?: string) => Promise<void>;
   stop: () => Promise<void>;
@@ -169,6 +175,7 @@ export interface GenericTrackManager<TrackMetadata> {
   disableTrack: () => void;
   enableTrack: () => void;
   setTrackMiddleware: (middleware: TrackMiddleware) => Promise<void>;
+  currentTrackMiddleware: TrackMiddleware;
 }
 
 export type UserMediaAPI<TrackMetadata> = {
@@ -196,6 +203,7 @@ export type ScreenshareApi<TrackMetadata> = {
   videoBroadcast: Track<TrackMetadata> | null;
   audioBroadcast: Track<TrackMetadata> | null;
   setTracksMiddleware: (middleware: TracksMiddleware | null) => Promise<void>;
+  currentTracksMiddleware: TracksMiddleware | null;
 };
 
 export type Devices<TrackMetadata> = {
@@ -211,12 +219,6 @@ export type TracksMiddleware = (
   videoTrack: MediaStreamTrack,
   audioTrack: MediaStreamTrack | null,
 ) => [MediaStreamTrack, MediaStreamTrack | null];
-
-export type ScreenshareState = {
-  stream: MediaStream;
-  trackIds: { videoId: string; audioId?: string };
-  tracksMiddleware?: TracksMiddleware | null;
-} | null;
 
 export type FishjamContextType<PeerMetadata, TrackMetadata> = {
   state: State<PeerMetadata, TrackMetadata>;

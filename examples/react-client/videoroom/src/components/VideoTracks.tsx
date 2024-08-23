@@ -16,7 +16,12 @@ export function VideoTracks({
       key={videoTrack.trackId}
     >
       {videoTrack && (
-        <VideoPlayer className="rounded-md z-20" key={videoTrack.trackId} stream={videoTrack.stream} peerId={id} />
+        <VideoPlayer
+          className="rounded-md z-20"
+          key={videoTrack.trackId}
+          stream={videoTrack.stream}
+          peerId={id}
+        />
       )}
 
       <div className="absolute bottom-2 left-0 w-full grid place-content-center text-center text-xs z-30">

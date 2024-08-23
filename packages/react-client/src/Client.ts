@@ -28,7 +28,6 @@ import type {
 } from "./types";
 import type { DeviceManagerEvents } from "./DeviceManager";
 import { DeviceManager } from "./DeviceManager";
-import { TrackManager } from "./trackManager";
 import { getAvailableMedia, getCorrectedResult } from "./mediaInitializer";
 
 export type ClientApi<PeerMetadata, TrackMetadata> = {
@@ -44,9 +43,6 @@ export type ClientApi<PeerMetadata, TrackMetadata> = {
   status: PeerStatus;
   media: MediaState | null;
   devices: Devices<TrackMetadata>;
-
-  videoTrackManager: TrackManager<PeerMetadata, TrackMetadata>;
-  audioTrackManager: TrackManager<PeerMetadata, TrackMetadata>;
 
   isReconnecting: () => boolean;
 };
@@ -324,9 +320,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
   public videoDeviceManager: DeviceManager;
   public audioDeviceManager: DeviceManager;
 
-  public videoTrackManager: TrackManager<PeerMetadata, TrackMetadata>;
-  public audioTrackManager: TrackManager<PeerMetadata, TrackMetadata>;
-
   constructor(config?: ReactClientCreteConfig<PeerMetadata, TrackMetadata>) {
     super();
 
@@ -334,12 +327,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
     this.videoDeviceManager = new DeviceManager("video", config?.deviceManagerDefaultConfig);
     this.audioDeviceManager = new DeviceManager("audio", config?.deviceManagerDefaultConfig);
 
-    this.videoTrackManager = new TrackManager(this.tsClient, this.videoDeviceManager);
-    this.audioTrackManager = new TrackManager(this.tsClient, this.audioDeviceManager);
-
     this.devices = {
       camera: {
-        broadcast: null,
         status: null,
         stream: null,
         track: null,
@@ -350,7 +339,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         devices: null,
       },
       microphone: {
-        broadcast: null,
         status: null,
         stream: null,
         track: null,
@@ -395,17 +383,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       this.status = "error";
 
       this.emit("authError", reason, this);
-    });
-
-    this.tsClient.on("disconnected", () => {
-      this.status = null;
-
-      this.videoTrackManager.cleanup();
-      this.audioTrackManager.cleanup();
-
-      this.stateToSnapshot();
-
-      this.emit("disconnected", this);
     });
 
     this.tsClient.on("joined", (peerId, peers, components) => {
@@ -846,12 +823,8 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       localTracks[track.trackId] = this.trackContextToTrack(track);
     });
 
-    const broadcastedVideoTrack = this.videoTrackManager.getCurrentTrack();
-    const broadcastedAudioTrack = this.audioTrackManager.getCurrentTrack();
-
     const devices: Devices<TrackMetadata> = {
       camera: {
-        broadcast: broadcastedVideoTrack ?? null,
         status: deviceManagerSnapshot?.video?.devicesStatus || null,
         stream: deviceManagerSnapshot?.video.media?.stream || null,
         track: deviceManagerSnapshot?.video.media?.track || null,
@@ -862,7 +835,6 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
         devices: deviceManagerSnapshot?.video?.devices || null,
       },
       microphone: {
-        broadcast: broadcastedAudioTrack ?? null,
         status: deviceManagerSnapshot?.audio?.devicesStatus || null,
         stream: deviceManagerSnapshot?.audio.media?.stream || null,
         track: deviceManagerSnapshot?.audio.media?.track || null,

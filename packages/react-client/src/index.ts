@@ -26,7 +26,7 @@ export type {
   CreateFishjamClient,
   ScreenshareApi,
   UseConnect,
-  GenericTrackManager,
+  TrackManager,
   TrackMiddleware,
 } from "./types";
 

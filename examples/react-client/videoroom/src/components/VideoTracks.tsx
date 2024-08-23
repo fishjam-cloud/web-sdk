@@ -1,15 +1,13 @@
 import VideoPlayer from "./VideoPlayer";
 import { Track } from "@fishjam-cloud/react-client";
 
-export function VideoTracks({
-  videoTracks,
-  name,
-  id,
-}: {
-  videoTracks: Track<unknown>[] | undefined;
-  name: string;
+type Props = {
   id: string;
-}) {
+  name: string;
+  videoTracks: Track<unknown>[] | undefined;
+};
+
+export function VideoTracks({ videoTracks, name, id }: Props) {
   return videoTracks?.map((videoTrack) => (
     <div
       className="aspect-video overflow-hidden grid place-content-center relative bg-zinc-300 rounded-md"

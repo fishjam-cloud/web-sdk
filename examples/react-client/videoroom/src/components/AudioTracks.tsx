@@ -1,11 +1,11 @@
 import AudioPlayer from "./AudioPlayer";
 import { Track } from "@fishjam-cloud/react-client";
 
-export function AudioTracks({
-  audioTracks,
-}: {
+type Props = {
   audioTracks: Track<unknown>[] | undefined;
-}) {
+};
+
+export function AudioTracks({ audioTracks }: Props) {
   return audioTracks?.map((audioTrack) => (
     <AudioPlayer stream={audioTrack.stream} key={audioTrack.trackId} />
   ));

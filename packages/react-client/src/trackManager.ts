@@ -28,9 +28,8 @@ export class TrackManager<PeerMetadata, TrackMetadata> implements GenericTrackMa
     middleware: ((track: MediaStreamTrack) => MediaStreamTrack) | null,
   ): Promise<void> => {
     if (middleware === this.currentTrackMiddleware) return;
-
     const currentTrack = this.getCurrentTrack();
-    const mediaTrack = this.mediaManager.getTracks().find((track) => track.id === this.currentTrackId);
+    const mediaTrack = this.mediaManager.getTracks()[0];
 
     if (!currentTrack || !mediaTrack) return;
 

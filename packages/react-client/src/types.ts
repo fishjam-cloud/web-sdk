@@ -180,7 +180,7 @@ export interface TrackManager<TrackMetadata> {
   getCurrentTrack: () => Track<TrackMetadata> | null;
 }
 
-export type UserMediaAPI<TrackMetadata> = {
+export type UserMediaAPI = {
   status: DevicesStatus | null; // todo how to remove null
   stream: MediaStream | null;
   track: MediaStreamTrack | null;
@@ -212,9 +212,9 @@ export type ScreenshareApi<TrackMetadata> = {
   currentTracksMiddleware: TracksMiddleware | null;
 };
 
-export type Devices<TrackMetadata> = {
-  camera: UserMediaAPI<TrackMetadata>;
-  microphone: UserMediaAPI<TrackMetadata>;
+export type Devices = {
+  camera: UserMediaAPI;
+  microphone: UserMediaAPI;
 };
 
 export type FishjamContextProviderProps = {
@@ -251,8 +251,8 @@ export type CreateFishjamClient<PeerMetadata, TrackMetadata> = {
   useSelector: <Result>(selector: Selector<PeerMetadata, TrackMetadata, Result>) => Result;
   useTracks: () => Record<TrackId, TrackWithOrigin<PeerMetadata, TrackMetadata>>;
   useSetupMedia: (config: UseSetupMediaConfig<TrackMetadata>) => UseSetupMediaResult;
-  useCamera: () => Devices<TrackMetadata>["camera"] & TrackManager<TrackMetadata>;
-  useMicrophone: () => Devices<TrackMetadata>["microphone"] & TrackManager<TrackMetadata>;
+  useCamera: () => Devices["camera"] & TrackManager<TrackMetadata>;
+  useMicrophone: () => Devices["microphone"] & TrackManager<TrackMetadata>;
   useClient: () => Client<PeerMetadata, TrackMetadata>;
   useReconnection: () => UseReconnection;
   useParticipants: () => {

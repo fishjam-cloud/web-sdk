@@ -42,7 +42,7 @@ export type ClientApi<PeerMetadata, TrackMetadata> = {
   bandwidthEstimation: bigint;
   status: PeerStatus;
   media: MediaState | null;
-  devices: Devices<TrackMetadata>;
+  devices: Devices;
 
   isReconnecting: () => boolean;
 };
@@ -313,7 +313,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
   public bandwidthEstimation: bigint = BigInt(0);
   public status: PeerStatus = null;
   public media: MediaState | null = null;
-  public devices: Devices<TrackMetadata>;
+  public devices: Devices;
 
   public reconnectionStatus: ReconnectionStatus = "idle";
 
@@ -829,7 +829,7 @@ export class Client<PeerMetadata, TrackMetadata> extends (EventEmitter as {
       localTracks[track.trackId] = this.trackContextToTrack(track);
     });
 
-    const devices: Devices<TrackMetadata> = {
+    const devices: Devices = {
       camera: {
         status: deviceManagerSnapshot?.video?.devicesStatus || null,
         stream: deviceManagerSnapshot?.video.media?.stream || null,

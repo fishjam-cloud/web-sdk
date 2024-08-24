@@ -7,11 +7,11 @@ type DeviceControlsProps = {
   metadata: TrackMetadata;
 } & (
   | {
-      device: UserMediaAPI<TrackMetadata> & TrackManager<TrackMetadata>;
+      device: UserMediaAPI & TrackManager<TrackMetadata>;
       type: "audio";
     }
   | {
-      device: UserMediaAPI<TrackMetadata> & TrackManager<TrackMetadata>;
+      device: UserMediaAPI & TrackManager<TrackMetadata>;
       type: "video";
     }
 );

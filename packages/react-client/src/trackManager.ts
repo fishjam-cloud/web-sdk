@@ -107,14 +107,6 @@ export const useTrackManager = <PeerMetadata, TrackMetadata>({
     await tsClient.replaceTrack(prevTrack.trackId, null);
   };
 
-  const isMuted = () => {
-    const media = mediaManager.getMedia();
-    const isTrackDisabled = !media?.track?.enabled;
-    const areMediaDisabled = !media?.enabled;
-
-    return isTrackDisabled && areMediaDisabled;
-  };
-
   const resumeStreaming = async () => {
     const prevTrack = getPreviousTrack();
     const media = mediaManager.getMedia();

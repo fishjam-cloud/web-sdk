@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { PeerState, Selector, State, UseReconnection } from "./state.types";
-import type { ScreenshareState, TrackManagerState } from "./types";
+import type { ScreenshareState } from "./types";
 import type { ConnectConfig, CreateConfig } from "@fishjam-cloud/ts-client";
 import type {
   DeviceManagerConfig,
@@ -194,12 +194,12 @@ export function create<PeerMetadata, TrackMetadata>(
     return useSelector((s) => s.client);
   }
 
-  function useCamera(): UserMediaAPI<TrackMetadata> & TrackManager<TrackMetadata> {
+  function useCamera(): UserMediaAPI & TrackManager<TrackMetadata> {
     const { state, videoTrackManager } = useFishjamContext();
     return { ...state.devices.camera, ...videoTrackManager };
   }
 
-  function useMicrophone(): UserMediaAPI<TrackMetadata> & TrackManager<TrackMetadata> {
+  function useMicrophone(): UserMediaAPI & TrackManager<TrackMetadata> {
     const { state, audioTrackManager } = useFishjamContext();
     return { ...state.devices.microphone, ...audioTrackManager };
   }

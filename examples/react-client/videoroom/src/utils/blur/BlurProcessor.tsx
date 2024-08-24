@@ -79,7 +79,7 @@ export class BlurProcessor {
 
   private async initMediaPipe() {
     const wasm = await FilesetResolver.forVisionTasks(
-      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.11/wasm"
+      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.11/wasm",
     );
     this.segmenter = await ImageSegmenter.createFromOptions(wasm, {
       baseOptions: {
@@ -99,12 +99,12 @@ export class BlurProcessor {
     const vs = await this.loadShader(
       gl,
       gl.VERTEX_SHADER,
-      "/shaders/blur/vertex.glsl"
+      "/shaders/blur/vertex.glsl",
     );
     const fs = await this.loadShader(
       gl,
       gl.FRAGMENT_SHADER,
-      "/shaders/blur/fragment.glsl"
+      "/shaders/blur/fragment.glsl",
     );
     gl.attachShader(program, vs);
     gl.attachShader(program, fs);
@@ -118,7 +118,7 @@ export class BlurProcessor {
     gl.bufferData(
       gl.ARRAY_BUFFER,
       new Float32Array([-1, -3, -1, 1, 3, 1]),
-      gl.STREAM_DRAW
+      gl.STREAM_DRAW,
     );
     const a_Position = gl.getAttribLocation(program, "a_Position");
     gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
@@ -141,7 +141,7 @@ export class BlurProcessor {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     const confidenceTextureLoc = gl.getUniformLocation(
       program,
-      "confidenceTexture"
+      "confidenceTexture",
     );
     gl.uniform1i(confidenceTextureLoc, 1);
 
@@ -158,7 +158,7 @@ export class BlurProcessor {
   private async loadShader(
     gl: WebGL2RenderingContext,
     type: number,
-    path: string
+    path: string,
   ): Promise<WebGLShader> {
     const shader = gl.createShader(type)!;
     gl.shaderSource(shader, await (await fetch(path)).text());
@@ -206,14 +206,14 @@ export class BlurProcessor {
       0,
       0,
       this.width / 4,
-      this.height / 4
+      this.height / 4,
     );
 
     this.prevVideoTime = this.video.currentTime;
     this.segmenter.segmentForVideo(
       this.canvas,
       this.video.currentTime * 1000,
-      this.onSegmentationReady
+      this.onSegmentationReady,
     );
 
     if (this.worksInForeground) {
@@ -232,7 +232,7 @@ export class BlurProcessor {
       gl.RGBA,
       gl.RGBA,
       gl.UNSIGNED_BYTE,
-      this.video
+      this.video,
     );
 
     gl.activeTexture(gl.TEXTURE1);
@@ -245,7 +245,7 @@ export class BlurProcessor {
       0,
       gl.LUMINANCE,
       gl.UNSIGNED_BYTE,
-      confidenceMask.getAsUint8Array()
+      confidenceMask.getAsUint8Array(),
     );
 
     gl.activeTexture(gl.TEXTURE2);
@@ -255,7 +255,7 @@ export class BlurProcessor {
       gl.RGBA,
       gl.RGBA,
       gl.UNSIGNED_BYTE,
-      this.resizedCanvas
+      this.resizedCanvas,
     );
 
     gl.drawArrays(gl.TRIANGLES, 0, 3);

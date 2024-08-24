@@ -54,12 +54,6 @@ export const useScreenShare = <PeerMetadata, TrackMetadata>(
     await replaceTracks(newVideoTrack, newAudioTrack);
   };
 
-  const removeTracksMiddleware = async (): Promise<void> => {
-    if (!state?.stream) return;
-    const [videoTrack, audioTrack] = getTracks(state.stream);
-    await replaceTracks(videoTrack, audioTrack);
-  };
-
   const stopStreaming: ScreenshareApi<TrackMetadata>["stopStreaming"] = useCallback(async () => {
     if (!state) {
       console.warn("No stream to stop");

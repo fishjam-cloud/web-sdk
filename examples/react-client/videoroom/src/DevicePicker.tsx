@@ -11,7 +11,7 @@ import { Button } from "./Button";
 import { BlurProcessor } from "./utils/blur/BlurProcessor";
 
 interface DeviceSelectProps {
-  device: UserMediaAPI<unknown> & TrackManager<unknown>;
+  device: UserMediaAPI & TrackManager<unknown>;
 }
 
 const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
@@ -28,7 +28,7 @@ const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
 
       return blurProcessor.stream.getVideoTracks()[0];
     },
-    []
+    [],
   );
 
   const clearBlurMiddleware = async () => {

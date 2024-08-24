@@ -10,7 +10,7 @@ self.onmessage = (event) => {
 
 self.onclose = () => {
   self.clearInterval(intervalId);
-}
+};
 
 function animationLoop() {
   self.postMessage("tick");

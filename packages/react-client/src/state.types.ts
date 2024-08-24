@@ -54,7 +54,7 @@ export type State<PeerMetadata, TrackMetadata> = {
   bandwidthEstimation: bigint;
   status: PeerStatus;
   media: MediaState | null;
-  devices: Devices<TrackMetadata>;
+  devices: Devices;
   client: Client<PeerMetadata, TrackMetadata>;
   reconnectionStatus: ReconnectionStatus;
 };

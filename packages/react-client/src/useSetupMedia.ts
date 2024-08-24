@@ -129,7 +129,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
       return () => {
         state.client.removeListener("deviceStopped", removeOnCameraStopped);
       };
-    }, [state.client]);
+    }, [state.client, videoTrackManager]);
 
     useEffect(() => {
       const broadcastCameraOnConnect: ClientEvents<PeerMetadata, TrackMetadata>["joined"] = async (_, client) => {
@@ -151,7 +151,7 @@ export const createUseSetupMediaHook = <PeerMetadata, TrackMetadata>(
       return () => {
         state.client.removeListener("joined", broadcastCameraOnConnect);
       };
-    }, [state.client]);
+    }, [state.client, videoTrackManager]);
 
     useEffect(() => {
       let pending = false;

@@ -45,12 +45,8 @@ export const useScreenShare = <PeerMetadata, TrackMetadata>(
     if (!state?.stream) return;
 
     const [videoTrack, audioTrack] = getTracks(state.stream);
+    const [newVideoTrack, newAudioTrack] = middleware?.(videoTrack, audioTrack) ?? [videoTrack, audioTrack];
 
-    if (!middleware) {
-      return await replaceTracks(videoTrack, audioTrack);
-    }
-
-    const [newVideoTrack, newAudioTrack] = middleware(videoTrack, audioTrack);
     await replaceTracks(newVideoTrack, newAudioTrack);
   };
 

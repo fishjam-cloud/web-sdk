@@ -11,7 +11,7 @@ export type Track = {
   encoding: Encoding | null;
   trackId: TrackId;
   metadata?: TrackMetadata;
-  rawMetadata: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  rawMetadata: Record<string, unknown>;
   metadataParsingError?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   simulcastConfig: SimulcastConfig | null;
   vadStatus: VadStatus;
@@ -22,7 +22,7 @@ export interface Origin {
   id: string;
   type: string;
   metadata?: PeerMetadata;
-  rawMetadata: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  rawMetadata: Record<string, unknown>;
   metadataParsingError?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
@@ -33,7 +33,7 @@ export type TrackWithOrigin = Track & {
 export type PeerState = {
   id: PeerId;
   metadata?: PeerMetadata;
-  rawMetadata: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  rawMetadata: Record<string, unknown>;
   metadataParsingError?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   tracks: Record<TrackId, Track>;
 };

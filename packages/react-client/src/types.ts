@@ -160,6 +160,7 @@ export interface MediaManager {
   enable: () => void;
   getTracks: () => MediaStreamTrack[];
   getMedia: () => { stream: MediaStream | null; track: MediaStreamTrack | null; enabled: boolean } | null;
+  getDeviceType: () => "audio" | "video";
 }
 
 export type TrackMiddleware = ((track: MediaStreamTrack | null) => MediaStreamTrack | null) | null;

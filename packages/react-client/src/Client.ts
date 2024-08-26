@@ -674,9 +674,6 @@ export class Client extends (EventEmitter as new () => TypedEmitter<Required<Cli
 
   public connect(config: ConnectConfig): void {
     this.status = "connecting";
-    // todo fix me
-    // this.audioTrackManager.setDisplayName(config?.peerMetadata?.displayName);
-    // this.videoTrackManager.setDisplayName(config?.peerMetadata?.displayName);
     this.tsClient.connect({ ...config, peerMetadata: config?.peerMetadata ?? {} });
   }
 

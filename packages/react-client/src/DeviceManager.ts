@@ -230,6 +230,10 @@ export class DeviceManager
     this.emit("deviceEnabled", this.deviceState);
   }
 
+  public getDeviceType = () => {
+    return this.deviceType;
+  };
+
   public setConfig(storage?: boolean | StorageConfig, constraints?: boolean | MediaTrackConstraints) {
     this.storageConfig = this.createStorageConfig(storage);
     this.constraints = constraints ? toMediaTrackConstraints(constraints) : undefined;

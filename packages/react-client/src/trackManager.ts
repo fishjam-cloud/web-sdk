@@ -1,17 +1,20 @@
 import type { FishjamClient, SimulcastConfig, TrackBandwidthLimit } from "@fishjam-cloud/ts-client";
-import type { MediaManager, TrackManager, TrackMiddleware, PeerMetadata, TrackMetadata } from "./types";
+import type { MediaManager, PeerMetadata, TrackManager, TrackMetadata, TrackMiddleware } from "./types";
 import type { Track } from "./state.types";
 import { getRemoteOrLocalTrack } from "./utils/track";
 import { useEffect, useState } from "react";
 
 interface TrackManagerConfig {
   mediaManager: MediaManager;
-  type: TrackMetadata["type"];
-  displayName?: string;
   tsClient: FishjamClient<PeerMetadata, TrackMetadata>;
 }
 
-export const useTrackManager = ({ mediaManager, tsClient, type, displayName }: TrackManagerConfig): TrackManager => {
+const TRACK_TYPE_TO_DEVICE = {
+  video: "camera",
+  audio: "microphone",
+} as const;
+
+export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig): TrackManager => {
   const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
   const [paused, setPaused] = useState<boolean>(false);
   const [currentTrackMiddleware, setCurrentTrackMiddleware] = useState<TrackMiddleware>(null);
@@ -62,12 +65,8 @@ export const useTrackManager = ({ mediaManager, tsClient, type, displayName }: T
     mediaManager?.stop();
   }
 
-  function getInternalMetadata(paused: boolean): TrackMetadata {
-    return {
-      type,
-      paused,
-      displayName,
-    };
+  function getType(): TrackMetadata["type"] {
+    return TRACK_TYPE_TO_DEVICE[mediaManager.getDeviceType()];
   }
 
   async function startStreaming(simulcastConfig?: SimulcastConfig, maxBandwidth?: TrackBandwidthLimit) {
@@ -84,12 +83,9 @@ export const useTrackManager = ({ mediaManager, tsClient, type, displayName }: T
     // see `getRemoteOrLocalTrackContext()` explanation
     setCurrentTrackId(media.track.id);
 
-    const remoteTrackId = await tsClient.addTrack(
-      media.track,
-      getInternalMetadata(false),
-      simulcastConfig,
-      maxBandwidth,
-    );
+    const trackMetadata = { type: getType(), paused: false };
+
+    const remoteTrackId = await tsClient.addTrack(media.track, trackMetadata, simulcastConfig, maxBandwidth);
 
     setCurrentTrackId(remoteTrackId);
     setPaused(false);
@@ -113,19 +109,32 @@ export const useTrackManager = ({ mediaManager, tsClient, type, displayName }: T
     return tsClient.removeTrack(prevTrack.trackId);
   }
 
-  function pauseStreaming() {
+  async function pauseStreaming() {
     const prevTrack = getPreviousTrack();
-    return tsClient.replaceTrack(prevTrack.trackId, null);
+    setPaused(true);
+    await tsClient.replaceTrack(prevTrack.trackId, null);
+
+    const trackMetadata = {
+      type: getType(),
+      paused: true,
+    };
+    return tsClient.updateTrackMetadata(prevTrack.trackId, trackMetadata);
   }
 
-  function resumeStreaming() {
+  async function resumeStreaming() {
     const prevTrack = getPreviousTrack();
     const media = mediaManager.getMedia();
 
     if (!media) throw Error("Device is unavailable");
 
     setPaused(false);
-    return tsClient.replaceTrack(prevTrack.trackId, media.track);
+    await tsClient.replaceTrack(prevTrack.trackId, media.track);
+
+    const trackMetadata = {
+      type: getType(),
+      paused: false,
+    };
+    return tsClient.updateTrackMetadata(prevTrack.trackId, trackMetadata);
   }
 
   function disableTrack() {

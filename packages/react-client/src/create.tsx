@@ -131,13 +131,11 @@ export function create(
     const videoTrackManager = useTrackManager({
       mediaManager: state.client.videoDeviceManager,
       tsClient,
-      type: "camera",
     });
 
     const audioTrackManager = useTrackManager({
       mediaManager: state.client.audioDeviceManager,
       tsClient,
-      type: "microphone",
     });
 
     return (

@@ -153,7 +153,7 @@ export type UseSetupMediaResult = {
   init: () => void;
 };
 
-export interface GenericMediaManager {
+export interface MediaManager {
   start: (deviceId?: string | boolean) => Promise<void>;
   stop: () => Promise<void>;
   disable: () => void;
@@ -162,20 +162,31 @@ export interface GenericMediaManager {
   getMedia: () => { stream: MediaStream | null; track: MediaStreamTrack | null; enabled: boolean } | null;
 }
 
-export interface GenericTrackManager {
+export type TrackMiddleware = ((track: MediaStreamTrack | null) => MediaStreamTrack | null) | null;
+
+export type ScreenshareState = {
+  stream: MediaStream;
+  trackIds: { videoId: string; audioId?: string };
+  tracksMiddleware?: TracksMiddleware | null;
+} | null;
+
+export interface TrackManager {
   initialize: (deviceId?: string) => Promise<void>;
   stop: () => Promise<void>;
   startStreaming: (simulcastConfig?: SimulcastConfig, maxBandwidth?: TrackBandwidthLimit) => Promise<string>;
   stopStreaming: () => Promise<void>;
   pauseStreaming: () => Promise<void>;
   resumeStreaming: () => Promise<void>;
-  isPaused: () => boolean;
+  paused: boolean;
   disableTrack: () => void;
   enableTrack: () => void;
+  setTrackMiddleware: (middleware: TrackMiddleware) => Promise<void>;
+  currentTrackMiddleware: TrackMiddleware;
+  refreshStreamedTrack: () => Promise<void>;
+  getCurrentTrack: () => Track | null;
 }
 
 export type UserMediaAPI = {
-  broadcast: Track | null;
   status: DevicesStatus | null; // todo how to remove null
   stream: MediaStream | null;
   track: MediaStreamTrack | null;
@@ -184,6 +195,11 @@ export type UserMediaAPI = {
   deviceInfo: MediaDeviceInfo | null;
   error: DeviceError | null;
   devices: MediaDeviceInfo[] | null;
+};
+
+export type TrackManagerState = {
+  currentTrackId: TrackId | null;
+  currentTrackMiddleware: TrackMiddleware;
 };
 
 export type ScreenshareApi = {
@@ -197,6 +213,8 @@ export type ScreenshareApi = {
   audioTrack: MediaStreamTrack | null;
   videoBroadcast: Track | null;
   audioBroadcast: Track | null;
+  setTracksMiddleware: (middleware: TracksMiddleware | null) => Promise<void>;
+  currentTracksMiddleware: TracksMiddleware | null;
 };
 
 export type Devices = {
@@ -208,14 +226,16 @@ export type FishjamContextProviderProps = {
   children: ReactNode;
 };
 
-export type ScreenshareState = {
-  stream: MediaStream;
-  trackIds: { videoId: string; audioId?: string };
-} | null;
+export type TracksMiddleware = (
+  videoTrack: MediaStreamTrack,
+  audioTrack: MediaStreamTrack | null,
+) => [MediaStreamTrack, MediaStreamTrack | null];
 
 export type FishjamContextType = {
   state: State;
   screenshareState: [ScreenshareState, React.Dispatch<React.SetStateAction<ScreenshareState>>];
+  videoTrackManager: TrackManager;
+  audioTrackManager: TrackManager;
 };
 
 export type ConnectConfig = Omit<TSClientConnectConfig<PeerMetadata>, "peerMetadata"> & { peerMetadata?: PeerMetadata };
@@ -236,8 +256,8 @@ export type CreateFishjamClient = {
   useSelector: <Result>(selector: Selector<Result>) => Result;
   useTracks: () => Record<TrackId, TrackWithOrigin>;
   useSetupMedia: (config: UseSetupMediaConfig) => UseSetupMediaResult;
-  useCamera: () => Devices["camera"] & GenericTrackManager;
-  useMicrophone: () => Devices["microphone"] & GenericTrackManager;
+  useCamera: () => Devices["camera"] & TrackManager;
+  useMicrophone: () => Devices["microphone"] & TrackManager;
   useClient: () => Client;
   useReconnection: () => UseReconnection;
   useParticipants: () => {

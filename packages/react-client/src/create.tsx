@@ -6,10 +6,10 @@ import type {
   DeviceManagerConfig,
   FishjamContextProviderProps,
   FishjamContextType,
-  GenericTrackManager,
   PeerMetadata,
   PeerStateWithTracks,
   ScreenshareState,
+  TrackManager,
   TrackMetadata,
   UseConnect,
   UserMediaAPI,
@@ -18,6 +18,7 @@ import type { CreateConfig } from "@fishjam-cloud/ts-client";
 import { Client } from "./Client";
 import { createUseSetupMediaHook } from "./useSetupMedia";
 import { useScreenShare as _useScreenShare } from "./screenShareTrackManager";
+import { useTrackManager } from "./trackManager";
 
 const eventNames = [
   "socketOpen",
@@ -112,8 +113,6 @@ export function create(
           local: clientRef.current.local,
           status: clientRef.current.status,
           devices: clientRef.current.devices,
-          videoTrackManager: clientRef.current.videoTrackManager,
-          audioTrackManager: clientRef.current.audioTrackManager,
           client: clientRef.current,
           reconnectionStatus: clientRef.current.reconnectionStatus,
         };
@@ -125,9 +124,27 @@ export function create(
 
     const state = useSyncExternalStore(subscribe, getSnapshot);
 
+    const tsClient = state.client.getTsClient();
+
     const screenshareState = useState<ScreenshareState>(null);
 
-    return <FishjamContext.Provider value={{ state, screenshareState }}>{children}</FishjamContext.Provider>;
+    const videoTrackManager = useTrackManager({
+      mediaManager: state.client.videoDeviceManager,
+      tsClient,
+      type: "camera",
+    });
+
+    const audioTrackManager = useTrackManager({
+      mediaManager: state.client.audioDeviceManager,
+      tsClient,
+      type: "microphone",
+    });
+
+    return (
+      <FishjamContext.Provider value={{ state, screenshareState, videoTrackManager, audioTrackManager }}>
+        {children}
+      </FishjamContext.Provider>
+    );
   }
 
   function useFishjamContext(): FishjamContextType {
@@ -175,16 +192,14 @@ export function create(
     return useSelector((s) => s.client);
   }
 
-  function useCamera(): UserMediaAPI & GenericTrackManager {
-    const { state } = useFishjamContext();
-
-    return { ...state.devices.camera, ...state.videoTrackManager };
+  function useCamera(): UserMediaAPI & TrackManager {
+    const { state, videoTrackManager } = useFishjamContext();
+    return { ...state.devices.camera, ...videoTrackManager };
   }
 
-  function useMicrophone(): UserMediaAPI & GenericTrackManager {
-    const { state } = useFishjamContext();
-
-    return { ...state.devices.microphone, ...state.audioTrackManager };
+  function useMicrophone(): UserMediaAPI & TrackManager {
+    const { state, audioTrackManager } = useFishjamContext();
+    return { ...state.devices.microphone, ...audioTrackManager };
   }
 
   function useReconnection(): UseReconnection {

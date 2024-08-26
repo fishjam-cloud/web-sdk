@@ -30,7 +30,6 @@ import type {
 } from "./types";
 import type { DeviceManagerEvents } from "./DeviceManager";
 import { DeviceManager } from "./DeviceManager";
-import { TrackManager } from "./trackManager";
 import { getAvailableMedia, getCorrectedResult } from "./mediaInitializer";
 
 export type ClientApi = {
@@ -46,9 +45,6 @@ export type ClientApi = {
   status: PeerStatus;
   media: MediaState | null;
   devices: Devices;
-
-  videoTrackManager: TrackManager;
-  audioTrackManager: TrackManager;
 
   isReconnecting: () => boolean;
 };
@@ -295,9 +291,6 @@ export class Client extends (EventEmitter as new () => TypedEmitter<Required<Cli
   public audioDeviceManager: DeviceManager;
   private initialized: boolean = false;
 
-  public videoTrackManager: TrackManager;
-  public audioTrackManager: TrackManager;
-
   constructor(config?: ReactClientCreteConfig<PeerMetadata, TrackMetadata>) {
     super();
 
@@ -305,12 +298,8 @@ export class Client extends (EventEmitter as new () => TypedEmitter<Required<Cli
     this.videoDeviceManager = new DeviceManager("video", config?.deviceManagerDefaultConfig);
     this.audioDeviceManager = new DeviceManager("audio", config?.deviceManagerDefaultConfig);
 
-    this.videoTrackManager = new TrackManager(this.tsClient, this.videoDeviceManager, "camera");
-    this.audioTrackManager = new TrackManager(this.tsClient, this.audioDeviceManager, "microphone");
-
     this.devices = {
       camera: {
-        broadcast: null,
         status: null,
         stream: null,
         track: null,
@@ -321,7 +310,6 @@ export class Client extends (EventEmitter as new () => TypedEmitter<Required<Cli
         devices: null,
       },
       microphone: {
-        broadcast: null,
         status: null,
         stream: null,
         track: null,
@@ -334,6 +322,12 @@ export class Client extends (EventEmitter as new () => TypedEmitter<Required<Cli
     };
 
     this.stateToSnapshot();
+
+    this.tsClient.on("disconnected", () => {
+      this.status = null;
+      this.stateToSnapshot();
+      this.emit("disconnected", this);
+    });
 
     this.tsClient.on("socketOpen", (event) => {
       this.status = "connected";
@@ -366,17 +360,6 @@ export class Client extends (EventEmitter as new () => TypedEmitter<Required<Cli
       this.status = "error";
 
       this.emit("authError", reason, this);
-    });
-
-    this.tsClient.on("disconnected", () => {
-      this.status = null;
-
-      this.videoTrackManager.cleanup();
-      this.audioTrackManager.cleanup();
-
-      this.stateToSnapshot();
-
-      this.emit("disconnected", this);
     });
 
     this.tsClient.on("joined", (peerId, peers, components) => {
@@ -691,8 +674,9 @@ export class Client extends (EventEmitter as new () => TypedEmitter<Required<Cli
 
   public connect(config: ConnectConfig): void {
     this.status = "connecting";
-    this.audioTrackManager.setDisplayName(config?.peerMetadata?.displayName);
-    this.videoTrackManager.setDisplayName(config?.peerMetadata?.displayName);
+    // todo fix me
+    // this.audioTrackManager.setDisplayName(config?.peerMetadata?.displayName);
+    // this.videoTrackManager.setDisplayName(config?.peerMetadata?.displayName);
     this.tsClient.connect({ ...config, peerMetadata: config?.peerMetadata ?? {} });
   }
 
@@ -815,12 +799,8 @@ export class Client extends (EventEmitter as new () => TypedEmitter<Required<Cli
       localTracks[track.trackId] = this.trackContextToTrack(track);
     });
 
-    const broadcastedVideoTrack = this.videoTrackManager.getCurrentTrack();
-    const broadcastedAudioTrack = this.audioTrackManager.getCurrentTrack();
-
     const devices: Devices = {
       camera: {
-        broadcast: broadcastedVideoTrack ?? null,
         status: deviceManagerSnapshot?.video?.devicesStatus || null,
         stream: deviceManagerSnapshot?.video.media?.stream || null,
         track: deviceManagerSnapshot?.video.media?.track || null,
@@ -831,7 +811,6 @@ export class Client extends (EventEmitter as new () => TypedEmitter<Required<Cli
         devices: deviceManagerSnapshot?.video?.devices || null,
       },
       microphone: {
-        broadcast: broadcastedAudioTrack ?? null,
         status: deviceManagerSnapshot?.audio?.devicesStatus || null,
         stream: deviceManagerSnapshot?.audio.media?.stream || null,
         track: deviceManagerSnapshot?.audio.media?.track || null,

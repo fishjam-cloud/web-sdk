@@ -1,15 +1,15 @@
 import type { PeerStatus, UserMediaAPI } from "@fishjam-cloud/react-client";
-import type { GenericTrackManager } from "@fishjam-cloud/react-client";
+import type { TrackManager } from "@fishjam-cloud/react-client";
 
 type DeviceControlsProps = {
   status: PeerStatus;
 } & (
   | {
-      device: UserMediaAPI & GenericTrackManager;
+      device: UserMediaAPI & TrackManager;
       type: "audio";
     }
   | {
-      device: UserMediaAPI & GenericTrackManager;
+      device: UserMediaAPI & TrackManager;
       type: "video";
     }
 );
@@ -19,6 +19,7 @@ export const DeviceControls = ({
   type,
   status,
 }: DeviceControlsProps) => {
+  const isDeviceStreaming = !!device.getCurrentTrack()?.trackId;
   return (
     <div className="flex flex-col gap-2">
       <button
@@ -63,9 +64,7 @@ export const DeviceControls = ({
 
       <button
         className="btn btn-success btn-sm"
-        disabled={
-          status !== "joined" || !device?.stream || !!device?.broadcast?.trackId
-        }
+        disabled={status !== "joined" || !device?.stream || isDeviceStreaming}
         onClick={() => {
           device?.startStreaming();
         }}
@@ -75,9 +74,7 @@ export const DeviceControls = ({
 
       <button
         className="btn btn-error btn-sm"
-        disabled={
-          status !== "joined" || !device?.stream || !device?.broadcast?.trackId
-        }
+        disabled={status !== "joined" || !device?.stream || !isDeviceStreaming}
         onClick={() => {
           device?.stopStreaming();
         }}

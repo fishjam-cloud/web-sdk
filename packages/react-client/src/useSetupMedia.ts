@@ -11,7 +11,7 @@ export const createUseSetupMediaHook = (useFishjamContext: () => FishjamContextT
     status === "joined" && stream;
 
   return (config: UseSetupMediaConfig): UseSetupMediaResult => {
-    const { state } = useFishjamContext();
+    const { state, videoTrackManager, audioTrackManager } = useFishjamContext();
     const configRef = useRef(config);
 
     useEffect(() => {
@@ -38,10 +38,8 @@ export const createUseSetupMediaHook = (useFishjamContext: () => FishjamContextT
 
       const broadcastOnCameraStart = async (client: ClientApi) => {
         const config = configRef.current.camera;
-        const videoTrackManager = client.videoTrackManager;
         const onDeviceChange = config.onDeviceChange ?? "replace";
-        const camera = client.devices.camera;
-        const stream = camera.broadcast?.stream;
+        const stream = videoTrackManager.getCurrentTrack()?.stream;
 
         if (isBroadcastedTrackChanged(client, pending)) {
           if (!stream && config.broadcastOnDeviceStart) {
@@ -95,13 +93,11 @@ export const createUseSetupMediaHook = (useFishjamContext: () => FishjamContextT
         state.client.removeListener("devicesReady", devicesReady);
         state.client.removeListener("deviceReady", deviceReady);
       };
-    }, [state.client]);
+    }, [state.client, videoTrackManager]);
 
     useEffect(() => {
       const removeOnCameraStopped: ClientEvents["deviceStopped"] = async (event, client) => {
-        const camera = client.devices.camera;
-        const videoTrackManager = client.videoTrackManager;
-        const stream = camera.broadcast?.stream;
+        const stream = videoTrackManager.getCurrentTrack()?.stream;
         const onDeviceStop = configRef.current.camera.onDeviceStop ?? "mute";
 
         if (
@@ -122,7 +118,7 @@ export const createUseSetupMediaHook = (useFishjamContext: () => FishjamContextT
       return () => {
         state.client.removeListener("deviceStopped", removeOnCameraStopped);
       };
-    }, [state.client]);
+    }, [state.client, videoTrackManager]);
 
     useEffect(() => {
       const broadcastCameraOnConnect: ClientEvents["joined"] = async (_, client) => {
@@ -131,7 +127,7 @@ export const createUseSetupMediaHook = (useFishjamContext: () => FishjamContextT
         const config = configRef.current.camera;
 
         if (stream && config.broadcastOnConnect) {
-          await client.videoTrackManager.startStreaming(config.defaultSimulcastConfig, config.defaultMaxBandwidth);
+          await videoTrackManager.startStreaming(config.defaultSimulcastConfig, config.defaultMaxBandwidth);
         }
       };
 
@@ -140,15 +136,13 @@ export const createUseSetupMediaHook = (useFishjamContext: () => FishjamContextT
       return () => {
         state.client.removeListener("joined", broadcastCameraOnConnect);
       };
-    }, [state.client]);
+    }, [state.client, videoTrackManager]);
 
     useEffect(() => {
       let pending = false;
 
       const broadcastOnMicrophoneStart = async (client: ClientApi) => {
-        const microphone = client.devices.microphone;
-        const audioTrackManager = client.audioTrackManager;
-        const stream = microphone.broadcast?.stream;
+        const stream = audioTrackManager.getCurrentTrack()?.stream;
         const config = configRef.current.microphone;
         const onDeviceChange = config.onDeviceChange ?? "replace";
 
@@ -202,12 +196,11 @@ export const createUseSetupMediaHook = (useFishjamContext: () => FishjamContextT
         state.client.removeListener("deviceReady", deviceReady);
         state.client.removeListener("devicesReady", devicesReady);
       };
-    }, [state.client]);
+    }, [state.client, audioTrackManager]);
 
     useEffect(() => {
       const onMicrophoneStopped: ClientEvents["deviceStopped"] = async (event, client) => {
-        const audioTrackManager = client.audioTrackManager;
-        const stream = client.devices.microphone.broadcast?.stream;
+        const stream = audioTrackManager.getCurrentTrack()?.stream;
         const onDeviceStop = configRef.current.microphone.onDeviceStop ?? "mute";
         const isRightDeviceType = event.mediaDeviceType === "userMedia";
         const isRightTrackType = event.trackType === "audio";
@@ -226,7 +219,7 @@ export const createUseSetupMediaHook = (useFishjamContext: () => FishjamContextT
       return () => {
         state.client.removeListener("deviceStopped", onMicrophoneStopped);
       };
-    }, [state.client]);
+    }, [state.client, audioTrackManager]);
 
     useEffect(() => {
       const broadcastMicrophoneOnConnect: ClientEvents["joined"] = async (_, client) => {
@@ -234,7 +227,7 @@ export const createUseSetupMediaHook = (useFishjamContext: () => FishjamContextT
         const microphone = client.devices.microphone;
 
         if (microphone.stream && config.broadcastOnConnect) {
-          await client.audioTrackManager.startStreaming(undefined, config.defaultMaxBandwidth);
+          await audioTrackManager.startStreaming(undefined, config.defaultMaxBandwidth);
         }
       };
 
@@ -243,7 +236,7 @@ export const createUseSetupMediaHook = (useFishjamContext: () => FishjamContextT
       return () => {
         state.client.removeListener("joined", broadcastMicrophoneOnConnect);
       };
-    }, [state.client]);
+    }, [state.client, audioTrackManager]);
 
     return useMemo(
       () => ({

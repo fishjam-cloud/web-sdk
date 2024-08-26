@@ -26,7 +26,8 @@ export type {
   CreateFishjamClient,
   ScreenshareApi,
   UseConnect,
-  GenericTrackManager,
+  TrackManager,
+  TrackMiddleware,
   TrackMetadata, // only for compatibility reasons, will be removed in: FCE-415
   PeerMetadata, // only for compatibility reasons, will be removed in: FCE-415
 } from "./types";

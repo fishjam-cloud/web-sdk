@@ -1,138 +1,154 @@
 import type { FishjamClient, SimulcastConfig, TrackBandwidthLimit } from "@fishjam-cloud/ts-client";
-import type { GenericMediaManager, GenericTrackManager, PeerMetadata, TrackMetadata } from "./types";
+import type { MediaManager, TrackManager, TrackMiddleware, PeerMetadata, TrackMetadata } from "./types";
 import type { Track } from "./state.types";
 import { getRemoteOrLocalTrack } from "./utils/track";
+import { useEffect, useState } from "react";
 
-export class TrackManager implements GenericTrackManager {
-  private readonly mediaManager: GenericMediaManager;
-  private readonly tsClient: FishjamClient<PeerMetadata, TrackMetadata>;
-  private readonly type: TrackMetadata["type"];
-  private currentTrackId: string | null = null;
-  private paused: boolean = false;
-  private displayName?: string;
+interface TrackManagerConfig {
+  mediaManager: MediaManager;
+  type: TrackMetadata["type"];
+  displayName?: string;
+  tsClient: FishjamClient<PeerMetadata, TrackMetadata>;
+}
 
-  constructor(
-    tsClient: FishjamClient<PeerMetadata, TrackMetadata>,
-    deviceManager: GenericMediaManager,
-    type: TrackMetadata["type"],
-  ) {
-    this.mediaManager = deviceManager;
-    this.tsClient = tsClient;
-    this.type = type;
-  }
+export const useTrackManager = ({ mediaManager, tsClient, type, displayName }: TrackManagerConfig): TrackManager => {
+  const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
+  const [paused, setPaused] = useState<boolean>(false);
+  const [currentTrackMiddleware, setCurrentTrackMiddleware] = useState<TrackMiddleware>(null);
 
-  public setDisplayName = (displayName?: string) => {
-    this.displayName = displayName;
-  };
+  useEffect(() => {
+    const disconnectedHandler = () => {
+      setCurrentTrackId(null);
+    };
 
-  private getPreviousTrack = (): Track => {
-    if (!this.currentTrackId) throw Error("There is no current track id");
+    tsClient.on("disconnected", disconnectedHandler);
 
-    const prevTrack = getRemoteOrLocalTrack(this.tsClient, this.currentTrackId);
+    return () => {
+      tsClient.off("disconnected", disconnectedHandler);
+    };
+  }, [tsClient]);
+
+  function getPreviousTrack(): Track {
+    if (!currentTrackId) throw Error("There is no current track id");
+
+    const prevTrack = getRemoteOrLocalTrack(tsClient, currentTrackId);
 
     if (!prevTrack) throw Error("There is no previous track");
 
     return prevTrack;
-  };
+  }
 
-  public getCurrentTrack = (): Track | null => {
-    return getRemoteOrLocalTrack(this.tsClient, this.currentTrackId);
-  };
+  async function setTrackMiddleware(middleware: TrackMiddleware): Promise<void> {
+    const currentTrack = getCurrentTrack();
+    const mediaTrack = mediaManager.getTracks()[0];
 
-  public initialize = async (deviceId?: string) => {
-    this.mediaManager?.start(deviceId ?? true);
-  };
+    if (!currentTrack || !mediaTrack) return;
 
-  public stop = async () => {
-    this?.mediaManager?.stop();
-  };
+    const trackToSet = middleware ? middleware(mediaTrack) : mediaTrack;
+    await tsClient.replaceTrack(currentTrack.trackId, trackToSet);
 
-  public cleanup = () => {
-    this.currentTrackId = null;
-  };
+    setCurrentTrackMiddleware(() => middleware);
+  }
 
-  public startStreaming = async (simulcastConfig?: SimulcastConfig, maxBandwidth?: TrackBandwidthLimit) => {
-    if (this.currentTrackId) throw Error("Track already added");
+  function getCurrentTrack(): Track | null {
+    return getRemoteOrLocalTrack(tsClient, currentTrackId);
+  }
 
-    const media = this.mediaManager.getMedia();
+  async function initialize(deviceId?: string) {
+    mediaManager?.start(deviceId ?? true);
+  }
+
+  async function stop() {
+    mediaManager?.stop();
+  }
+
+  function getInternalMetadata(paused: boolean): TrackMetadata {
+    return {
+      type,
+      paused,
+      displayName,
+    };
+  }
+
+  async function startStreaming(simulcastConfig?: SimulcastConfig, maxBandwidth?: TrackBandwidthLimit) {
+    if (currentTrackId) throw Error("Track already added");
+
+    const media = mediaManager.getMedia();
 
     if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
 
-    const track = getRemoteOrLocalTrack(this.tsClient, this.currentTrackId);
+    const track = getRemoteOrLocalTrack(tsClient, currentTrackId);
 
     if (track) return track.trackId;
 
     // see `getRemoteOrLocalTrackContext()` explanation
-    this.currentTrackId = media.track.id;
+    setCurrentTrackId(media.track.id);
 
-    const remoteTrackId = await this.tsClient.addTrack(
+    const remoteTrackId = await tsClient.addTrack(
       media.track,
-      this.getInternalMetadata(false),
+      getInternalMetadata(false),
       simulcastConfig,
       maxBandwidth,
     );
 
-    this.currentTrackId = remoteTrackId;
-    this.paused = false;
+    setCurrentTrackId(remoteTrackId);
+    setPaused(false);
 
     return remoteTrackId;
-  };
+  }
 
-  private getInternalMetadata = (paused: boolean): TrackMetadata => ({
-    type: this.type,
-    paused,
-    displayName: this.displayName,
-  });
+  async function refreshStreamedTrack() {
+    const prevTrack = getPreviousTrack();
 
-  public refreshStreamedTrack = async () => {
-    const prevTrack = this.getPreviousTrack();
-
-    const newTrack = this.mediaManager.getTracks()[0];
+    const newTrack = mediaManager.getTracks()[0];
     if (!newTrack) throw Error("New track is empty");
 
-    return this.tsClient.replaceTrack(prevTrack.trackId, newTrack);
-  };
+    return tsClient.replaceTrack(prevTrack.trackId, newTrack);
+  }
 
-  public stopStreaming = async () => {
-    const prevTrack = this.getPreviousTrack();
-    this.currentTrackId = null;
-    return this.tsClient.removeTrack(prevTrack.trackId);
-  };
+  function stopStreaming() {
+    const prevTrack = getPreviousTrack();
+    setCurrentTrackId(null);
+    setPaused(true);
+    return tsClient.removeTrack(prevTrack.trackId);
+  }
 
-  public isPaused = () => this.paused;
+  function pauseStreaming() {
+    const prevTrack = getPreviousTrack();
+    return tsClient.replaceTrack(prevTrack.trackId, null);
+  }
 
-  public pauseStreaming = async () => {
-    const prevTrack = this.getPreviousTrack();
-
-    await this.tsClient.replaceTrack(prevTrack.trackId, null);
-    this.paused = true;
-    await this.tsClient.updateTrackMetadata(prevTrack.trackId, this.getInternalMetadata(true));
-  };
-
-  public isMuted = () => {
-    const media = this.mediaManager.getMedia();
-    const isTrackDisabled = !media?.track?.enabled;
-    const areMediaDisabled = !media?.enabled;
-
-    return isTrackDisabled && areMediaDisabled;
-  };
-
-  public resumeStreaming = async () => {
-    const prevTrack = this.getPreviousTrack();
-    const media = this.mediaManager.getMedia();
+  function resumeStreaming() {
+    const prevTrack = getPreviousTrack();
+    const media = mediaManager.getMedia();
 
     if (!media) throw Error("Device is unavailable");
 
-    await this.tsClient.replaceTrack(prevTrack.trackId, media.track);
-    this.paused = false;
-    await this.tsClient.updateTrackMetadata(prevTrack.trackId, this.getInternalMetadata(false));
-  };
+    setPaused(false);
+    return tsClient.replaceTrack(prevTrack.trackId, media.track);
+  }
 
-  public disableTrack = async () => {
-    this.mediaManager.disable();
-  };
+  function disableTrack() {
+    return mediaManager.disable();
+  }
 
-  public enableTrack = async () => {
-    this.mediaManager.enable();
+  function enableTrack() {
+    return mediaManager.enable();
+  }
+
+  return {
+    getCurrentTrack,
+    setTrackMiddleware,
+    initialize,
+    stop,
+    startStreaming,
+    stopStreaming,
+    pauseStreaming,
+    resumeStreaming,
+    disableTrack,
+    enableTrack,
+    currentTrackMiddleware,
+    refreshStreamedTrack,
+    paused,
   };
-}
+};

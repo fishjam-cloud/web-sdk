@@ -1,6 +1,26 @@
 import { Button } from "./Button";
 import { useConnect, useStatus, useDisconnect } from "./client";
 
+type FormProps = {
+  roomName: string;
+  userName: string;
+  roomManagerUrl: string;
+};
+
+function psersistValues({ roomManagerUrl, roomName, userName }: FormProps) {
+  localStorage.setItem("roomManagerUrl", roomManagerUrl);
+  localStorage.setItem("roomName", roomName);
+  localStorage.setItem("userName", userName);
+}
+
+function getPersistedValues() {
+  return {
+    defaultRoomManagerUrl: localStorage.getItem("roomManagerUrl") ?? "",
+    defaultRoomName: localStorage.getItem("roomName") ?? "",
+    defaultUserName: localStorage.getItem("userName") ?? "",
+  };
+}
+
 export function RoomConnector() {
   const connect = useConnect();
   const status = useStatus();
@@ -9,38 +29,61 @@ export function RoomConnector() {
   const isUserConnected = status === "joined";
 
   const connectToRoom = async ({
+    roomManagerUrl,
     roomName,
-    username,
-    fishjamUrl,
-  }: Record<string, unknown>) => {
-    const res = await fetch(`${fishjamUrl}/room-manager/${roomName}/users/${username}`);
+    userName,
+  }: FormProps) => {
+    // in case user copied url from admin panel
+    const urlWithoutParams = roomManagerUrl.replace(
+      "/*roomName*/users/*username*",
+      "",
+    );
 
-    const { token, url } = (await res.json()) as { token: string, url: string };
+    // trim slash from end
+    const url = urlWithoutParams.endsWith("/")
+      ? urlWithoutParams
+      : urlWithoutParams + "/";
+    const res = await fetch(`${url}${roomName}/users/${userName}`);
+
+    const { token, url: fishjamUrl } = (await res.json()) as {
+      token: string;
+      url: string;
+    };
 
     connect({
-      peerMetadata: {},
+      peerMetadata: { name: userName },
       token,
-      url,
+      url: fishjamUrl,
     });
   };
+
+  const { defaultRoomManagerUrl, defaultUserName, defaultRoomName } =
+    getPersistedValues();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const formProps = Object.fromEntries(formData);
+    const formProps = Object.fromEntries(formData) as FormProps;
+
+    psersistValues(formProps);
 
     await connectToRoom(formProps);
   };
 
   return (
-    <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+    <form
+      className="flex flex-col gap-4"
+      onSubmit={handleSubmit}
+      autoComplete="on"
+    >
       <div className="flex flex-col  justify-between">
-        <label htmlFor="fishjamUrl">Fishjam url</label>
+        <label htmlFor="roomManagerUrl">Room URL</label>
         <input
-          id="fishjamUrl"
-          name="fishjamUrl"
+          id="roomManagerUrl"
+          name="roomManagerUrl"
           type="text"
           disabled={isUserConnected}
+          defaultValue={defaultRoomManagerUrl}
         />
       </div>
 
@@ -51,16 +94,18 @@ export function RoomConnector() {
           name="roomName"
           type="text"
           disabled={isUserConnected}
+          defaultValue={defaultRoomName}
         />
       </div>
 
       <div className="flex flex-col  justify-between">
-        <label htmlFor="username">Username</label>
+        <label htmlFor="userName">User name</label>
         <input
-          id="username"
-          name="username"
+          id="userName"
+          name="userName"
           type="text"
           disabled={isUserConnected}
+          defaultValue={defaultUserName}
         />
       </div>
 

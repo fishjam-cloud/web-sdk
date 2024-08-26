@@ -35,7 +35,9 @@ export class LocalTrackManager<EndpointMetadata, TrackMetadata> {
     this.sendMediaEvent = sendMediaEvent;
   }
 
-  public isNegotiationInProgress = () => this.ongoingRenegotiation || this.ongoingTrackReplacement;
+  public isNegotiationInProgress = () => {
+    return this.ongoingRenegotiation || this.ongoingTrackReplacement;
+  };
 
   public cleanUp = () => {
     this.ongoingTrackReplacement = false;

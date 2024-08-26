@@ -3,7 +3,7 @@ import type { LocalTrackManager } from './tracks/LocalTrackManager';
 import type { ConnectionManager } from './ConnectionManager';
 
 export type Command = {
-  handler: () => Promise<void>;
+  handler: () => void;
   parse?: () => void;
   resolutionNotifier: Deferred<void>;
   resolve: 'after-renegotiation' | 'immediately';
@@ -79,10 +79,10 @@ export class CommandsQueue<EndpointMetadata, TrackMetadata> {
     this.handleCommand(command);
   };
 
-  private handleCommand = async (command: Command) => {
+  private handleCommand = (command: Command) => {
     try {
       command.parse?.();
-      await command.handler();
+      command.handler();
 
       if (command.resolve === 'immediately') {
         this.resolvePreviousCommand();

@@ -909,10 +909,10 @@ export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as
    * If the metadata is different from what is already tracked in the room, the event {@link MessageEvents.trackUpdated} will
    * be emitted for other peers in the room.
    */
-  public updateTrackMetadata = (trackId: string, trackMetadata: TrackMetadata): Promise<void> => {
+  public updateTrackMetadata = (trackId: string, trackMetadata: TrackMetadata): void => {
     if (!this.webrtc) throw this.handleWebRTCNotInitialized();
 
-    return this.webrtc.updateTrackMetadata(trackId, trackMetadata);
+    this.webrtc.updateTrackMetadata(trackId, trackMetadata);
   };
 
   public isReconnecting() {

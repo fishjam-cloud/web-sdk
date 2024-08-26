@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useFishjamContext } from "../fishjamProvider";
-import { Selector } from "../state.types";
+import type { Selector } from "../state.types";
 
 export function useSelector<Result, PeerMetadata>(selector: Selector<PeerMetadata, unknown, Result>): Result {
   const { state } = useFishjamContext<PeerMetadata>();

@@ -1,6 +1,6 @@
 import { useFishjamContext } from "../fishjamProvider";
-import { PeerState } from "../state.types";
-import { PeerStateWithTracks } from "../types";
+import type { PeerState } from "../state.types";
+import type { PeerStateWithTracks } from "../types";
 
 function getPeerWithDistinguishedTracks<PeerMetadata>(
   peerState: PeerState<PeerMetadata, unknown>,

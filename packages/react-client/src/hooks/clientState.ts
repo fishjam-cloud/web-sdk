@@ -1,6 +1,6 @@
 import { useCallback, useRef, useSyncExternalStore } from "react";
-import { State } from "../state.types";
-import { Client } from "../Client";
+import type { State } from "../state.types";
+import type { Client } from "../Client";
 
 const eventNames = [
   "socketOpen",

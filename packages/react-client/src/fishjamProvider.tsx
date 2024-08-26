@@ -1,7 +1,8 @@
-import { useMemo, useState, PropsWithChildren, createContext, useContext } from "react";
+import type { PropsWithChildren } from "react";
+import { useMemo, useState, createContext, useContext } from "react";
 import { Client } from "./Client";
 import { useTrackManager } from "./trackManager";
-import { FishjamContextType, ScreenshareState } from "./types";
+import type { FishjamContextType, ScreenshareState } from "./types";
 import { useClientState } from "./hooks/clientState";
 
 interface FishjamProviderProps extends PropsWithChildren {

@@ -73,7 +73,7 @@ export const useClientState = <PeerMetadata>(client: Client<PeerMetadata, unknow
 
   const getSnapshot: () => State<PeerMetadata, unknown> = useCallback(() => {
     if (mutationRef.current || lastSnapshotRef.current === null) {
-      const state = {
+      lastSnapshotRef.current = {
         remote: client.peers,
         media: client.media,
         bandwidthEstimation: client.bandwidthEstimation,
@@ -83,9 +83,7 @@ export const useClientState = <PeerMetadata>(client: Client<PeerMetadata, unknow
         devices: client.devices,
         client: client,
         reconnectionStatus: client.reconnectionStatus,
-      } satisfies State<PeerMetadata, unknown>;
-
-      lastSnapshotRef.current = state;
+      };
       mutationRef.current = false;
     }
 

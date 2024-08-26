@@ -328,14 +328,13 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
     this.remote.updateMLineIds(data.midToTrackId);
     this.local.updateMLineIds(data.midToTrackId);
 
-    Object.values(data.midToTrackId)
+    Object.keys(data.midToTrackId)
       .map((trackId) => {
         if (!trackId) throw new Error('TrackId is not defined');
-        if (typeof trackId !== 'string') throw new Error('TrackId is not a string');
 
         return trackId;
       })
-      .map((trackId) => this.local.getTrackByMidOrNull(trackId))
+      .map((mid) => this.local.getTrackByMidOrNull(mid))
       .filter((localTrack) => localTrack !== null)
       .forEach((localTrack) => {
         const trackContext = localTrack.trackContext;

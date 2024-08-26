@@ -1,6 +1,6 @@
 import { FC, useCallback, useRef } from "react";
 import AudioVisualizer from "./AudioVisualizer";
-import { useCamera, useMicrophone, useScreenShare, useStatus } from "./client";
+import { useCamera, useMicrophone, useScreenShare, useStatus } from "../client";
 import VideoPlayer from "./VideoPlayer";
 import {
   TrackManager,

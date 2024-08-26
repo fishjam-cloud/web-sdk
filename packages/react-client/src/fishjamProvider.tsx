@@ -2,12 +2,13 @@ import type { PropsWithChildren } from "react";
 import { useMemo, useState, createContext, useContext } from "react";
 import { Client } from "./Client";
 import { useTrackManager } from "./trackManager";
-import type { FishjamContextType, ScreenshareState } from "./types";
+import type { DeviceManagerConfig, FishjamContextType, ScreenshareState } from "./types";
 import { useClientState } from "./hooks/clientState";
+import { CreateConfig } from "@fishjam-cloud/ts-client";
 
 interface FishjamProviderProps extends PropsWithChildren {
-  config: any;
-  deviceManagerDefaultConfig: any;
+  config?: CreateConfig<unknown, unknown>;
+  deviceManagerDefaultConfig?: DeviceManagerConfig;
 }
 
 const FishjamContext = createContext<FishjamContextType<unknown, unknown> | null>(null);

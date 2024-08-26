@@ -293,6 +293,7 @@ export class Client extends (EventEmitter as new () => TypedEmitter<Required<Cli
 
   public videoDeviceManager: DeviceManager;
   public audioDeviceManager: DeviceManager;
+  private initialized: boolean = false;
 
   public videoTrackManager: TrackManager;
   public audioTrackManager: TrackManager;
@@ -749,6 +750,11 @@ export class Client extends (EventEmitter as new () => TypedEmitter<Required<Cli
   };
 
   public initializeDevices = async (config?: DeviceManagerInitConfig) => {
+    // This function should be called only once.
+    // Any subsequent calls to this function will be ignored.
+    if (this.initialized) return;
+    this.initialized = true;
+
     const constraints = {
       video: this.videoDeviceManager.getConstraints(config?.videoTrackConstraints),
       audio: this.audioDeviceManager.getConstraints(config?.audioTrackConstraints),

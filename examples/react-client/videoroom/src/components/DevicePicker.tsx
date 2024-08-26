@@ -1,14 +1,10 @@
-import { FC, useCallback, useRef } from "react";
+import { FC } from "react";
 import AudioVisualizer from "./AudioVisualizer";
 import { useCamera, useMicrophone, useScreenShare, useStatus } from "../client";
 import VideoPlayer from "./VideoPlayer";
-import {
-  TrackManager,
-  TrackMiddleware,
-  UserMediaAPI,
-} from "@fishjam-cloud/react-client";
+import { TrackManager, UserMediaAPI } from "@fishjam-cloud/react-client";
 import { Button } from "./Button";
-import { BlurProcessor } from "./utils/blur/BlurProcessor";
+import { BlurToggle } from "./BlurToggle";
 
 interface DeviceSelectProps {
   device: UserMediaAPI & TrackManager<unknown>;
@@ -16,28 +12,6 @@ interface DeviceSelectProps {
 
 const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
   const hasJoinedRoom = useStatus() === "joined";
-  const blurProcessorRef = useRef<BlurProcessor | null>(null);
-
-  const blurMiddleware: TrackMiddleware = useCallback(
-    (videoTrack: MediaStreamTrack | null) => {
-      if (!videoTrack) return videoTrack;
-
-      const stream = new MediaStream([videoTrack]);
-      const blurProcessor = new BlurProcessor(stream);
-      blurProcessorRef.current = blurProcessor;
-
-      return blurProcessor.stream.getVideoTracks()[0];
-    },
-    [],
-  );
-
-  const clearBlurMiddleware = async () => {
-    await device.setTrackMiddleware(null);
-    blurProcessorRef.current?.destroy();
-    blurProcessorRef.current = null;
-  };
-
-  const isMiddlewareSet = device.currentTrackMiddleware === blurMiddleware;
 
   const isTrackStreamed = !!device.getCurrentTrack()?.trackId;
 
@@ -71,26 +45,6 @@ const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
           }}
         >
           Stream
-        </Button>
-      )}
-
-      {isMiddlewareSet ? (
-        <Button
-          disabled={!device.stream}
-          onClick={async () => {
-            await clearBlurMiddleware();
-          }}
-        >
-          Unblur
-        </Button>
-      ) : (
-        <Button
-          disabled={!device.stream}
-          onClick={async () => {
-            await device.setTrackMiddleware(blurMiddleware);
-          }}
-        >
-          Blur
         </Button>
       )}
     </div>
@@ -134,6 +88,8 @@ export function DevicePicker() {
         )}
         {microphone.stream && <AudioVisualizer stream={microphone.stream} />}
       </div>
+
+      <BlurToggle />
     </section>
   );
 }

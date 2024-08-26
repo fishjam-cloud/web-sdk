@@ -7,7 +7,6 @@ import type {
   UserMediaAPI,
   CreateFishjamClient,
   FishjamContextType,
-  FishjamContextProviderProps,
   UseConnect,
   GenericTrackManager,
   PeerStateWithTracks,
@@ -77,7 +76,7 @@ export function create<PeerMetadata, TrackMetadata>(
 ): CreateFishjamClient<PeerMetadata, TrackMetadata> {
   const FishjamContext = createContext<FishjamContextType<PeerMetadata, TrackMetadata> | undefined>(undefined);
 
-  function FishjamContextProvider({ children }: FishjamContextProviderProps) {
+  function FishjamContextProvider({ children }: React.PropsWithChildren) {
     const memoClient = useMemo(() => {
       return new Client<PeerMetadata, TrackMetadata>({
         clientConfig: config,

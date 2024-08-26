@@ -9,7 +9,7 @@ import type {
   TrackWithOrigin,
   UseReconnection,
 } from "./state.types";
-import type { JSX, ReactNode } from "react";
+import type { JSX, PropsWithChildren } from "react";
 import type { Client } from "./Client";
 
 export type DevicesStatus = "OK" | "Error" | "Not requested" | "Requesting";
@@ -199,10 +199,6 @@ export type Devices<TrackMetadata> = {
   microphone: UserMediaAPI<TrackMetadata>;
 };
 
-export type FishjamContextProviderProps = {
-  children: ReactNode;
-};
-
 export type ScreenshareState = {
   stream: MediaStream;
   trackIds: { videoId: string; audioId?: string };
@@ -223,8 +219,13 @@ type DistinguishedTracks<TrackMetadata> = {
 export type PeerStateWithTracks<PeerMetadata, TrackMetadata> = PeerState<PeerMetadata, TrackMetadata> &
   DistinguishedTracks<TrackMetadata>;
 
+export type Participiants<PeerMetadata, TrackMetadata> = {
+  localParticipant: PeerStateWithTracks<PeerMetadata, TrackMetadata> | null;
+  participants: PeerStateWithTracks<PeerMetadata, TrackMetadata>[];
+};
+
 export type CreateFishjamClient<PeerMetadata, TrackMetadata> = {
-  FishjamContextProvider: ({ children }: FishjamContextProviderProps) => JSX.Element;
+  FishjamContextProvider: ({ children }: PropsWithChildren) => JSX.Element;
   useConnect: () => (config: ConnectConfig<PeerMetadata>) => () => void;
   useDisconnect: () => () => void;
   useStatus: () => PeerStatus;
@@ -235,10 +236,7 @@ export type CreateFishjamClient<PeerMetadata, TrackMetadata> = {
   useMicrophone: () => Devices<TrackMetadata>["microphone"] & GenericTrackManager<TrackMetadata>;
   useClient: () => Client<PeerMetadata, TrackMetadata>;
   useReconnection: () => UseReconnection;
-  useParticipants: () => {
-    localParticipant: PeerStateWithTracks<PeerMetadata, TrackMetadata> | null;
-    participants: PeerStateWithTracks<PeerMetadata, TrackMetadata>[];
-  };
+  useParticipants: () => Participiants<PeerMetadata, TrackMetadata>;
   useScreenShare: () => ScreenshareApi<TrackMetadata>;
 };
 

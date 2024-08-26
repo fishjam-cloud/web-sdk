@@ -1,4 +1,4 @@
-export { create } from "./create";
+export * from "./hooks/public";
 
 export { Client } from "./Client";
 export type { ClientEvents } from "./Client";

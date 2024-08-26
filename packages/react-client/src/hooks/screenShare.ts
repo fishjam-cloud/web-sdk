@@ -1,7 +1,7 @@
-import type { FishjamClient } from "@fishjam-cloud/ts-client";
 import { useCallback, useEffect } from "react";
-import { getRemoteOrLocalTrack } from "./utils/track";
-import type { ScreenshareApi, ScreenshareState, TracksMiddleware } from "./types";
+import { getRemoteOrLocalTrack } from "../utils/track";
+import type { ScreenshareApi, TracksMiddleware } from "../types";
+import { useFishjamContext } from "../fishjamProvider";
 
 const getTracks = (stream: MediaStream): [MediaStreamTrack, MediaStreamTrack | null] => {
   const video = stream.getVideoTracks()[0];
@@ -10,12 +10,13 @@ const getTracks = (stream: MediaStream): [MediaStreamTrack, MediaStreamTrack | n
   return [video, audio];
 };
 
-export const useScreenShare = <PeerMetadata, TrackMetadata>(
-  // these arguments will be removed after we get rid of create() fn, we will just use the context
-  [state, setState]: [ScreenshareState, React.Dispatch<React.SetStateAction<ScreenshareState>>],
-  tsClient: FishjamClient<PeerMetadata, TrackMetadata>,
-): ScreenshareApi<TrackMetadata> => {
-  const startStreaming: ScreenshareApi<TrackMetadata>["startStreaming"] = async (props) => {
+export const useScreenShare = <PeerMetadata>(): ScreenshareApi<unknown> => {
+  const ctx = useFishjamContext<PeerMetadata>();
+
+  const [state, setState] = ctx.screenshareState;
+  const tsClient = ctx.state.client.getTsClient();
+
+  const startStreaming: ScreenshareApi<unknown>["startStreaming"] = async (props) => {
     const stream = await navigator.mediaDevices.getDisplayMedia({
       video: props?.videoConstraints ?? true,
       audio: props?.audioConstraints ?? true,
@@ -54,7 +55,7 @@ export const useScreenShare = <PeerMetadata, TrackMetadata>(
     await replaceTracks(newVideoTrack, newAudioTrack);
   };
 
-  const stopStreaming: ScreenshareApi<TrackMetadata>["stopStreaming"] = useCallback(async () => {
+  const stopStreaming: ScreenshareApi<unknown>["stopStreaming"] = useCallback(async () => {
     if (!state) {
       console.warn("No stream to stop");
       return;

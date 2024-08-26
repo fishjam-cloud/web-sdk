@@ -62,11 +62,11 @@ export const useTrackManager = <PeerMetadata, TrackMetadata>({
     mediaManager?.stop();
   }
 
-  const startStreaming = async (
+  async function startStreaming(
     trackMetadata?: TrackMetadata,
     simulcastConfig?: SimulcastConfig,
     maxBandwidth?: TrackBandwidthLimit,
-  ) => {
+  ) {
     if (currentTrackId) throw Error("Track already added");
 
     const media = mediaManager.getMedia();
@@ -85,44 +85,44 @@ export const useTrackManager = <PeerMetadata, TrackMetadata>({
     setCurrentTrackId(remoteTrackId);
 
     return remoteTrackId;
-  };
+  }
 
-  const refreshStreamedTrack = async () => {
+  function refreshStreamedTrack() {
     const prevTrack = getPreviousTrack();
 
     const newTrack = mediaManager.getTracks()[0];
     if (!newTrack) throw Error("New track is empty");
 
     return tsClient.replaceTrack(prevTrack.trackId, newTrack);
-  };
+  }
 
-  const stopStreaming = async () => {
+  function stopStreaming() {
     const prevTrack = getPreviousTrack();
     setCurrentTrackId(null);
     return tsClient.removeTrack(prevTrack.trackId);
-  };
+  }
 
-  const pauseStreaming = async () => {
+  async function pauseStreaming() {
     const prevTrack = getPreviousTrack();
     await tsClient.replaceTrack(prevTrack.trackId, null);
-  };
+  }
 
-  const resumeStreaming = async () => {
+  async function resumeStreaming() {
     const prevTrack = getPreviousTrack();
     const media = mediaManager.getMedia();
 
     if (!media) throw Error("Device is unavailable");
 
     await tsClient.replaceTrack(prevTrack.trackId, media.track);
-  };
+  }
 
-  const disableTrack = async () => {
+  async function disableTrack() {
     mediaManager.disable();
-  };
+  }
 
-  const enableTrack = async () => {
+  async function enableTrack() {
     mediaManager.enable();
-  };
+  }
 
   return {
     getCurrentTrack,

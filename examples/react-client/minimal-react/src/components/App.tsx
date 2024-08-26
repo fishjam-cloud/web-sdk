@@ -1,14 +1,14 @@
 import VideoPlayer from "./VideoPlayer";
 import type { Client } from "@fishjam-cloud/react-client";
-import { SCREEN_SHARING_MEDIA_CONSTRAINTS } from "@fishjam-cloud/react-client";
-import { useState } from "react";
 import {
+  SCREEN_SHARING_MEDIA_CONSTRAINTS,
+  useClient,
   useConnect,
   useDisconnect,
-  useClient,
   useStatus,
   useTracks,
-} from "./client";
+} from "@fishjam-cloud/react-client";
+import { useState } from "react";
 
 // Example metadata types for peer and track
 // You can define your own metadata types just make sure they are serializable
@@ -34,9 +34,8 @@ export const App = () => {
   {
     // for e2e test
     const client = useClient();
-    (
-      window as unknown as { client: Client<PeerMetadata, TrackMetadata> }
-    ).client = client!;
+    (window as unknown as { client: Client<unknown, unknown> }).client =
+      client!;
   }
 
   return (
@@ -79,7 +78,7 @@ export const App = () => {
                 screenStream
                   .getTracks()
                   .forEach((track) =>
-                    client.addTrack(track, { type: "screen" }),
+                    client.addTrack(track, { type: "screen" })
                   );
               });
           }}

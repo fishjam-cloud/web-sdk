@@ -1,6 +1,5 @@
-import { TrackMiddleware } from "@fishjam-cloud/react-client";
+import { TrackMiddleware, useCamera } from "@fishjam-cloud/react-client";
 import { useRef, useCallback } from "react";
-import { useCamera } from "../client";
 import { BlurProcessor } from "../utils/blur/BlurProcessor";
 import { Button } from "./Button";
 
@@ -19,7 +18,7 @@ export function BlurToggle() {
 
       return blurProcessor.stream.getVideoTracks()[0];
     },
-    [],
+    []
   );
 
   const clearBlurMiddleware = async () => {

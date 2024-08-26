@@ -4,11 +4,11 @@ import { Track } from "@fishjam-cloud/react-client";
 type Props = {
   id: string;
   name: string;
-  videoTracks: Track<unknown>[] | undefined;
+  videoTracks: Track<unknown>[];
 };
 
 export function VideoTracks({ videoTracks, name, id }: Props) {
-  return videoTracks?.map((videoTrack) => (
+  return videoTracks.map((videoTrack) => (
     <div
       className="aspect-video overflow-hidden grid place-content-center relative bg-zinc-300 rounded-md"
       key={videoTrack.trackId}

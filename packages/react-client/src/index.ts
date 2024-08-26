@@ -27,9 +27,8 @@ export type {
   ScreenshareApi,
   UseConnect,
   GenericTrackManager,
-  // todo remove, exported to be compatible with videoroom
-  TrackMetadata,
-  PeerMetadata,
+  TrackMetadata, // only for compatibility reasons, will be removed in: FCE-415
+  PeerMetadata, // only for compatibility reasons, will be removed in: FCE-415
 } from "./types";
 
 export { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS, SCREEN_SHARING_MEDIA_CONSTRAINTS } from "./constraints";

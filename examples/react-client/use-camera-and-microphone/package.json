@@ -1,5 +1,5 @@
 {
-  "name": "use-camera-and-microphone-example",
+  "name": "@fishjam-example/camera-and-microphone",
   "private": true,
   "version": "0.0.0",
   "type": "module",

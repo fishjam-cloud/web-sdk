@@ -27,7 +27,7 @@ import { ConnectionManager } from './ConnectionManager';
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
  */
 export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends (EventEmitter as {
-  new<EndpointMetadata, TrackMetadata>(): TypedEmitter<
+  new <EndpointMetadata, TrackMetadata>(): TypedEmitter<
     Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>
   >;
 })<EndpointMetadata, TrackMetadata> {
@@ -51,7 +51,7 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
 
     const sendEvent = (mediaEvent: MediaEvent) => {
       this.sendMediaEvent(mediaEvent);
-    }
+    };
 
     const emit: <E extends keyof Required<WebRTCEndpointEvents<EndpointMetadata, TrackMetadata>>>(
       event: E,
@@ -94,7 +94,6 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
   public connect = (metadata: EndpointMetadata): void => {
     this.local.setEndpointMetadata(metadata);
     const mediaEvent = generateMediaEvent('connect', {
-      // todo will Fishjam accept undefined metadata?
       metadata: metadata,
     });
     this.sendMediaEvent(mediaEvent);
@@ -664,7 +663,7 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
     const resolutionNotifier = new Deferred<void>();
 
     try {
-      this.local.updateLocalTrackMetadata(trackId, trackMetadata)
+      this.local.updateLocalTrackMetadata(trackId, trackMetadata);
 
       this.commandsQueue.pushCommand({
         handler: async () => {
@@ -680,13 +679,13 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
             metadata: trackMetadata,
           });
         },
-        resolve: "immediately",
+        resolve: 'immediately',
         resolutionNotifier,
-      })
+      });
     } catch (e) {
-      resolutionNotifier.reject(e)
+      resolutionNotifier.reject(e);
     }
-    return resolutionNotifier.promise
+    return resolutionNotifier.promise;
   };
 
   /**

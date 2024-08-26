@@ -11,7 +11,11 @@ export class TrackManager implements GenericTrackManager {
   private paused: boolean = false;
   private displayName?: string;
 
-  constructor(tsClient: FishjamClient<PeerMetadata, TrackMetadata>, deviceManager: GenericMediaManager, type: TrackMetadata["type"]) {
+  constructor(
+    tsClient: FishjamClient<PeerMetadata, TrackMetadata>,
+    deviceManager: GenericMediaManager,
+    type: TrackMetadata["type"],
+  ) {
     this.mediaManager = deviceManager;
     this.tsClient = tsClient;
     this.type = type;
@@ -19,7 +23,7 @@ export class TrackManager implements GenericTrackManager {
 
   public setDisplayName = (displayName?: string) => {
     this.displayName = displayName;
-  }
+  };
 
   private getPreviousTrack = (): Track => {
     if (!this.currentTrackId) throw Error("There is no current track id");
@@ -61,7 +65,12 @@ export class TrackManager implements GenericTrackManager {
     // see `getRemoteOrLocalTrackContext()` explanation
     this.currentTrackId = media.track.id;
 
-    const remoteTrackId = await this.tsClient.addTrack(media.track, this.getInternalMetadata(false), simulcastConfig, maxBandwidth);
+    const remoteTrackId = await this.tsClient.addTrack(
+      media.track,
+      this.getInternalMetadata(false),
+      simulcastConfig,
+      maxBandwidth,
+    );
 
     this.currentTrackId = remoteTrackId;
     this.paused = false;
@@ -72,8 +81,8 @@ export class TrackManager implements GenericTrackManager {
   private getInternalMetadata = (paused: boolean): TrackMetadata => ({
     type: this.type,
     paused,
-    displayName: this.displayName
-  })
+    displayName: this.displayName,
+  });
 
   public refreshStreamedTrack = async () => {
     const prevTrack = this.getPreviousTrack();
@@ -90,14 +99,14 @@ export class TrackManager implements GenericTrackManager {
     return this.tsClient.removeTrack(prevTrack.trackId);
   };
 
-  public isPaused = () => this.paused
+  public isPaused = () => this.paused;
 
   public pauseStreaming = async () => {
     const prevTrack = this.getPreviousTrack();
 
     await this.tsClient.replaceTrack(prevTrack.trackId, null);
     this.paused = true;
-    await this.tsClient.updateTrackMetadata(prevTrack.trackId, this.getInternalMetadata(true))
+    await this.tsClient.updateTrackMetadata(prevTrack.trackId, this.getInternalMetadata(true));
   };
 
   public isMuted = () => {
@@ -116,7 +125,7 @@ export class TrackManager implements GenericTrackManager {
 
     await this.tsClient.replaceTrack(prevTrack.trackId, media.track);
     this.paused = false;
-    await this.tsClient.updateTrackMetadata(prevTrack.trackId, this.getInternalMetadata(false))
+    await this.tsClient.updateTrackMetadata(prevTrack.trackId, this.getInternalMetadata(false));
   };
 
   public disableTrack = async () => {

@@ -231,7 +231,6 @@ export const MainControls = () => {
               disconnect();
 
               connect({
-                peerMetadata: { displayName: "John Doe" }, // example metadata
                 token: token,
                 url: FISHJAM_URL,
               });

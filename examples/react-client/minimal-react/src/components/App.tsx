@@ -10,16 +10,6 @@ import {
   useTracks,
 } from "./client";
 
-// Example metadata types for peer and track
-// You can define your own metadata types just make sure they are serializable
-export type PeerMetadata = {
-  name: string;
-};
-
-export type TrackMetadata = {
-  type: "camera" | "screen";
-};
-
 const FISHJAM_URL = "ws://localhost:5002";
 
 export const App = () => {
@@ -50,7 +40,6 @@ export const App = () => {
           onClick={() => {
             if (!token || token === "") throw Error("Token is empty");
             connect({
-              peerMetadata: { displayName: "John Doe" }, // example metadata
               token: token,
               url: FISHJAM_URL,
             });

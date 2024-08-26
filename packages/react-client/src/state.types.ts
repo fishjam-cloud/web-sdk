@@ -11,8 +11,6 @@ export type Track = {
   stream: MediaStream | null;
   encoding: Encoding | null;
   trackId: TrackId;
-  // todo hide this field
-  // todo expose type and active
   metadata?: TrackMetadata;
   rawMetadata: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   metadataParsingError?: any; // eslint-disable-line @typescript-eslint/no-explicit-any

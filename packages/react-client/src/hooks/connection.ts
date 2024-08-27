@@ -1,4 +1,4 @@
-import { useFishjamContext } from "../fishjamProvider";
+import { useFishjamContext } from "./fishjamContext";
 import type { FishjamContextType, UseConnect } from "../types";
 import { useCallback, useMemo } from "react";
 import type { UseReconnection } from "../state.types";

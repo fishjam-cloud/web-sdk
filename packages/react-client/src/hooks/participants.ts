@@ -1,4 +1,4 @@
-import { useFishjamContext } from "../fishjamProvider";
+import { useFishjamContext } from "./fishjamContext";
 import type { PeerState } from "../state.types";
 import type { PeerStateWithTracks } from "../types";
 
@@ -11,7 +11,7 @@ function getPeerWithDistinguishedTracks(peerState: PeerState): PeerStateWithTrac
   return { ...peerState, videoTracks, audioTracks };
 }
 
-export function useParticipants<PeerMetadata>() {
+export function useParticipants() {
   const { state } = useFishjamContext();
 
   const localParticipant = state.local ? getPeerWithDistinguishedTracks(state.local) : null;

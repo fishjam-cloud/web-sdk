@@ -1,4 +1,4 @@
-import { useFishjamContext } from "../fishjamProvider";
+import { useFishjamContext } from "./fishjamContext";
 import type { UserMediaAPI, TrackManager } from "../types";
 
 export function useCamera(): UserMediaAPI & TrackManager {

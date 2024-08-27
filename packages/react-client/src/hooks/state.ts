@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useFishjamContext } from "../fishjamProvider";
+import { useFishjamContext } from "./fishjamContext";
 import type { Selector } from "../state.types";
 
 export function useSelector<Result>(selector: Selector<Result>): Result {

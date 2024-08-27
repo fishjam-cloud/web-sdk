@@ -11,5 +11,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <MainControls />
       <AdditionalControls />
     </FishjamProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

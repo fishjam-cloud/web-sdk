@@ -2,7 +2,7 @@ import type { UseSetupMediaConfig, UseSetupMediaResult } from "../types";
 import { useEffect, useMemo, useRef } from "react";
 import type { ClientApi, ClientEvents } from "../Client";
 import type { PeerStatus } from "../state.types";
-import { useFishjamContext } from "../fishjamProvider";
+import { useFishjamContext } from "./fishjamContext";
 
 const isBroadcastedTrackChanged = (client: ClientApi, pending: boolean) =>
   client.status === "joined" && !pending && !client.isReconnecting();

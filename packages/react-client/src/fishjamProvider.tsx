@@ -1,22 +1,15 @@
 import type { PropsWithChildren } from "react";
-import { useMemo, useState, createContext, useContext } from "react";
+import { useMemo, useState } from "react";
 import { Client } from "./Client";
 import { useTrackManager } from "./trackManager";
-import type { DeviceManagerConfig, FishjamContextType, ScreenshareState } from "./types";
+import type { DeviceManagerConfig, ScreenshareState } from "./types";
 import { useClientState } from "./hooks/clientState";
 import type { ReconnectConfig } from "@fishjam-cloud/ts-client";
+import { FishjamContext } from "./hooks/fishjamContext";
 
 interface FishjamProviderProps extends PropsWithChildren {
   config?: { reconnect?: ReconnectConfig | boolean };
   deviceManagerDefaultConfig?: DeviceManagerConfig;
-}
-
-const FishjamContext = createContext<FishjamContextType | null>(null);
-
-export function useFishjamContext() {
-  const context = useContext(FishjamContext);
-  if (!context) throw new Error("useFishjamContext must be used within a FishjamContextProvider");
-  return context as FishjamContextType;
 }
 
 export function FishjamProvider({ children, config, deviceManagerDefaultConfig }: FishjamProviderProps) {

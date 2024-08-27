@@ -327,10 +327,10 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
     this.local.updateMLineIds(data.midToTrackId);
 
     Object.keys(data.midToTrackId)
-      .map((trackId) => {
-        if (!trackId) throw new Error('TrackId is not defined');
+      .map((mid) => {
+        if (!mid) throw new Error('TrackId is not defined');
 
-        return trackId;
+        return mid;
       })
       .map((mid) => this.local.getTrackByMidOrNull(mid))
       .filter((localTrack) => localTrack !== null)

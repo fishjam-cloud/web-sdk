@@ -8,12 +8,13 @@ import type {
   CreateFishjamClient,
   FishjamContextType,
   UseConnect,
-  GenericTrackManager,
+  TrackManager,
   PeerStateWithTracks,
 } from "./types";
 import { Client } from "./Client";
 import { createUseSetupMediaHook } from "./useSetupMedia";
 import { useScreenShare as _useScreenShare } from "./screenShareTrackManager";
+import { useTrackManager } from "./trackManager";
 
 const eventNames = [
   "socketOpen",
@@ -113,8 +114,6 @@ export function create<PeerMetadata, TrackMetadata>(
           local: clientRef.current.local,
           status: clientRef.current.status,
           devices: clientRef.current.devices,
-          videoTrackManager: clientRef.current.videoTrackManager,
-          audioTrackManager: clientRef.current.audioTrackManager,
           client: clientRef.current,
           reconnectionStatus: clientRef.current.reconnectionStatus,
         } satisfies State<PeerMetadata, TrackMetadata>;
@@ -128,9 +127,25 @@ export function create<PeerMetadata, TrackMetadata>(
 
     const state = useSyncExternalStore(subscribe, getSnapshot);
 
+    const tsClient = state.client.getTsClient();
+
     const screenshareState = useState<ScreenshareState>(null);
 
-    return <FishjamContext.Provider value={{ state, screenshareState }}>{children}</FishjamContext.Provider>;
+    const videoTrackManager = useTrackManager({
+      mediaManager: state.client.videoDeviceManager,
+      tsClient,
+    });
+
+    const audioTrackManager = useTrackManager({
+      mediaManager: state.client.audioDeviceManager,
+      tsClient,
+    });
+
+    return (
+      <FishjamContext.Provider value={{ state, screenshareState, videoTrackManager, audioTrackManager }}>
+        {children}
+      </FishjamContext.Provider>
+    );
   }
 
   function useFishjamContext(): FishjamContextType<PeerMetadata, TrackMetadata> {
@@ -178,16 +193,14 @@ export function create<PeerMetadata, TrackMetadata>(
     return useSelector((s) => s.client);
   }
 
-  function useCamera(): UserMediaAPI<TrackMetadata> & GenericTrackManager<TrackMetadata> {
-    const { state } = useFishjamContext();
-
-    return { ...state.devices.camera, ...state.videoTrackManager };
+  function useCamera(): UserMediaAPI & TrackManager<TrackMetadata> {
+    const { state, videoTrackManager } = useFishjamContext();
+    return { ...state.devices.camera, ...videoTrackManager };
   }
 
-  function useMicrophone(): UserMediaAPI<TrackMetadata> & GenericTrackManager<TrackMetadata> {
-    const { state } = useFishjamContext();
-
-    return { ...state.devices.microphone, ...state.audioTrackManager };
+  function useMicrophone(): UserMediaAPI & TrackManager<TrackMetadata> {
+    const { state, audioTrackManager } = useFishjamContext();
+    return { ...state.devices.microphone, ...audioTrackManager };
   }
 
   function useReconnection(): UseReconnection {
@@ -206,10 +219,10 @@ export function create<PeerMetadata, TrackMetadata>(
   ): PeerStateWithTracks<PeerMetadata, TrackMetadata> {
     const localTracks = Object.values(peerState.tracks ?? {});
 
-    const videoTrack = localTracks.find(({ track }) => track?.kind === "video");
-    const audioTrack = localTracks.find(({ track }) => track?.kind === "audio");
+    const videoTracks = localTracks.filter(({ track }) => track?.kind === "video");
+    const audioTracks = localTracks.filter(({ track }) => track?.kind === "audio");
 
-    return { ...peerState, videoTrack, audioTrack };
+    return { ...peerState, videoTracks, audioTracks };
   }
 
   function useParticipants() {

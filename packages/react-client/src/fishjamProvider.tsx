@@ -26,7 +26,7 @@ export function FishjamProvider({ children, config, deviceManagerDefaultConfig }
         clientConfig: config,
         deviceManagerDefaultConfig,
       }),
-    [],
+    [config, deviceManagerDefaultConfig],
   );
 
   const state = useClientState(client);

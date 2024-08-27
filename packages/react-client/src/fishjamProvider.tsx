@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Client } from "./Client";
 import { useTrackManager } from "./trackManager";
 import type { DeviceManagerConfig, ScreenshareState } from "./types";
@@ -24,15 +24,10 @@ export function FishjamProvider({ children, config, deviceManagerDefaultConfig }
   const forceRerender = useForceRerender();
 
   useEffect(() => {
-    console.warn("Fishjam config changed. Client has been reset.");
+    console.warn("Fishjam configs changed. Client has been reset.");
     client.current = new Client({ clientConfig: config, deviceManagerDefaultConfig });
     forceRerender();
-  }, [config, forceRerender]);
-
-  useEffect(() => {
-    if (!deviceManagerDefaultConfig) return;
-    client.current.setDeviceManagerConfig(deviceManagerDefaultConfig);
-  }, [deviceManagerDefaultConfig]);
+  }, [config, forceRerender, deviceManagerDefaultConfig]);
 
   const state = useClientState(client.current);
 

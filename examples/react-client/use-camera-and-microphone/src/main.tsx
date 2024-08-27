@@ -4,17 +4,12 @@ import MainControls from "./MainControls";
 import "./index.css";
 import AdditionalControls from "./AdditionalControls";
 import { FishjamProvider } from "@fishjam-cloud/react-client";
-import { peerMetadataParser } from "./fishjamSetup";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <FishjamProvider
-      config={{
-        peerMetadataParser,
-      }}
-    >
+    <FishjamProvider>
       <MainControls />
       <AdditionalControls />
     </FishjamProvider>
-  </React.StrictMode>,
+  </React.StrictMode>
 );

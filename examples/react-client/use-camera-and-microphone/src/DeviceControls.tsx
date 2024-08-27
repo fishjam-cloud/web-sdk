@@ -5,11 +5,11 @@ type DeviceControlsProps = {
   status: PeerStatus;
 } & (
   | {
-      device: UserMediaAPI & TrackManager<unknown>;
+      device: UserMediaAPI & TrackManager;
       type: "audio";
     }
   | {
-      device: UserMediaAPI & TrackManager<unknown>;
+      device: UserMediaAPI & TrackManager;
       type: "video";
     }
 );

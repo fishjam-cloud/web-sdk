@@ -11,7 +11,7 @@ import {
 
 const showAdditionalComponentAtom = atomWithStorage(
   "show-additional-component",
-  false,
+  false
 );
 
 export const AdditionalControls = () => {

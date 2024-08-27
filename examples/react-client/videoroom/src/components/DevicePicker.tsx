@@ -13,7 +13,7 @@ import { Button } from "./Button";
 import { BlurToggle } from "./BlurToggle";
 
 interface DeviceSelectProps {
-  device: UserMediaAPI & TrackManager<unknown>;
+  device: UserMediaAPI & TrackManager;
 }
 
 const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {

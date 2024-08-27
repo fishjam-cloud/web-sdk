@@ -1,26 +1,16 @@
-import { z } from "zod";
 import { useClient, type ClientEvents } from "@fishjam-cloud/react-client";
 import { useEffect, useState } from "react";
-
-const peerMetadataSchema = z.object({
-  name: z.string(),
-});
-
-export type PeerMetadata = z.infer<typeof peerMetadataSchema>;
-
-export const peerMetadataParser = (obj: unknown) =>
-  peerMetadataSchema.parse(obj);
 
 export const useAuthErrorReason = () => {
   const client = useClient();
   const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
-    const authError: ClientEvents<unknown, unknown>["authError"] = (reason) => {
+    const authError: ClientEvents["authError"] = (reason) => {
       setAuthError(reason);
     };
 
-    const authSuccess: ClientEvents<unknown, unknown>["authSuccess"] = () => {
+    const authSuccess: ClientEvents["authSuccess"] = () => {
       setAuthError(null);
     };
 

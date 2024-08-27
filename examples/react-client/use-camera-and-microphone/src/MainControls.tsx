@@ -36,41 +36,41 @@ const tokenAtom = atomWithStorage("token", "");
 
 const broadcastVideoOnConnectAtom = atomWithStorage<boolean | undefined>(
   "broadcastVideoOnConnect",
-  undefined,
+  undefined
 );
 const broadcastVideoOnDeviceStartAtom = atomWithStorage<boolean | undefined>(
   "broadcastVideoOnDeviceStart",
-  undefined,
+  undefined
 );
 const videoOnDeviceChangeAtom = atomWithStorage<OnDeviceChange>(
   "videoOnDeviceChange",
-  undefined,
+  undefined
 );
 const videoOnDeviceStopAtom = atomWithStorage<OnDeviceStop>(
   "videoOnDeviceStop",
-  undefined,
+  undefined
 );
 
 const broadcastAudioOnConnectAtom = atomWithStorage<boolean | undefined>(
   "broadcastAudioOnConnect",
-  undefined,
+  undefined
 );
 const broadcastAudioOnDeviceStartAtom = atomWithStorage<boolean | undefined>(
   "broadcastAudioOnDeviceStart",
-  undefined,
+  undefined
 );
 const audioOnDeviceChangeAtom = atomWithStorage<OnDeviceChange>(
   "audioOnDeviceChange",
-  undefined,
+  undefined
 );
 const audioOnDeviceStopAtom = atomWithStorage<OnDeviceStop>(
   "audioOnDeviceStop",
-  undefined,
+  undefined
 );
 
 const broadcastScreenShareOnConnectAtom = atomWithStorage<boolean | undefined>(
   "broadcastScreenShareOnConnect",
-  undefined,
+  undefined
 );
 const broadcastScreenShareOnDeviceStartAtom = atomWithStorage<
   boolean | undefined
@@ -94,27 +94,27 @@ export const MainControls = () => {
   const authError = useAuthErrorReason();
 
   const [broadcastVideoOnConnect, setBroadcastVideoOnConnect] = useAtom(
-    broadcastVideoOnConnectAtom,
+    broadcastVideoOnConnectAtom
   );
   const [broadcastVideoOnDeviceStart, setBroadcastVideoOnDeviceStart] = useAtom(
-    broadcastVideoOnDeviceStartAtom,
+    broadcastVideoOnDeviceStartAtom
   );
   const [broadcastVideoOnDeviceChange, setBroadcastVideoOnDeviceChange] =
     useAtom(videoOnDeviceChangeAtom);
   const [broadcastVideoOnDeviceStop, setBroadcastVideoOnDeviceStop] = useAtom(
-    videoOnDeviceStopAtom,
+    videoOnDeviceStopAtom
   );
 
   const [broadcastAudioOnConnect, setBroadcastAudioOnConnect] = useAtom(
-    broadcastAudioOnConnectAtom,
+    broadcastAudioOnConnectAtom
   );
   const [broadcastAudioOnDeviceStart, setBroadcastAudioOnDeviceStart] = useAtom(
-    broadcastAudioOnDeviceStartAtom,
+    broadcastAudioOnDeviceStartAtom
   );
   const [broadcastAudioOnDeviceChange, setBroadcastAudioOnDeviceChange] =
     useAtom(audioOnDeviceChangeAtom);
   const [broadcastAudioOnDeviceStop, setBroadcastAudioOnDeviceStop] = useAtom(
-    audioOnDeviceStopAtom,
+    audioOnDeviceStopAtom
   );
 
   const [broadcastScreenShareOnConnect, setBroadcastScreenShareOnConnect] =
@@ -208,7 +208,7 @@ export const MainControls = () => {
             onClick={() => {
               if (!token || token === "") throw Error("Token is empty");
               connect({
-                peerMetadata: { name: "John Doe" }, // example metadata
+                peerMetadata: { displayName: "John Doe" },
                 token: token,
                 url: FISHJAM_URL,
               });
@@ -230,7 +230,7 @@ export const MainControls = () => {
               disconnect();
 
               connect({
-                peerMetadata: { name: "John Doe" }, // example metadata
+                peerMetadata: { displayName: "John Doe" },
                 token: token,
                 url: FISHJAM_URL,
               });

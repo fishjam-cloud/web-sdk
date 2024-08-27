@@ -10,21 +10,21 @@ const getTracks = (stream: MediaStream): [MediaStreamTrack, MediaStreamTrack | n
   return [video, audio];
 };
 
-export const useScreenShare = <PeerMetadata>(): ScreenshareApi<unknown> => {
-  const ctx = useFishjamContext<PeerMetadata>();
+export const useScreenShare = (): ScreenshareApi => {
+  const ctx = useFishjamContext();
 
   const [state, setState] = ctx.screenshareState;
   const tsClient = ctx.state.client.getTsClient();
 
-  const startStreaming: ScreenshareApi<unknown>["startStreaming"] = async (props) => {
+  const startStreaming: ScreenshareApi["startStreaming"] = async (props) => {
     const stream = await navigator.mediaDevices.getDisplayMedia({
       video: props?.videoConstraints ?? true,
       audio: props?.audioConstraints ?? true,
     });
     const [video, audio] = getTracks(stream);
 
-    const addTrackPromises = [tsClient.addTrack(video, props?.metadata)];
-    if (audio) addTrackPromises.push(tsClient.addTrack(audio, props?.metadata));
+    const addTrackPromises = [tsClient.addTrack(video)];
+    if (audio) addTrackPromises.push(tsClient.addTrack(audio));
 
     const [videoId, audioId] = await Promise.all(addTrackPromises);
     setState({ stream, trackIds: { videoId, audioId } });
@@ -51,7 +51,7 @@ export const useScreenShare = <PeerMetadata>(): ScreenshareApi<unknown> => {
     await replaceTracks(newVideoTrack, newAudioTrack);
   };
 
-  const stopStreaming: ScreenshareApi<unknown>["stopStreaming"] = useCallback(async () => {
+  const stopStreaming: ScreenshareApi["stopStreaming"] = useCallback(async () => {
     if (!state) {
       console.warn("No stream to stop");
       return;

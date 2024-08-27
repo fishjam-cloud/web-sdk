@@ -1,14 +1,13 @@
-import type { ConnectConfig } from "@fishjam-cloud/ts-client";
 import { useFishjamContext } from "../fishjamProvider";
 import type { FishjamContextType, UseConnect } from "../types";
 import { useCallback, useMemo } from "react";
 import type { UseReconnection } from "../state.types";
 
-export function useConnect<PeerMetadata>(): UseConnect<PeerMetadata> {
-  const { state }: FishjamContextType<PeerMetadata, unknown> = useFishjamContext();
+export function useConnect(): UseConnect {
+  const { state }: FishjamContextType = useFishjamContext();
 
   return useMemo(() => {
-    return (config: ConnectConfig<PeerMetadata>): (() => void) => {
+    return (config) => {
       state.client.connect(config);
       return () => {
         state.client.disconnect();

@@ -51,7 +51,7 @@ const eventNames = [
   "disconnectRequested",
 ] as const;
 
-export const useClientState = <PeerMetadata>(client: Client<PeerMetadata, unknown>) => {
+export const useClientState = (client: Client) => {
   const mutationRef = useRef(false);
 
   const subscribe = useCallback(
@@ -69,9 +69,9 @@ export const useClientState = <PeerMetadata>(client: Client<PeerMetadata, unknow
     [client],
   );
 
-  const lastSnapshotRef = useRef<State<PeerMetadata, unknown> | null>(null);
+  const lastSnapshotRef = useRef<State | null>(null);
 
-  const getSnapshot: () => State<PeerMetadata, unknown> = useCallback(() => {
+  const getSnapshot: () => State = useCallback(() => {
     if (mutationRef.current || lastSnapshotRef.current === null) {
       lastSnapshotRef.current = {
         remote: client.peers,

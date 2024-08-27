@@ -2,9 +2,7 @@ import { useFishjamContext } from "../fishjamProvider";
 import type { PeerState } from "../state.types";
 import type { PeerStateWithTracks } from "../types";
 
-function getPeerWithDistinguishedTracks<PeerMetadata>(
-  peerState: PeerState<PeerMetadata, unknown>,
-): PeerStateWithTracks<PeerMetadata, unknown> {
+function getPeerWithDistinguishedTracks(peerState: PeerState): PeerStateWithTracks {
   const localTracks = Object.values(peerState.tracks ?? {});
 
   const videoTracks = localTracks.filter(({ track }) => track?.kind === "video");
@@ -14,7 +12,7 @@ function getPeerWithDistinguishedTracks<PeerMetadata>(
 }
 
 export function useParticipants<PeerMetadata>() {
-  const { state } = useFishjamContext<PeerMetadata>();
+  const { state } = useFishjamContext();
 
   const localParticipant = state.local ? getPeerWithDistinguishedTracks(state.local) : null;
 

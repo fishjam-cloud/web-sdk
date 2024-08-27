@@ -4,25 +4,25 @@ import { Client } from "./Client";
 import { useTrackManager } from "./trackManager";
 import type { DeviceManagerConfig, FishjamContextType, ScreenshareState } from "./types";
 import { useClientState } from "./hooks/clientState";
-import type { CreateConfig } from "@fishjam-cloud/ts-client";
+import type { ReconnectConfig } from "@fishjam-cloud/ts-client";
 
 interface FishjamProviderProps extends PropsWithChildren {
-  config?: CreateConfig<unknown, unknown>;
+  config?: { reconnect?: ReconnectConfig | boolean };
   deviceManagerDefaultConfig?: DeviceManagerConfig;
 }
 
-const FishjamContext = createContext<FishjamContextType<unknown, unknown> | null>(null);
+const FishjamContext = createContext<FishjamContextType | null>(null);
 
-export function useFishjamContext<PeerMetadata>() {
+export function useFishjamContext() {
   const context = useContext(FishjamContext);
   if (!context) throw new Error("useFishjamContext must be used within a FishjamContextProvider");
-  return context as FishjamContextType<PeerMetadata, unknown>;
+  return context as FishjamContextType;
 }
 
 export function FishjamProvider({ children, config, deviceManagerDefaultConfig }: FishjamProviderProps) {
   const client = useMemo(
     () =>
-      new Client<unknown, unknown>({
+      new Client({
         clientConfig: config,
         deviceManagerDefaultConfig,
       }),

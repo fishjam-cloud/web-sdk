@@ -78,7 +78,7 @@ export const App = () => {
                 screenStream
                   .getTracks()
                   .forEach((track) =>
-                    client.addTrack(track, { type: "screen" })
+                    client.addTrack(track, { type: "screen" }),
                   );
               });
           }}

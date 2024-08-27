@@ -4,7 +4,7 @@ import { Client } from "./Client";
 import { useTrackManager } from "./trackManager";
 import type { DeviceManagerConfig, FishjamContextType, ScreenshareState } from "./types";
 import { useClientState } from "./hooks/clientState";
-import { CreateConfig } from "@fishjam-cloud/ts-client";
+import type { CreateConfig } from "@fishjam-cloud/ts-client";
 
 interface FishjamProviderProps extends PropsWithChildren {
   config?: CreateConfig<unknown, unknown>;

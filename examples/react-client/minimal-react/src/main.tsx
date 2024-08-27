@@ -8,5 +8,5 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <FishjamProvider>
       <App />
     </FishjamProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

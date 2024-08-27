@@ -18,7 +18,7 @@ export function BlurToggle() {
 
       return blurProcessor.stream.getVideoTracks()[0];
     },
-    []
+    [],
   );
 
   const clearBlurMiddleware = async () => {

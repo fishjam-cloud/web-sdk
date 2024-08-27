@@ -40,7 +40,7 @@ export function RoomConnector() {
     // in case user copied url from admin panel
     const urlWithoutParams = roomManagerUrl.replace(
       "/*roomName*/users/*username*",
-      ""
+      "",
     );
 
     // trim slash from end

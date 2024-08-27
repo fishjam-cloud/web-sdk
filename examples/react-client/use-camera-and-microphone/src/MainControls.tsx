@@ -1,10 +1,11 @@
+import VideoPlayer from "./VideoPlayer";
+import { DeviceSelector } from "./DeviceSelector";
+import { useAtom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
+import { ThreeStateRadio } from "./ThreeStateRadio";
+import AudioVisualizer from "./AudioVisualizer";
 import {
-  DEFAULT_AUDIO_TRACK_METADATA,
-  DEFAULT_VIDEO_TRACK_METADATA,
-  EXAMPLE_PEER_METADATA,
-  MANUAL_AUDIO_TRACK_METADATA,
-  MANUAL_VIDEO_TRACK_METADATA,
-  useAuthErrorReason,
+  AUDIO_TRACK_CONSTRAINTS,
   useCamera,
   useClient,
   useConnect,
@@ -14,21 +15,13 @@ import {
   useSelector,
   useSetupMedia,
   useStatus,
-} from "./fishjamSetup";
-import VideoPlayer from "./VideoPlayer";
-import { DeviceSelector } from "./DeviceSelector";
-import { useAtom } from "jotai";
-import { atomWithStorage } from "jotai/utils";
-import { ThreeStateRadio } from "./ThreeStateRadio";
-import AudioVisualizer from "./AudioVisualizer";
-import {
-  AUDIO_TRACK_CONSTRAINTS,
   VIDEO_TRACK_CONSTRAINTS,
 } from "@fishjam-cloud/react-client";
 import { Badge } from "./Badge";
 import { DeviceControls } from "./DeviceControls";
 import { Radio } from "./Radio";
 import { ScreenShareControls } from "./ScreenShareControls";
+import { useAuthErrorReason } from "./fishjamSetup";
 
 type OnDeviceChange = "remove" | "replace" | undefined;
 type OnDeviceStop = "remove" | "mute" | undefined;
@@ -43,41 +36,41 @@ const tokenAtom = atomWithStorage("token", "");
 
 const broadcastVideoOnConnectAtom = atomWithStorage<boolean | undefined>(
   "broadcastVideoOnConnect",
-  undefined,
+  undefined
 );
 const broadcastVideoOnDeviceStartAtom = atomWithStorage<boolean | undefined>(
   "broadcastVideoOnDeviceStart",
-  undefined,
+  undefined
 );
 const videoOnDeviceChangeAtom = atomWithStorage<OnDeviceChange>(
   "videoOnDeviceChange",
-  undefined,
+  undefined
 );
 const videoOnDeviceStopAtom = atomWithStorage<OnDeviceStop>(
   "videoOnDeviceStop",
-  undefined,
+  undefined
 );
 
 const broadcastAudioOnConnectAtom = atomWithStorage<boolean | undefined>(
   "broadcastAudioOnConnect",
-  undefined,
+  undefined
 );
 const broadcastAudioOnDeviceStartAtom = atomWithStorage<boolean | undefined>(
   "broadcastAudioOnDeviceStart",
-  undefined,
+  undefined
 );
 const audioOnDeviceChangeAtom = atomWithStorage<OnDeviceChange>(
   "audioOnDeviceChange",
-  undefined,
+  undefined
 );
 const audioOnDeviceStopAtom = atomWithStorage<OnDeviceStop>(
   "audioOnDeviceStop",
-  undefined,
+  undefined
 );
 
 const broadcastScreenShareOnConnectAtom = atomWithStorage<boolean | undefined>(
   "broadcastScreenShareOnConnect",
-  undefined,
+  undefined
 );
 const broadcastScreenShareOnDeviceStartAtom = atomWithStorage<
   boolean | undefined
@@ -101,27 +94,27 @@ export const MainControls = () => {
   const authError = useAuthErrorReason();
 
   const [broadcastVideoOnConnect, setBroadcastVideoOnConnect] = useAtom(
-    broadcastVideoOnConnectAtom,
+    broadcastVideoOnConnectAtom
   );
   const [broadcastVideoOnDeviceStart, setBroadcastVideoOnDeviceStart] = useAtom(
-    broadcastVideoOnDeviceStartAtom,
+    broadcastVideoOnDeviceStartAtom
   );
   const [broadcastVideoOnDeviceChange, setBroadcastVideoOnDeviceChange] =
     useAtom(videoOnDeviceChangeAtom);
   const [broadcastVideoOnDeviceStop, setBroadcastVideoOnDeviceStop] = useAtom(
-    videoOnDeviceStopAtom,
+    videoOnDeviceStopAtom
   );
 
   const [broadcastAudioOnConnect, setBroadcastAudioOnConnect] = useAtom(
-    broadcastAudioOnConnectAtom,
+    broadcastAudioOnConnectAtom
   );
   const [broadcastAudioOnDeviceStart, setBroadcastAudioOnDeviceStart] = useAtom(
-    broadcastAudioOnDeviceStartAtom,
+    broadcastAudioOnDeviceStartAtom
   );
   const [broadcastAudioOnDeviceChange, setBroadcastAudioOnDeviceChange] =
     useAtom(audioOnDeviceChangeAtom);
   const [broadcastAudioOnDeviceStop, setBroadcastAudioOnDeviceStop] = useAtom(
-    audioOnDeviceStopAtom,
+    audioOnDeviceStopAtom
   );
 
   const [broadcastScreenShareOnConnect, setBroadcastScreenShareOnConnect] =
@@ -140,7 +133,6 @@ export const MainControls = () => {
       broadcastOnDeviceStart: broadcastVideoOnDeviceStart,
       onDeviceChange: broadcastVideoOnDeviceChange,
       onDeviceStop: broadcastVideoOnDeviceStop,
-      defaultTrackMetadata: DEFAULT_VIDEO_TRACK_METADATA,
       defaultSimulcastConfig: {
         enabled: true,
         activeEncodings: ["l", "m", "h"],
@@ -153,12 +145,10 @@ export const MainControls = () => {
       broadcastOnDeviceStart: broadcastAudioOnDeviceStart,
       onDeviceChange: broadcastAudioOnDeviceChange,
       onDeviceStop: broadcastAudioOnDeviceStop,
-      defaultTrackMetadata: DEFAULT_AUDIO_TRACK_METADATA,
     },
     screenShare: {
       broadcastOnConnect: broadcastScreenShareOnConnect,
       broadcastOnDeviceStart: broadcastScreenShareOnDeviceStart,
-      defaultTrackMetadata: DEFAULT_VIDEO_TRACK_METADATA,
     },
     startOnMount: autostart,
     storage: true,
@@ -218,7 +208,7 @@ export const MainControls = () => {
             onClick={() => {
               if (!token || token === "") throw Error("Token is empty");
               connect({
-                peerMetadata: EXAMPLE_PEER_METADATA,
+                peerMetadata: { name: "John Doe" }, // example metadata
                 token: token,
                 url: FISHJAM_URL,
               });
@@ -398,18 +388,8 @@ export const MainControls = () => {
         />
 
         <div className="grid grid-cols-3 gap-2">
-          <DeviceControls
-            device={video}
-            type="video"
-            status={status}
-            metadata={MANUAL_VIDEO_TRACK_METADATA}
-          />
-          <DeviceControls
-            device={audio}
-            type="audio"
-            status={status}
-            metadata={MANUAL_AUDIO_TRACK_METADATA}
-          />
+          <DeviceControls device={video} type="video" status={status} />
+          <DeviceControls device={audio} type="audio" status={status} />
 
           <ScreenShareControls />
         </div>

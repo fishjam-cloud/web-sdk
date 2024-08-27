@@ -18,6 +18,9 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
   const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
   const [paused, setPaused] = useState<boolean>(false);
   const [currentTrackMiddleware, setCurrentTrackMiddleware] = useState<TrackMiddleware>(null);
+  const type = TRACK_TYPE_TO_DEVICE[mediaManager.getDeviceType()]
+
+  const getMetadata = (): TrackMetadata => ({ type, paused })
 
   useEffect(() => {
     const disconnectedHandler = () => {
@@ -65,10 +68,6 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
     mediaManager?.stop();
   }
 
-  function getType(): TrackMetadata["type"] {
-    return TRACK_TYPE_TO_DEVICE[mediaManager.getDeviceType()];
-  }
-
   async function startStreaming(simulcastConfig?: SimulcastConfig, maxBandwidth?: TrackBandwidthLimit) {
     if (currentTrackId) throw Error("Track already added");
 
@@ -83,7 +82,7 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
     // see `getRemoteOrLocalTrackContext()` explanation
     setCurrentTrackId(media.track.id);
 
-    const trackMetadata = { type: getType(), paused: false };
+    const trackMetadata: TrackMetadata = { ...getMetadata(), paused: false };
 
     const remoteTrackId = await tsClient.addTrack(media.track, trackMetadata, simulcastConfig, maxBandwidth);
 
@@ -114,10 +113,8 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
     setPaused(true);
     await tsClient.replaceTrack(prevTrack.trackId, null);
 
-    const trackMetadata = {
-      type: getType(),
-      paused: true,
-    };
+    const trackMetadata: TrackMetadata = { ...getMetadata(), paused: true };
+
     return tsClient.updateTrackMetadata(prevTrack.trackId, trackMetadata);
   }
 
@@ -130,10 +127,8 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
     setPaused(false);
     await tsClient.replaceTrack(prevTrack.trackId, media.track);
 
-    const trackMetadata = {
-      type: getType(),
-      paused: false,
-    };
+    const trackMetadata: TrackMetadata = { ...getMetadata(), paused: false };
+
     return tsClient.updateTrackMetadata(prevTrack.trackId, trackMetadata);
   }
 

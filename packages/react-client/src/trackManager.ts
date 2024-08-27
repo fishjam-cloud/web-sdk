@@ -18,9 +18,9 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
   const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
   const [paused, setPaused] = useState<boolean>(false);
   const [currentTrackMiddleware, setCurrentTrackMiddleware] = useState<TrackMiddleware>(null);
-  const type = TRACK_TYPE_TO_DEVICE[mediaManager.getDeviceType()]
+  const type = TRACK_TYPE_TO_DEVICE[mediaManager.getDeviceType()];
 
-  const getMetadata = (): TrackMetadata => ({ type, paused })
+  const getMetadata = (): TrackMetadata => ({ type, paused });
 
   useEffect(() => {
     const disconnectedHandler = () => {

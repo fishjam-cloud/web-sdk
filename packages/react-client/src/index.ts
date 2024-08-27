@@ -26,6 +26,7 @@ export type {
   CreateFishjamClient,
   ScreenshareApi,
   UseConnect,
+  ConnectConfig,
   TrackManager,
   TrackMiddleware,
   TrackMetadata, // only for compatibility reasons, will be removed in: FCE-415
@@ -49,7 +50,6 @@ export type {
   VadStatus,
   EncodingReason,
   MetadataParser,
-  ConnectConfig as TSClientConnectConfig,
   AuthErrorReason,
   Encoding,
 } from "@fishjam-cloud/ts-client";

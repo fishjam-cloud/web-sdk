@@ -17,7 +17,6 @@ export function useParticipants() {
   const localParticipant = state.local ? getPeerWithDistinguishedTracks(state.local) : null;
 
   const participants = Object.values(state.remote).map(getPeerWithDistinguishedTracks);
-  console.log(participants);
 
   return { localParticipant, participants };
 }

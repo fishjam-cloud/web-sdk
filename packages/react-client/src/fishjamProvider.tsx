@@ -6,7 +6,6 @@ import type { DeviceManagerConfig, ScreenshareState } from "./types";
 import { useClientState } from "./hooks/clientState";
 import type { ReconnectConfig } from "@fishjam-cloud/ts-client";
 import { FishjamContext } from "./hooks/fishjamContext";
-import { useForceRerender } from "./hooks/forceRerender";
 
 interface FishjamProviderProps extends PropsWithChildren {
   config?: { reconnect?: ReconnectConfig | boolean };
@@ -21,13 +20,11 @@ export function FishjamProvider({ children, config, deviceManagerDefaultConfig }
     }),
   );
 
-  const forceRerender = useForceRerender();
-
+  // TODO: do the same for client config or just remove the Client class
   useEffect(() => {
-    console.warn("Fishjam configs changed. Client has been reset.");
-    client.current = new Client({ clientConfig: config, deviceManagerDefaultConfig });
-    forceRerender();
-  }, [config, forceRerender, deviceManagerDefaultConfig]);
+    if (!deviceManagerDefaultConfig) return;
+    client.current.setDeviceManagerConfig(deviceManagerDefaultConfig);
+  }, [deviceManagerDefaultConfig]);
 
   const state = useClientState(client.current);
 

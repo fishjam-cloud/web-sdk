@@ -64,8 +64,6 @@ export function DevicePicker() {
   const screenShare = useScreenShare();
   const hasJoinedRoom = useStatus() === "joined";
 
-  console.log(camera);
-
   return (
     <section className="space-y-8">
       <div className="flex flex-col gap-4">

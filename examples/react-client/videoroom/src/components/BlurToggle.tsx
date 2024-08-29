@@ -36,7 +36,11 @@ export function BlurToggle() {
   const title = isMiddlewareSet ? "Clear blur" : "Blur camera";
 
   return (
-    <Button className="w-full" disabled={!camera.trackId} onClick={onClick}>
+    <Button
+      className="w-full"
+      disabled={!camera.streamedTrack}
+      onClick={onClick}
+    >
       {title}
     </Button>
   );

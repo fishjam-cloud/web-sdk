@@ -15,6 +15,7 @@
   "scripts": {
     "build": "yarn workspaces foreach -Apt run build",
     "test:e2e": "yarn workspace @fishjam-e2e/ts-client-e2e e2e && yarn workspace @fishjam-e2e/react-client-e2e e2e",
+    "test:single": "yarn workspace @fishjam-e2e/ts-client-e2e e2e:single",
     "tsc": "yarn workspaces foreach -Ap run tsc || echo '❌ Type errors! ❌' ",
     "format": "yarn workspaces foreach -A -p run format || echo '❌ Formatting issues! ❌'",
     "format:check": "yarn workspaces foreach -A -p run format:check",

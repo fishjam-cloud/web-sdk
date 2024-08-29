@@ -232,6 +232,26 @@ test('Add, replace and remove a track', async ({
   await takeScreenshot(receiverPage, testInfo);
 });
 
+test('Both clients add 2 tracks', async ({ page: page1, context }) => {
+  // given
+  await page1.goto('/');
+  const page2 = await context.newPage();
+  await page2.goto('/');
+
+  const roomId = await createRoom(page1);
+
+  const peer1 = await createAndJoinPeer(page1, roomId);
+  const peer2 = await createAndJoinPeer(page2, roomId);
+
+  // when
+  clickButton(page1, 'Add both');
+  clickButton(page2, 'Add both');
+
+  // then
+  await assertThatAllTracksAreReady(page1, peer2, 2);
+  await assertThatAllTracksAreReady(page2, peer1, 2);
+});
+
 test('replaceTrack blocks client', async ({ page: senderPage, context }) => {
   // given
   await senderPage.goto('/');

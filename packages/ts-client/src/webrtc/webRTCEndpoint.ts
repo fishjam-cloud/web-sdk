@@ -359,7 +359,7 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
 
     try {
       await this.connectionManager.setRemoteDescription(data);
-      await this.local.disableAllLocalTrackEncodings();
+      // await this.local.disableAllLocalTrackEncodings();
     } catch (err) {
       console.error(err);
     }

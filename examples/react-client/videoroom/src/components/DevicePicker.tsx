@@ -18,7 +18,7 @@ interface DeviceSelectProps {
 const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
   const hasJoinedRoom = useStatus() === "joined";
 
-  const isTrackStreamed = !!device.trackId;
+  const isTrackStreamed = !!device.streamedTrack;
 
   return (
     <div className="flex justify-between gap-4">

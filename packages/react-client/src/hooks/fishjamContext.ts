@@ -1,5 +1,18 @@
-import { createContext, useContext } from "react";
-import type { FishjamContextType } from "../types";
+import type { FishjamClient } from "@fishjam-cloud/ts-client";
+import { createContext, type MutableRefObject, useContext } from "react";
+import type { PeerMetadata, TrackMetadata, ScreenshareState, TrackManager } from "../types";
+import type { DeviceManager } from "../DeviceManager";
+import type { PeerStatus } from "../state.types";
+
+export type FishjamContextType = {
+  fishjamClientRef: MutableRefObject<FishjamClient<PeerMetadata, TrackMetadata>>;
+  videoDeviceManagerRef: MutableRefObject<DeviceManager>;
+  audioDeviceManagerRef: MutableRefObject<DeviceManager>;
+  screenshareState: [ScreenshareState, React.Dispatch<React.SetStateAction<ScreenshareState>>];
+  peerStatusState: readonly [PeerStatus, React.Dispatch<React.SetStateAction<PeerStatus>>];
+  videoTrackManager: TrackManager;
+  audioTrackManager: TrackManager;
+};
 
 export const FishjamContext = createContext<FishjamContextType | null>(null);
 

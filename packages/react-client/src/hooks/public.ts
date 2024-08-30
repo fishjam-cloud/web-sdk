@@ -1,6 +1,7 @@
-export { useConnect, useDisconnect, useReconnection } from "./connection";
+export { useConnect, useDisconnect } from "./connection";
+export { useReconnection } from "./reconnection";
 export { useCamera, useMicrophone } from "./devices";
 export { useParticipants } from "./participants";
 export { useScreenShare } from "./screenShare";
-export { useSelector, useStatus, useTracks, useClient } from "./state";
+export { useStatus, useClient } from "./state";
 export { useSetupMedia } from "./setupMedia";

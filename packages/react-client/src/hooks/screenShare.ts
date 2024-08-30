@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { getRemoteOrLocalTrack } from "../utils/track";
 import type { ScreenshareApi, TracksMiddleware } from "../types";
 import { useFishjamContext } from "./fishjamContext";
@@ -14,7 +14,8 @@ export const useScreenShare = (): ScreenshareApi => {
   const ctx = useFishjamContext();
 
   const [state, setState] = ctx.screenshareState;
-  const tsClient = ctx.state.client.getTsClient();
+  const { fishjamClientRef } = useFishjamContext();
+  const tsClient = useMemo(() => fishjamClientRef.current, [fishjamClientRef]);
 
   const startStreaming: ScreenshareApi["startStreaming"] = async (props) => {
     const stream = await navigator.mediaDevices.getDisplayMedia({

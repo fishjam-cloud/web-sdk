@@ -12,7 +12,6 @@ export type {
   AudioDevice,
   UseSetupMediaResult,
   UseSetupMediaConfig,
-  CreateFishjamClient,
   ScreenshareApi,
   UseConnect,
   ConnectConfig,

@@ -137,7 +137,7 @@ export class Local<EndpointMetadata, TrackMetadata> {
     this.localTracks[trackId] = trackManager;
     return trackManager;
   };
-  
+
   public getTrackByMidOrNull = (mid: string): LocalTrack<EndpointMetadata, TrackMetadata> | null => {
     return Object.values(this.localTracks).find((track) => track.mLineId === mid) ?? null;
   };

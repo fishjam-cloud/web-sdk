@@ -3,10 +3,10 @@ import type { PeerStateWithTracks } from "../types";
 import { useFishjamClient } from "./tsClient";
 
 function getPeerWithDistinguishedTracks(peerState: PeerState): PeerStateWithTracks {
-  const localTracks = Object.values(peerState.tracks ?? {});
+  const peerTracks = Object.values(peerState.tracks ?? {});
 
-  const videoTracks = localTracks.filter(({ track }) => track?.kind === "video");
-  const audioTracks = localTracks.filter(({ track }) => track?.kind === "audio");
+  const videoTracks = peerTracks.filter(({ track }) => track?.kind === "video");
+  const audioTracks = peerTracks.filter(({ track }) => track?.kind === "audio");
 
   return { ...peerState, videoTracks, audioTracks };
 }

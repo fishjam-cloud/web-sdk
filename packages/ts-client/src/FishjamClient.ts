@@ -958,7 +958,6 @@ export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as
     }
     this.removeEventListeners?.();
     this.removeEventListeners = null;
-    console.log(this);
     if (this.isOpen(this.websocket || null)) {
       this.websocket?.close();
     }

@@ -153,11 +153,11 @@ export const useFishjamClient = () => {
   }
 
   function disconnect() {
-    client.disconnect();
+    return client.disconnect();
   }
 
   function removeTrack(trackId: string) {
-    client.removeTrack(trackId);
+    return client.removeTrack(trackId);
   }
 
   function replaceTrack(trackId: string, track: MediaStreamTrack) {

@@ -17,7 +17,7 @@ export const App = () => {
   const connect = useConnect();
   const disconnect = useDisconnect();
   const status = useStatus();
-  const { participants, localParticipant } = useParticipants();
+  const { participants } = useParticipants();
   const screenShare = useScreenShare();
   const client = useFishjamClient();
 

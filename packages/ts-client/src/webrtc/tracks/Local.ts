@@ -137,18 +137,7 @@ export class Local<EndpointMetadata, TrackMetadata> {
     this.localTracks[trackId] = trackManager;
     return trackManager;
   };
-
-  public disableAllLocalTrackEncodings = async () => {
-    // TODO: Why are we disabling already disabled encodings?
-    //  I think this part of the code is invoked to mutate RTCRtpSender.getParameters().encodings.active.
-    //  We should probably implement a separate method for that, because disabling already disabled tracks seems weird.
-    for (const [trackId, trackManager] of Object.entries(this.localTracks)) {
-      for (const encoding of trackManager.getDisabledEncodings()) {
-        await this.disableLocalTrackEncoding(trackId, encoding);
-      }
-    }
-  };
-
+  
   public getTrackByMidOrNull = (mid: string): LocalTrack<EndpointMetadata, TrackMetadata> | null => {
     return Object.values(this.localTracks).find((track) => track.mLineId === mid) ?? null;
   };

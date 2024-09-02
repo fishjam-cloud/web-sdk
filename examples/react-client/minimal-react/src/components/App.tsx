@@ -74,7 +74,7 @@ export const App = () => {
                 stream={track.stream}
                 peerId={participant.id}
               />
-            )
+            ),
           )}
         </Fragment>
       ))}

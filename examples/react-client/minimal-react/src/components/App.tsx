@@ -57,6 +57,7 @@ export const App = () => {
         <button
           disabled={status !== "joined"}
           onClick={async () => {
+            // stream video only
             screenShare.startStreaming({ audioConstraints: false });
           }}
         >
@@ -64,18 +65,17 @@ export const App = () => {
         </button>
         <span>Status: {status}</span>
       </div>
-      {/* Render the remote tracks from other peers*/}
+
+      {/* Render the video remote tracks from other peers*/}
       {participants.map((participant) => (
         <Fragment key={participant.id}>
-          {[...participant.videoTracks, ...participant.audioTracks].map(
-            (track) => (
-              <VideoPlayer
-                key={track.trackId}
-                stream={track.stream}
-                peerId={participant.id}
-              />
-            ),
-          )}
+          {participant.videoTracks.map((track) => (
+            <VideoPlayer
+              key={track.trackId}
+              stream={track.stream}
+              peerId={participant.id}
+            />
+          ))}
         </Fragment>
       ))}
     </div>

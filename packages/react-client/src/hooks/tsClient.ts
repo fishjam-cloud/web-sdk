@@ -56,7 +56,6 @@ interface FishjamClientState {
   peers: PeerState[];
   components: PeerState[];
   localPeer: PeerState | null;
-  bandwidthEstimation: bigint;
   isReconnecting: boolean;
 }
 
@@ -122,14 +121,12 @@ export const useFishjamClient = () => {
       const components = Object.values(client.getRemoteComponents()).map(endpointToPeerState);
       const localEndpoint = client.getLocalPeer();
       const localPeer = localEndpoint ? endpointToPeerState(localEndpoint) : null;
-      const bandwidthEstimation = client.getBandwidthEstimation();
       const isReconnecting = client.isReconnecting();
 
       lastSnapshotRef.current = {
         peers,
         components,
         localPeer,
-        bandwidthEstimation,
         isReconnecting,
       };
       mutationRef.current = false;

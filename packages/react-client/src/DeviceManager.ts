@@ -101,6 +101,8 @@ export class DeviceManager
     this.status = "initialized";
     this.setupOnEndedCallback();
 
+    this.emit("managerInitialized", this.deviceState);
+
     return this.deviceState;
   };
 

@@ -10,6 +10,7 @@ const eventNames = [
   "deviceReady",
   "devicesStarted",
   "devicesReady",
+  "managerInitialized",
   "error",
 ] as const satisfies (keyof DeviceManagerEvents)[];
 

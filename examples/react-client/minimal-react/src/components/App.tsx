@@ -2,12 +2,12 @@ import VideoPlayer from "./VideoPlayer";
 import {
   useConnect,
   useDisconnect,
+  useFishjamClient,
   useParticipants,
   useScreenShare,
   useStatus,
 } from "@fishjam-cloud/react-client";
-import React from "react";
-import { useState } from "react";
+import { useState, Fragment } from "react";
 
 const FISHJAM_URL = "ws://localhost:5002";
 
@@ -19,6 +19,12 @@ export const App = () => {
   const status = useStatus();
   const { participants } = useParticipants();
   const screenShare = useScreenShare();
+
+  {
+    // for e2e test
+    const client = useFishjamClient();
+    (window as unknown as Record<string, unknown>).client = client;
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -60,7 +66,7 @@ export const App = () => {
       </div>
       {/* Render the remote tracks from other peers*/}
       {participants.map((participant) => (
-        <React.Fragment key={participant.id}>
+        <Fragment key={participant.id}>
           {participant.videoTracks.map((track) => (
             <VideoPlayer
               key={track.trackId}
@@ -68,7 +74,7 @@ export const App = () => {
               peerId={participant.id}
             />
           ))}
-        </React.Fragment>
+        </Fragment>
       ))}
     </div>
   );

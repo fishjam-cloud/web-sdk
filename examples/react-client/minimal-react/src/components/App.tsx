@@ -17,7 +17,7 @@ export const App = () => {
   const connect = useConnect();
   const disconnect = useDisconnect();
   const status = useStatus();
-  const { participants } = useParticipants();
+  const { participants, localParticipant } = useParticipants();
   const screenShare = useScreenShare();
   const client = useFishjamClient();
 
@@ -67,13 +67,15 @@ export const App = () => {
       {/* Render the remote tracks from other peers*/}
       {participants.map((participant) => (
         <Fragment key={participant.id}>
-          {participant.videoTracks.map((track) => (
-            <VideoPlayer
-              key={track.trackId}
-              stream={track.stream}
-              peerId={participant.id}
-            />
-          ))}
+          {[...participant.videoTracks, ...participant.audioTracks].map(
+            (track) => (
+              <VideoPlayer
+                key={track.trackId}
+                stream={track.stream}
+                peerId={participant.id}
+              />
+            ),
+          )}
         </Fragment>
       ))}
     </div>

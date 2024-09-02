@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useSyncExternalStore } from "react";
 import type {
+  BandwidthLimit,
   Component,
   Endpoint,
   MessageEvents,
@@ -7,6 +8,7 @@ import type {
   SimulcastConfig,
   TrackBandwidthLimit,
   TrackContext,
+  Encoding,
 } from "@fishjam-cloud/ts-client";
 import type { PeerMetadata, TrackMetadata, ConnectConfig } from "../types";
 import type { PeerState, Track, TrackId } from "../state.types";
@@ -150,20 +152,60 @@ export const useFishjamClient = () => {
     return client.connect({ ...config, peerMetadata: config?.peerMetadata ?? {} });
   }
 
+  function disconnect() {
+    client.disconnect();
+  }
+
+  function removeTrack(trackId: string) {
+    client.removeTrack(trackId);
+  }
+
+  function replaceTrack(trackId: string, track: MediaStreamTrack) {
+    return client.replaceTrack(trackId, track);
+  }
+
+  function getStatistics(selector?: MediaStreamTrack) {
+    return client.getStatistics(selector);
+  }
+
+  function getBandwidthEstimation() {
+    return client.getBandwidthEstimation();
+  }
+
+  function setTrackBandwidth(trackId: string, maxBandwidth: BandwidthLimit) {
+    return client.setTrackBandwidth(trackId, maxBandwidth);
+  }
+
+  function setEncodingBandwidth(trackId: string, encodingId: string, maxBandwidth: BandwidthLimit) {
+    return client.setEncodingBandwidth(trackId, encodingId, maxBandwidth);
+  }
+
+  function setTargetTrackEncoding(trackId: string, encoding: Encoding) {
+    return client.setTargetTrackEncoding(trackId, encoding);
+  }
+
+  function enableTrackEncoding(trackId: string, encoding: Encoding) {
+    return client.enableTrackEncoding(trackId, encoding);
+  }
+
+  function disableTrackEncoding(trackId: string, encoding: Encoding) {
+    return client.disableTrackEncoding(trackId, encoding);
+  }
+
   return {
     ...state,
     peerStatus,
     addTrack,
     connect,
-    disconnect: client.disconnect,
-    removeTrack: client.removeTrack,
-    replaceTrack: client.replaceTrack,
-    getStatistics: client.getStatistics,
-    getBandwidthEstimation: client.getBandwidthEstimation,
-    setTrackBandwidth: client.setTrackBandwidth,
-    setEncodingBandwidth: client.setEncodingBandwidth,
-    setTargetTrackEncoding: client.setTargetTrackEncoding,
-    enableTrackEncoding: client.enableTrackEncoding,
-    disableTrackEncoding: client.disableTrackEncoding,
+    disconnect,
+    removeTrack,
+    replaceTrack,
+    getStatistics,
+    getBandwidthEstimation,
+    setTrackBandwidth,
+    setEncodingBandwidth,
+    setTargetTrackEncoding,
+    enableTrackEncoding,
+    disableTrackEncoding,
   };
 };

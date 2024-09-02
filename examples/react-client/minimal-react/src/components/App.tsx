@@ -9,7 +9,8 @@ import {
 } from "@fishjam-cloud/react-client";
 import { useState, Fragment } from "react";
 
-const FISHJAM_URL = "ws://localhost:5002";
+const FISHJAM_URL =
+  "wss://cloud.fishjam.work/api/v1/connect/6033dff294774269bd988c90bb939cbc";
 
 export const App = () => {
   const [token, setToken] = useState("");
@@ -19,10 +20,10 @@ export const App = () => {
   const status = useStatus();
   const { participants } = useParticipants();
   const screenShare = useScreenShare();
+  const client = useFishjamClient();
 
   {
     // for e2e test
-    const client = useFishjamClient();
     (window as unknown as Record<string, unknown>).client = client;
   }
 
@@ -38,6 +39,7 @@ export const App = () => {
           disabled={token === "" || status === "joined"}
           onClick={() => {
             if (!token || token === "") throw Error("Token is empty");
+            console.log(token, FISHJAM_URL);
             connect({
               token: token,
               url: FISHJAM_URL,

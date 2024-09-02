@@ -10,7 +10,9 @@ export const usePeerStatus = (client: FishjamClient<PeerMetadata, TrackMetadata>
     const setAuthenticated = () => {
       setPeerStatus("authenticated");
     };
-    const setError = () => {
+    const setError = (...e: unknown[]) => {
+      console.log(e);
+
       setPeerStatus("error");
     };
     const setJoined = () => {

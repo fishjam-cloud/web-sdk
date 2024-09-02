@@ -57,7 +57,7 @@ export const App = () => {
         <button
           disabled={status !== "joined"}
           onClick={async () => {
-            screenShare.startStreaming();
+            screenShare.startStreaming({ audioConstraints: false });
           }}
         >
           Start screen share
@@ -74,7 +74,7 @@ export const App = () => {
                 stream={track.stream}
                 peerId={participant.id}
               />
-            ),
+            )
           )}
         </Fragment>
       ))}

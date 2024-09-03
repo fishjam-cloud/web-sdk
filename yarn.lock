@@ -581,9 +581,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fishjam-example/fishjamChat@workspace:examples/react-client/fishjamChat":
+"@fishjam-example/fishjam-chat@workspace:examples/react-client/fishjam-chat":
   version: 0.0.0-use.local
-  resolution: "@fishjam-example/fishjamChat@workspace:examples/react-client/fishjamChat"
+  resolution: "@fishjam-example/fishjam-chat@workspace:examples/react-client/fishjam-chat"
   dependencies:
     "@fishjam-cloud/react-client": "workspace:*"
     "@mediapipe/tasks-vision": "npm:^0.10.15"

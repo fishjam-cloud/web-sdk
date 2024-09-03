@@ -1,9 +1,21 @@
 import { useFishjamContext } from "./useFishjamContext";
-import type { Device, AudioDevice } from "../types";
+import type { Device, AudioDevice, DeviceState } from "../types";
 import { useVideoDeviceManager } from "./deviceManagers/useVideoDeviceManager";
 import { useAudioDeviceManager } from "./deviceManagers/useAudioDeviceManager";
 import { useCallback, useEffect } from "react";
 import { getAvailableMedia, getCorrectedResult } from "../mediaInitializer";
+import type { Track } from "../state.types";
+
+function getDeviceProperties(currentTrack: Track | null, deviceState: DeviceState) {
+  const streamedTrackId = currentTrack?.trackId ?? null;
+  const streamedTrack = currentTrack?.track ?? null;
+  // todo: temporary fix, fix in FCE-450
+  const stream = currentTrack?.stream ?? deviceState.media?.stream ?? null;
+  const devices = deviceState.devices ?? [];
+  const activeDevice = deviceState.media?.deviceInfo ?? null;
+
+  return { streamedTrack, streamedTrackId, stream, devices, activeDevice };
+}
 
 export function useCamera(): Device {
   const {
@@ -12,13 +24,7 @@ export function useCamera(): Device {
 
   const { deviceState } = useVideoDeviceManager();
 
-  const streamedTrackId = currentTrack?.trackId ?? null;
-  const streamedTrack = currentTrack?.track ?? null;
-  const stream = currentTrack?.stream ?? null;
-  const devices = deviceState.devices ?? [];
-  const activeDevice = deviceState.media?.deviceInfo ?? null;
-
-  return { ...trackManager, streamedTrack, streamedTrackId, stream, devices, activeDevice };
+  return { ...trackManager, ...getDeviceProperties(currentTrack, deviceState) };
 }
 
 export function useMicrophone(): AudioDevice {
@@ -27,15 +33,9 @@ export function useMicrophone(): AudioDevice {
   } = useFishjamContext();
 
   const { deviceState } = useAudioDeviceManager();
-
   const isAudioPlaying = currentTrack?.vadStatus === "speech";
-  const streamedTrackId = currentTrack?.trackId ?? null;
-  const streamedTrack = currentTrack?.track ?? null;
-  const stream = currentTrack?.stream ?? null;
-  const devices = deviceState.devices ?? [];
-  const activeDevice = deviceState.media?.deviceInfo ?? null;
 
-  return { ...trackManager, streamedTrack, streamedTrackId, isAudioPlaying, stream, devices, activeDevice };
+  return { ...trackManager, ...getDeviceProperties(currentTrack, deviceState), isAudioPlaying };
 }
 
 type InitializeDevicesProps = { autoInitialize?: boolean };

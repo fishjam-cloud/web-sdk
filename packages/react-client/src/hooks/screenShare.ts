@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from "react";
 import { getRemoteOrLocalTrack } from "../utils/track";
-import type { ScreenshareApi, TrackMetadata, TracksMiddleware } from "../types";
+import type { ScreenshareApi, TracksMiddleware } from "../types";
 import { useFishjamContext } from "./fishjamContext";
 
 const getTracks = (stream: MediaStream): [MediaStreamTrack, MediaStreamTrack | null] => {
@@ -9,8 +9,6 @@ const getTracks = (stream: MediaStream): [MediaStreamTrack, MediaStreamTrack | n
 
   return [video, audio];
 };
-
-const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay));
 
 export const useScreenShare = (): ScreenshareApi => {
   const ctx = useFishjamContext();
@@ -25,26 +23,9 @@ export const useScreenShare = (): ScreenshareApi => {
     });
     const [video, audio] = getTracks(stream);
 
-    const addTrackPromises = [
-      tsClient.addTrack(video).then(async (trackId) => {
-        // TODO fix sleep is a temporary workaround for FCE-404: Fishjam doesn't broadcast updateTrackMetadata
-        await sleep(2000);
-        const metadata: TrackMetadata = { type: "screenShareVideo", paused: false };
-        tsClient.updateTrackMetadata(trackId, metadata);
-        return trackId;
-      }),
-    ];
+    const addTrackPromises = [tsClient.addTrack(video, { type: "screenShareVideo", paused: false })];
 
-    if (audio)
-      addTrackPromises.push(
-        tsClient.addTrack(audio).then(async (trackId) => {
-          // TODO fix sleep is a temporary workaround for FCE-404: Fishjam doesn't broadcast updateTrackMetadata
-          await sleep(2000);
-          const metadata: TrackMetadata = { type: "screenShareAudio", paused: false };
-          tsClient.updateTrackMetadata(trackId, metadata);
-          return trackId;
-        }),
-      );
+    if (audio) addTrackPromises.push(tsClient.addTrack(audio, { type: "screenShareAudio", paused: false }));
 
     const [videoId, audioId] = await Promise.all(addTrackPromises);
     setState({ stream, trackIds: { videoId, audioId } });

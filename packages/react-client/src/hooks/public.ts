@@ -6,8 +6,3 @@ export { useScreenShare } from "./useScreenShare";
 export { useStatus } from "./useState";
 export { useAudioDeviceManager } from "./deviceManagers/useAudioDeviceManager";
 export { useVideoDeviceManager } from "./deviceManagers/useVideoDeviceManager";
-
-/**
- * @deprecated Will be removed from public API in FCE-453
- */
-export { useFishjamClient } from "./useFishjamClient";

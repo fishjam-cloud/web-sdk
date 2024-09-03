@@ -2,7 +2,6 @@ import VideoPlayer from "./VideoPlayer";
 import {
   useConnect,
   useDisconnect,
-  useFishjamClient,
   useParticipants,
   useScreenShare,
   useStatus,
@@ -19,12 +18,6 @@ export const App = () => {
   const status = useStatus();
   const { participants } = useParticipants();
   const screenShare = useScreenShare();
-  const client = useFishjamClient();
-
-  {
-    // for e2e test
-    (window as unknown as Record<string, unknown>).client = client;
-  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>

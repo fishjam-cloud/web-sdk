@@ -5,7 +5,7 @@ import type { DeviceManager } from "../DeviceManager";
 import type { PeerStatus } from "../state.types";
 
 export type FishjamContextType = {
-  fishjamClientRef: MutableRefObject<FishjamClient<PeerMetadata, TrackMetadata>>;
+  client: FishjamClient<PeerMetadata, TrackMetadata>;
   videoDeviceManagerRef: MutableRefObject<DeviceManager>;
   audioDeviceManagerRef: MutableRefObject<DeviceManager>;
   hasDevicesBeenInitializedRef: MutableRefObject<boolean>;

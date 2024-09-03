@@ -3,11 +3,18 @@ import ReactDOM from "react-dom/client";
 import MainControls from "./MainControls";
 import "./index.css";
 import AdditionalControls from "./AdditionalControls";
-import { FishjamProvider } from "@fishjam-cloud/react-client";
+import {
+  FishjamClient,
+  FishjamProvider,
+  type PeerMetadata,
+  type TrackMetadata,
+} from "@fishjam-cloud/react-client";
+
+export const fishjamClient = new FishjamClient<PeerMetadata, TrackMetadata>();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <FishjamProvider>
+    <FishjamProvider client={fishjamClient}>
       <MainControls />
       <AdditionalControls />
     </FishjamProvider>

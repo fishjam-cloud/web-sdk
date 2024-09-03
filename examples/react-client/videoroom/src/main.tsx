@@ -2,11 +2,18 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
-import { FishjamProvider } from "@fishjam-cloud/react-client";
+import {
+  FishjamClient,
+  FishjamProvider,
+  PeerMetadata,
+  TrackMetadata,
+} from "@fishjam-cloud/react-client";
+
+const fishjamClient = new FishjamClient<PeerMetadata, TrackMetadata>();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <FishjamProvider>
+    <FishjamProvider client={fishjamClient}>
       <App />
     </FishjamProvider>
   </React.StrictMode>,

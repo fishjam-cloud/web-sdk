@@ -14,9 +14,7 @@ export const useScreenShare = (): ScreenshareApi => {
   const ctx = useFishjamContext();
 
   const [state, setState] = ctx.screenshareState;
-  const { fishjamClientRef } = useFishjamContext();
-
-  const tsClient = fishjamClientRef.current;
+  const { client } = useFishjamContext();
 
   const startStreaming: ScreenshareApi["startStreaming"] = async (props) => {
     const stream = await navigator.mediaDevices.getDisplayMedia({
@@ -25,9 +23,9 @@ export const useScreenShare = (): ScreenshareApi => {
     });
     const [video, audio] = getTracks(stream);
 
-    const addTrackPromises = [tsClient.addTrack(video, { type: "screenShareVideo", paused: false })];
+    const addTrackPromises = [client.addTrack(video, { type: "screenShareVideo", paused: false })];
 
-    if (audio) addTrackPromises.push(tsClient.addTrack(audio, { type: "screenShareAudio", paused: false }));
+    if (audio) addTrackPromises.push(client.addTrack(audio, { type: "screenShareAudio", paused: false }));
 
     const [videoId, audioId] = await Promise.all(addTrackPromises);
     setState({ stream, trackIds: { videoId, audioId } });
@@ -36,10 +34,10 @@ export const useScreenShare = (): ScreenshareApi => {
   const replaceTracks = async (newVideoTrack: MediaStreamTrack, newAudioTrack: MediaStreamTrack | null) => {
     if (!state?.stream) return;
 
-    const addTrackPromises = [tsClient.replaceTrack(state.trackIds.videoId, newVideoTrack)];
+    const addTrackPromises = [client.replaceTrack(state.trackIds.videoId, newVideoTrack)];
 
     if (newAudioTrack && state.trackIds.audioId) {
-      addTrackPromises.push(tsClient.replaceTrack(state.trackIds.audioId, newAudioTrack));
+      addTrackPromises.push(client.replaceTrack(state.trackIds.audioId, newAudioTrack));
     }
 
     await Promise.all(addTrackPromises);
@@ -64,14 +62,13 @@ export const useScreenShare = (): ScreenshareApi => {
     video.stop();
     if (audio) audio.stop();
 
-    const client = fishjamClientRef.current;
     const removeTrackPromises = [client.removeTrack(state.trackIds.videoId)];
     if (state.trackIds.audioId) removeTrackPromises.push(client.removeTrack(state.trackIds.audioId));
 
     await Promise.all(removeTrackPromises);
 
     setState(null);
-  }, [state, fishjamClientRef, setState]);
+  }, [state, client, setState]);
 
   useEffect(() => {
     if (!state) return;
@@ -91,7 +88,6 @@ export const useScreenShare = (): ScreenshareApi => {
   }, [state, stopStreaming]);
 
   useEffect(() => {
-    const client = fishjamClientRef.current;
     const onDisconnected = () => {
       stopStreaming();
     };
@@ -100,13 +96,13 @@ export const useScreenShare = (): ScreenshareApi => {
     return () => {
       client.removeListener("disconnected", onDisconnected);
     };
-  }, [stopStreaming, fishjamClientRef]);
+  }, [stopStreaming, client]);
 
   const stream = state?.stream ?? null;
   const [videoTrack, audioTrack] = stream ? getTracks(stream) : [null, null];
 
-  const videoBroadcast = state ? getRemoteOrLocalTrack(tsClient, state.trackIds.videoId) : null;
-  const audioBroadcast = state?.trackIds.audioId ? getRemoteOrLocalTrack(tsClient, state.trackIds.audioId) : null;
+  const videoBroadcast = state ? getRemoteOrLocalTrack(client, state.trackIds.videoId) : null;
+  const audioBroadcast = state?.trackIds.audioId ? getRemoteOrLocalTrack(client, state.trackIds.audioId) : null;
 
   return {
     startStreaming,

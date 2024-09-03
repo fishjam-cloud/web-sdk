@@ -95,10 +95,9 @@ function endpointToPeerState(
 }
 
 export const useFishjamClient = () => {
-  const { fishjamClientRef, peerStatusState } = useFishjamContext();
+  const { client, peerStatusState } = useFishjamContext();
   const [peerStatus, setPeerStatus] = peerStatusState;
 
-  const client = useMemo(() => fishjamClientRef.current, [fishjamClientRef]);
   const mutationRef = useRef(false);
 
   const subscribe = useCallback(

@@ -3,12 +3,10 @@ import { useFishjamContext } from "./useFishjamContext";
 import type { ReconnectionStatus } from "@fishjam-cloud/ts-client";
 
 export const useReconnection = (): ReconnectionStatus => {
-  const { fishjamClientRef } = useFishjamContext();
+  const { client } = useFishjamContext();
   const [reconnectionStatus, setReconnectionStatus] = useState<ReconnectionStatus>("idle");
 
   useEffect(() => {
-    const client = fishjamClientRef.current;
-
     const setReconnecting = () => {
       setReconnectionStatus("reconnecting");
     };
@@ -28,7 +26,7 @@ export const useReconnection = (): ReconnectionStatus => {
       client.off("reconnected", setIdle);
       client.off("reconnectionRetriesLimitReached", setError);
     };
-  }, [fishjamClientRef]);
+  }, [client]);
 
   return reconnectionStatus;
 };

@@ -12,7 +12,7 @@ import type {
 } from "@fishjam-cloud/ts-client";
 import type { PeerMetadata, TrackMetadata, ConnectConfig } from "../types";
 import type { PeerState, Track, TrackId } from "../state.types";
-import { useFishjamContext } from "./fishjamContext";
+import { useFishjamContext } from "./useFishjamContext";
 
 const eventNames = [
   "socketClose",

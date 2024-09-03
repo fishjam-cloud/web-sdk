@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useFishjamContext } from "./fishjamContext";
+import { useFishjamContext } from "./useFishjamContext";
 import type { UseReconnection } from "../state.types";
 
 type ReconnectionStatus = "idle" | "reconnecting" | "error";

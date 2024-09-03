@@ -1,5 +1,5 @@
-import { useFishjamContext } from "../fishjamContext";
-import { useDeviceManager } from "./deviceManager";
+import { useFishjamContext } from "../useFishjamContext";
+import { useDeviceManager } from "./useDeviceManager";
 
 export const useVideoDeviceManager = () => {
   const { videoDeviceManagerRef } = useFishjamContext();

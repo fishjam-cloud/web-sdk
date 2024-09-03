@@ -1,8 +1,8 @@
-import { useFishjamContext } from "./fishjamContext";
+import { useFishjamContext } from "./useFishjamContext";
 import type { Device, AudioDevice } from "../types";
-import { useVideoDeviceManager } from "./deviceManagers/videoDeviceManager";
-import { useAudioDeviceManager } from "./deviceManagers/audioDeviceManager";
-import { useCallback, useEffect, useRef } from "react";
+import { useVideoDeviceManager } from "./deviceManagers/useVideoDeviceManager";
+import { useAudioDeviceManager } from "./deviceManagers/useAudioDeviceManager";
+import { useCallback, useEffect } from "react";
 import { getAvailableMedia, getCorrectedResult } from "../mediaInitializer";
 
 export function useCamera(): Device {

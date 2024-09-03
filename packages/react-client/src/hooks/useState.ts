@@ -1,4 +1,4 @@
-import { useFishjamContext } from "./fishjamContext";
+import { useFishjamContext } from "./useFishjamContext";
 
 export function useStatus() {
   const {

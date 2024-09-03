@@ -1,6 +1,6 @@
 import type { UseConnect } from "../types";
 import { useCallback, useMemo } from "react";
-import { useFishjamClient } from "./tsClient";
+import { useFishjamClient } from "./useFishjamClient";
 
 export function useConnect(): UseConnect {
   const client = useFishjamClient();

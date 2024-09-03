@@ -1,6 +1,6 @@
 import type { PeerState } from "../state.types";
 import type { PeerStateWithTracks } from "../types";
-import { useFishjamClient } from "./tsClient";
+import { useFishjamClient } from "./useFishjamClient";
 
 function getPeerWithDistinguishedTracks(peerState: PeerState): PeerStateWithTracks {
   const peerTracks = Object.values(peerState.tracks ?? {});

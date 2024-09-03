@@ -1,4 +1,4 @@
-import type { Encoding, VadStatus, SimulcastConfig, ReconnectionStatus } from "@fishjam-cloud/ts-client";
+import type { Encoding, VadStatus, SimulcastConfig } from "@fishjam-cloud/ts-client";
 import type { PeerMetadata, TrackMetadata } from "./types";
 
 export type TrackId = string;

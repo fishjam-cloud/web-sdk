@@ -29,7 +29,8 @@ export type DeviceManagerStatus = "uninitialized" | "initializing" | "initialize
 
 export class DeviceManager
   extends (EventEmitter as new () => TypedEmitter<DeviceManagerEvents>)
-  implements MediaManager {
+  implements MediaManager
+{
   private constraints: MediaTrackConstraints | undefined;
   private storageConfig: StorageConfig | null;
 

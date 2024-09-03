@@ -5,5 +5,5 @@ export const useAudioDeviceManager = () => {
   const { audioDeviceManagerRef } = useFishjamContext();
   const audioDeviceState = useDeviceManager(audioDeviceManagerRef.current);
 
-  return { ...audioDeviceState };
+  return audioDeviceState;
 };

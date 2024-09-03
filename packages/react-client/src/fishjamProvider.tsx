@@ -14,6 +14,7 @@ interface FishjamProviderProps extends PropsWithChildren {
 export function FishjamProvider({ children, config, deviceManagerDefaultConfig }: FishjamProviderProps) {
   const fishjamClientRef = useRef(new FishjamClient<PeerMetadata, TrackMetadata>(config));
 
+  const hasDevicesBeenInitializedRef = useRef(false);
   const videoDeviceManagerRef = useRef(new DeviceManager("video", deviceManagerDefaultConfig));
   const audioDeviceManagerRef = useRef(new DeviceManager("audio", deviceManagerDefaultConfig));
 
@@ -38,6 +39,7 @@ export function FishjamProvider({ children, config, deviceManagerDefaultConfig }
     audioTrackManager,
     videoDeviceManagerRef,
     audioDeviceManagerRef,
+    hasDevicesBeenInitializedRef,
   };
 
   return <FishjamContext.Provider value={context}>{children}</FishjamContext.Provider>;

@@ -41,11 +41,10 @@ export function useMicrophone(): AudioDevice {
 type InitializeDevicesProps = { autoInitialize?: boolean };
 
 export const useInitializeDevices = (props?: InitializeDevicesProps) => {
-  const areDevicesInitialized = useRef(false);
-  const { videoDeviceManagerRef, audioDeviceManagerRef } = useFishjamContext();
+  const { videoDeviceManagerRef, audioDeviceManagerRef, hasDevicesBeenInitializedRef } = useFishjamContext();
 
   const initializeDevices = useCallback(async () => {
-    if (areDevicesInitialized.current) return;
+    if (hasDevicesBeenInitializedRef.current) return;
     const videoManager = videoDeviceManagerRef.current;
     const audioManager = audioDeviceManagerRef.current;
 
@@ -84,8 +83,8 @@ export const useInitializeDevices = (props?: InitializeDevicesProps) => {
       !!constraints.audio,
       deviceErrors.audio,
     );
-    areDevicesInitialized.current = true;
-  }, [videoDeviceManagerRef, audioDeviceManagerRef]);
+    hasDevicesBeenInitializedRef.current = true;
+  }, [videoDeviceManagerRef, audioDeviceManagerRef, hasDevicesBeenInitializedRef]);
 
   const autoInitialize = Boolean(props?.autoInitialize);
 

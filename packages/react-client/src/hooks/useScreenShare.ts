@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect } from "react";
 import { getRemoteOrLocalTrack } from "../utils/track";
 import type { ScreenshareApi, TracksMiddleware } from "../types";
 import { useFishjamContext } from "./useFishjamContext";
@@ -15,7 +15,8 @@ export const useScreenShare = (): ScreenshareApi => {
 
   const [state, setState] = ctx.screenshareState;
   const { fishjamClientRef } = useFishjamContext();
-  const tsClient = useMemo(() => fishjamClientRef.current, [fishjamClientRef]);
+
+  const tsClient = fishjamClientRef.current;
 
   const startStreaming: ScreenshareApi["startStreaming"] = async (props) => {
     const stream = await navigator.mediaDevices.getDisplayMedia({
@@ -62,13 +63,14 @@ export const useScreenShare = (): ScreenshareApi => {
     video.stop();
     if (audio) audio.stop();
 
-    const removeTrackPromises = [tsClient.removeTrack(state.trackIds.videoId)];
-    if (state.trackIds.audioId) removeTrackPromises.push(tsClient.removeTrack(state.trackIds.audioId));
+    const client = fishjamClientRef.current;
+    const removeTrackPromises = [client.removeTrack(state.trackIds.videoId)];
+    if (state.trackIds.audioId) removeTrackPromises.push(client.removeTrack(state.trackIds.audioId));
 
     await Promise.all(removeTrackPromises);
 
     setState(null);
-  }, [state, tsClient, setState]);
+  }, [state, fishjamClientRef, setState]);
 
   useEffect(() => {
     if (!state) return;
@@ -88,15 +90,16 @@ export const useScreenShare = (): ScreenshareApi => {
   }, [state, stopStreaming]);
 
   useEffect(() => {
+    const client = fishjamClientRef.current;
     const onDisconnected = () => {
       stopStreaming();
     };
-    tsClient.on("disconnected", onDisconnected);
+    client.on("disconnected", onDisconnected);
 
     return () => {
-      tsClient.removeListener("disconnected", onDisconnected);
+      client.removeListener("disconnected", onDisconnected);
     };
-  }, [stopStreaming, tsClient]);
+  }, [stopStreaming, fishjamClientRef]);
 
   const stream = state?.stream ?? null;
   const [videoTrack, audioTrack] = stream ? getTracks(stream) : [null, null];

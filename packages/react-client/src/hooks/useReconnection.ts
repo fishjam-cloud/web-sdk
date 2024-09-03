@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import { useFishjamContext } from "./useFishjamContext";
-import type { UseReconnection } from "../state.types";
+import type { ReconnectionStatus } from "@fishjam-cloud/ts-client";
 
-type ReconnectionStatus = "idle" | "reconnecting" | "error";
-
-export const useReconnection = (): UseReconnection => {
+export const useReconnection = (): ReconnectionStatus => {
   const { fishjamClientRef } = useFishjamContext();
   const [reconnectionStatus, setReconnectionStatus] = useState<ReconnectionStatus>("idle");
 
@@ -32,10 +30,5 @@ export const useReconnection = (): UseReconnection => {
     };
   }, [fishjamClientRef]);
 
-  return {
-    status: reconnectionStatus,
-    isReconnecting: reconnectionStatus === "reconnecting",
-    isError: reconnectionStatus === "error",
-    isIdle: reconnectionStatus === "idle",
-  };
+  return reconnectionStatus;
 };

@@ -37,10 +37,3 @@ export type PeerState = {
 };
 
 export type PeerStatus = "connecting" | "connected" | "authenticated" | "joined" | "error" | "closed" | null;
-
-export type UseReconnection = {
-  status: ReconnectionStatus;
-  isReconnecting: boolean;
-  isError: boolean;
-  isIdle: boolean;
-};

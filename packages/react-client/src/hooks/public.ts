@@ -1,9 +1,9 @@
-export { useConnect, useDisconnect } from "./connection";
-export { useReconnection } from "./reconnection";
-export { useCamera, useMicrophone, useInitializeDevices } from "./devices";
-export { useParticipants } from "./participants";
-export { useScreenShare } from "./screenShare";
-export { useStatus } from "./state";
-export { useFishjamClient } from "./tsClient";
-export { useAudioDeviceManager } from "./deviceManagers/audioDeviceManager";
-export { useVideoDeviceManager } from "./deviceManagers/videoDeviceManager";
+export { useConnect, useDisconnect } from "./useConnection";
+export { useReconnection } from "./useReconnection";
+export { useCamera, useMicrophone, useInitializeDevices } from "./useDevices";
+export { useParticipants } from "./useParticipants";
+export { useScreenShare } from "./useScreenShare";
+export { useStatus } from "./useState";
+export { useFishjamClient } from "./useTsClient";
+export { useAudioDeviceManager } from "./deviceManagers/useAudioDeviceManager";
+export { useVideoDeviceManager } from "./deviceManagers/useVideoDeviceManager";

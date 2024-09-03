@@ -1,10 +1,10 @@
 import { useRef, useState, type PropsWithChildren } from "react";
-import { useTrackManager } from "./hooks/trackManager";
+import { useTrackManager } from "./hooks/useTrackManager";
 import type { DeviceManagerConfig, PeerMetadata, ScreenshareState, TrackMetadata } from "./types";
 import { FishjamClient, type ReconnectConfig } from "@fishjam-cloud/ts-client";
-import { FishjamContext } from "./hooks/fishjamContext";
+import { FishjamContext } from "./hooks/useFishjamContext";
 import { DeviceManager } from "./DeviceManager";
-import { usePeerStatus } from "./hooks/peerStatus";
+import { usePeerStatus } from "./hooks/usePeerStatus";
 
 interface FishjamProviderProps extends PropsWithChildren {
   config?: { reconnect?: ReconnectConfig | boolean };

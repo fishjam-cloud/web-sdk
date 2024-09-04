@@ -25,20 +25,19 @@ function getDeviceProperties(currentTrack: Track | null, deviceState: DeviceStat
 
 export function useCamera(): Device {
   const {
-    videoTrackManager: { currentTrack, currentTrackMiddleware, ...trackManager },
+    videoTrackManager: { currentTrack, ...trackManager },
   } = useFishjamContext();
   const { deviceState } = useVideoDeviceManager();
 
   return {
     ...trackManager,
     ...getDeviceProperties(currentTrack, deviceState),
-    currentTrackMiddleware,
   };
 }
 
 export function useMicrophone(): AudioDevice {
   const {
-    audioTrackManager: { currentTrack, currentTrackMiddleware, ...trackManager },
+    audioTrackManager: { currentTrack, ...trackManager },
   } = useFishjamContext();
 
   const { deviceState } = useAudioDeviceManager();
@@ -47,7 +46,6 @@ export function useMicrophone(): AudioDevice {
   return {
     ...trackManager,
     ...getDeviceProperties(currentTrack, deviceState),
-    currentTrackMiddleware,
     isAudioPlaying,
   };
 }

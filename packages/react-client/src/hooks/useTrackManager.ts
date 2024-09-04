@@ -2,7 +2,7 @@ import type { FishjamClient, SimulcastConfig, TrackBandwidthLimit } from "@fishj
 import type { MediaManager, PeerMetadata, TrackManager, TrackMetadata, TrackMiddleware } from "../types";
 import type { Track } from "../state.types";
 import { getRemoteOrLocalTrack } from "../utils/track";
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 interface TrackManagerConfig {
   mediaManager: MediaManager;

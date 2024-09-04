@@ -169,9 +169,8 @@ export type ScreenshareState = {
 } | null;
 
 export type Device = {
-  streamedTrack: MediaStreamTrack | null;
-  streamedTrackId: TrackId | null;
-  stream: MediaStream | null;
+  currentlyStreamed: { track: MediaStreamTrack; trackId: TrackId; stream: MediaStream } | null;
+  rawStream: MediaStream | null;
   devices: MediaDeviceInfo[];
   activeDevice: MediaDeviceInfo | null;
 } & Omit<TrackManager, "currentTrack">;

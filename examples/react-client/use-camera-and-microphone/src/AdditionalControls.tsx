@@ -52,14 +52,14 @@ export const AdditionalControls = () => {
             <h3>Local:</h3>
 
             <div className="max-w-[500px]">
-              {camera.streamedTrack?.kind === "video" && (
-                <VideoPlayer stream={camera.stream} />
+              {camera.currentlyStreamed && (
+                <VideoPlayer stream={camera.currentlyStreamed.stream} />
               )}
 
-              {microphone.streamedTrack?.kind === "audio" && (
+              {camera.currentlyStreamed && (
                 <AudioVisualizer
-                  stream={microphone.stream}
-                  trackId={microphone.streamedTrackId}
+                  stream={camera.currentlyStreamed.stream}
+                  trackId={camera.currentlyStreamed.trackId}
                 />
               )}
             </div>

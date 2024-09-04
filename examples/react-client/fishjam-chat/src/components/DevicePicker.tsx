@@ -18,7 +18,7 @@ interface DeviceSelectProps {
 const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
   const hasJoinedRoom = useStatus() === "joined";
 
-  const isTrackStreamed = !!device.streamedTrack;
+  const isTrackStreamed = !!device.currentlyStreamed;
 
   return (
     <div className="flex justify-between gap-4">
@@ -88,10 +88,12 @@ export function DevicePicker() {
       </div>
 
       <div className="flex flex-col items-center">
-        {camera.stream && (
-          <VideoPlayer className="w-64" stream={camera.stream} />
+        {camera.rawStream && (
+          <VideoPlayer className="w-64" stream={camera.rawStream} />
         )}
-        {microphone.stream && <AudioVisualizer stream={microphone.stream} />}
+        {microphone.rawStream && (
+          <AudioVisualizer stream={microphone.rawStream} />
+        )}
       </div>
 
       <BlurToggle />

@@ -27,20 +27,17 @@ export function BlurToggle() {
     blurProcessorRef.current = null;
   };
 
-  const isMiddlewareSet = camera.currentTrackMiddleware === blurMiddleware;
+  const setBlurMiddleware = () => camera.setTrackMiddleware(blurMiddleware);
 
-  const onClick = isMiddlewareSet
+  const isMiddlewareSet = camera.currentTrackMiddleware === blurMiddleware;
+  const toggleBlurMiddleware = isMiddlewareSet
     ? clearBlurMiddleware
-    : () => camera.setTrackMiddleware(blurMiddleware);
+    : setBlurMiddleware;
 
   const title = isMiddlewareSet ? "Clear blur" : "Blur camera";
 
   return (
-    <Button
-      className="w-full"
-      disabled={!camera.streamedTrack}
-      onClick={onClick}
-    >
+    <Button className="w-full" onClick={toggleBlurMiddleware}>
       {title}
     </Button>
   );

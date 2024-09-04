@@ -22,12 +22,12 @@ export const DeviceControls = ({
   type,
   status,
 }: DeviceControlsProps) => {
-  const isDeviceStreaming = !!device.streamedTrack;
+  const isDeviceStreaming = !!device.currentlyStreamed;
   return (
     <div className="flex flex-col gap-2">
       <button
         className="btn btn-success btn-sm"
-        disabled={!!device?.stream}
+        disabled={!!isDeviceStreaming}
         onClick={() => {
           device?.initialize();
         }}
@@ -37,7 +37,7 @@ export const DeviceControls = ({
 
       <button
         className="btn btn-error btn-sm"
-        disabled={!device?.stream}
+        disabled={!isDeviceStreaming}
         onClick={() => {
           device?.stop();
         }}
@@ -47,7 +47,7 @@ export const DeviceControls = ({
 
       <button
         className="btn btn-success btn-sm"
-        disabled={!device?.stream || !device?.paused}
+        disabled={!isDeviceStreaming || !device?.paused}
         onClick={() => {
           device.enableTrack();
         }}
@@ -67,7 +67,7 @@ export const DeviceControls = ({
 
       <button
         className="btn btn-success btn-sm"
-        disabled={status !== "joined" || !device?.stream || isDeviceStreaming}
+        disabled={status !== "joined" || isDeviceStreaming}
         onClick={() => {
           device?.startStreaming();
         }}
@@ -77,7 +77,7 @@ export const DeviceControls = ({
 
       <button
         className="btn btn-error btn-sm"
-        disabled={status !== "joined" || !device?.stream || !isDeviceStreaming}
+        disabled={status !== "joined" || !isDeviceStreaming}
         onClick={() => {
           device?.stopStreaming();
         }}

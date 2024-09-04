@@ -369,19 +369,19 @@ export const MainControls = () => {
           <div>
             <h3>Local:</h3>
 
-            <p>Video {video.streamedTrack?.label}</p>
+            <p>Video {video.currentlyStreamed?.track.label}</p>
 
-            <p>Audio {audio.streamedTrack?.label}</p>
+            <p>Audio {audio.currentlyStreamed?.track.label}</p>
 
             <div className="max-w-[500px]">
-              {video.streamedTrack?.kind === "video" && (
-                <VideoPlayer stream={video.stream} />
+              {video.currentlyStreamed?.track.kind === "video" && (
+                <VideoPlayer stream={audio.currentlyStreamed?.stream} />
               )}
 
-              {audio.streamedTrack?.kind === "audio" && (
+              {audio.currentlyStreamed?.track.kind === "audio" && (
                 <AudioVisualizer
-                  stream={audio.stream}
-                  trackId={audio.streamedTrackId}
+                  stream={audio.currentlyStreamed.stream}
+                  trackId={audio.currentlyStreamed.trackId}
                 />
               )}
 

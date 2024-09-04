@@ -2,7 +2,7 @@ import type { FishjamClient, SimulcastConfig, TrackBandwidthLimit } from "@fishj
 import type { MediaManager, PeerMetadata, TrackManager, TrackMetadata, TrackMiddleware } from "../types";
 import type { Track } from "../state.types";
 import { getRemoteOrLocalTrack } from "../utils/track";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 
 interface TrackManagerConfig {
   mediaManager: MediaManager;
@@ -57,8 +57,8 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
     setCurrentTrackMiddleware(() => middleware);
   }
 
-  function initialize(deviceId?: string) {
-    return mediaManager?.start(deviceId ?? true);
+  async function initialize(deviceId?: string) {
+    await mediaManager?.start(deviceId ?? true);
   }
 
   function stop() {
@@ -83,7 +83,9 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
 
     const trackMetadata: TrackMetadata = { ...metadata, displayName, paused: false };
 
-    const remoteTrackId = await tsClient.addTrack(media.track, trackMetadata, simulcastConfig, maxBandwidth);
+    const processedTrack = currentTrackMiddleware?.(media.track) ?? media.track;
+
+    const remoteTrackId = await tsClient.addTrack(processedTrack, trackMetadata, simulcastConfig, maxBandwidth);
 
     setCurrentTrackId(remoteTrackId);
     setPaused(false);

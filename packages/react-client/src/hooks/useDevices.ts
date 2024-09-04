@@ -7,35 +7,49 @@ import { getAvailableMedia, getCorrectedResult } from "../mediaInitializer";
 import type { Track } from "../state.types";
 
 function getDeviceProperties(currentTrack: Track | null, deviceState: DeviceState) {
-  const streamedTrackId = currentTrack?.trackId ?? null;
-  const streamedTrack = currentTrack?.track ?? null;
-  // todo: temporary fix, fix in FCE-450
-  const stream = currentTrack?.stream ?? deviceState.media?.stream ?? null;
+  const rawStream = deviceState.media?.stream ?? null;
   const devices = deviceState.devices ?? [];
   const activeDevice = deviceState.media?.deviceInfo ?? null;
 
-  return { streamedTrack, streamedTrackId, stream, devices, activeDevice };
+  const currentlyStreamed =
+    currentTrack?.stream && currentTrack?.track
+      ? {
+          stream: currentTrack.stream,
+          track: currentTrack.track,
+          trackId: currentTrack.trackId,
+        }
+      : null;
+
+  return { rawStream, devices, activeDevice, currentlyStreamed };
 }
 
 export function useCamera(): Device {
   const {
-    videoTrackManager: { currentTrack, ...trackManager },
+    videoTrackManager: { currentTrack, currentTrackMiddleware, ...trackManager },
   } = useFishjamContext();
-
   const { deviceState } = useVideoDeviceManager();
 
-  return { ...trackManager, ...getDeviceProperties(currentTrack, deviceState) };
+  return {
+    ...trackManager,
+    ...getDeviceProperties(currentTrack, deviceState),
+    currentTrackMiddleware,
+  };
 }
 
 export function useMicrophone(): AudioDevice {
   const {
-    audioTrackManager: { currentTrack, ...trackManager },
+    audioTrackManager: { currentTrack, currentTrackMiddleware, ...trackManager },
   } = useFishjamContext();
 
   const { deviceState } = useAudioDeviceManager();
   const isAudioPlaying = currentTrack?.vadStatus === "speech";
 
-  return { ...trackManager, ...getDeviceProperties(currentTrack, deviceState), isAudioPlaying };
+  return {
+    ...trackManager,
+    ...getDeviceProperties(currentTrack, deviceState),
+    currentTrackMiddleware,
+    isAudioPlaying,
+  };
 }
 
 type InitializeDevicesProps = { autoInitialize?: boolean };

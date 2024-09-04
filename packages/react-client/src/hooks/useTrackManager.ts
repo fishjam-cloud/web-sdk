@@ -57,8 +57,8 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
     setCurrentTrackMiddleware(() => middleware);
   }
 
-  async function initialize(deviceId?: string) {
-    await mediaManager?.start(deviceId ?? true);
+  function initialize(deviceId?: string) {
+    return mediaManager?.start(deviceId ?? true);
   }
 
   function stop() {

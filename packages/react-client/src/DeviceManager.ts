@@ -34,8 +34,7 @@ export type DeviceManagerEvents = {
 
 export class DeviceManager
   extends (EventEmitter as new () => TypedEmitter<DeviceManagerEvents>)
-  implements MediaManager
-{
+  implements MediaManager {
   private constraints: MediaTrackConstraints | undefined;
   private storageConfig: StorageConfig | null;
 
@@ -130,16 +129,28 @@ export class DeviceManager
     this.storageConfig?.saveLastDevice(info);
   }
 
-  // todo `audioDeviceId / videoDeviceId === true` means use last device
-  public async start(deviceId?: string | boolean) {
-    const shouldRestart = !!deviceId && deviceId !== this.deviceState.media?.deviceInfo?.deviceId;
+  public async start(deviceId?: string) {
+    const useLastDevice = deviceId === undefined;
+    const isDeviceStopped = this.deviceState.media?.deviceInfo?.deviceId === undefined
+    const shouldRestart = (deviceId || useLastDevice) && isDeviceStopped;
 
-    const newDevice = deviceId === true ? this.getLastDevice()?.deviceId || true : deviceId;
+    const newDevice = useLastDevice ? this.getLastDevice()?.deviceId || true : deviceId;
 
     const trackConstraints = this.constraints;
 
     const exactConstraints = shouldRestart && prepareMediaTrackConstraints(newDevice, trackConstraints);
-    if (!exactConstraints) return;
+    console.log({
+      newDevice,
+      trackConstraints,
+      shouldRestart,
+      deviceId,
+      mangerDeviceId: this.deviceState.media?.deviceInfo?.deviceId
+    })
+
+    if (!exactConstraints) {
+      console.log("Stopping!", exactConstraints)
+      return;
+    }
 
     this.deviceState.mediaStatus = "Requesting";
 
@@ -148,10 +159,12 @@ export class DeviceManager
       { ...this.deviceState, restarting: shouldRestart, constraints: newDevice },
       this.deviceState,
     );
+    console.log("Requesting")
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ [this.deviceType]: exactConstraints });
 
+      console.log("Device stated", stream)
       const getTrack = (): MediaStreamTrack | null => {
         const tracks = this.deviceType === "audio" ? stream.getAudioTracks() : stream.getVideoTracks();
 
@@ -193,6 +206,8 @@ export class DeviceManager
 
       this.emit("devicesReady", { ...this.deviceState, restarted: shouldRestart }, this.deviceState);
     } catch (err) {
+      console.log("Device error", err)
+
       const parsedError = parseUserMediaError(err);
       const event = {
         parsedError,
@@ -205,6 +220,7 @@ export class DeviceManager
 
       this.emit("error", event, this.deviceState);
     }
+    console.log("Device started");
   }
 
   public async stop() {

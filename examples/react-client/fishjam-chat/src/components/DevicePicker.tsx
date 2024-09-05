@@ -52,6 +52,13 @@ const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
           Stream
         </Button>
       )}
+      <Button
+        onClick={async () => {
+          await device.toggle("turnOff");
+        }}
+      >
+        Toggle
+      </Button>
     </div>
   );
 };
@@ -66,9 +73,9 @@ export function DevicePicker() {
   return (
     <section className="space-y-8">
       <div className="flex flex-col gap-4">
-        <DeviceSelect device={camera} />
+        <DeviceSelect device={camera}/>
 
-        <DeviceSelect device={microphone} />
+        <DeviceSelect device={microphone}/>
 
         {screenShare.stream ? (
           <Button
@@ -89,12 +96,12 @@ export function DevicePicker() {
 
       <div className="flex flex-col items-center">
         {camera.stream && (
-          <VideoPlayer className="w-64" stream={camera.stream} />
+          <VideoPlayer className="w-64" stream={camera.stream}/>
         )}
-        {microphone.stream && <AudioVisualizer stream={microphone.stream} />}
+        {microphone.stream && <AudioVisualizer stream={microphone.stream}/>}
       </div>
 
-      <BlurToggle />
+      <BlurToggle/>
     </section>
   );
 }

@@ -151,7 +151,7 @@ export type UseSetupMediaResult = {
 };
 
 export interface MediaManager {
-  start: (deviceId?: string | boolean) => Promise<void>;
+  start: (deviceId?: string) => Promise<void>;
   stop: () => Promise<void>;
   disable: () => void;
   enable: () => void;
@@ -178,6 +178,8 @@ export type Device = {
 
 export type AudioDevice = Device & { isAudioPlaying: boolean };
 
+export type ToggleMode = "suspend" | "turnOff"
+
 export interface TrackManager {
   initialize: (deviceId?: string) => Promise<void>;
   stop: () => Promise<void>;
@@ -192,6 +194,7 @@ export interface TrackManager {
   currentTrackMiddleware: TrackMiddleware;
   refreshStreamedTrack: () => Promise<void>;
   currentTrack: Track | null;
+  toggle: (mode: ToggleMode) => Promise<void>
 }
 
 export type UserMediaAPI = {

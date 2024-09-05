@@ -1,12 +1,13 @@
 import type { FishjamClient, SimulcastConfig, TrackBandwidthLimit } from "@fishjam-cloud/ts-client";
-import type { MediaManager, PeerMetadata, TrackManager, TrackMetadata, TrackMiddleware } from "../types";
-import type { Track } from "../state.types";
+import type { MediaManager, PeerMetadata, ToggleMode, TrackManager, TrackMetadata, TrackMiddleware } from "../types";
+import type { PeerStatus, Track } from "../state.types";
 import { getRemoteOrLocalTrack } from "../utils/track";
 import { useEffect, useMemo, useState } from "react";
 
 interface TrackManagerConfig {
   mediaManager: MediaManager;
   tsClient: FishjamClient<PeerMetadata, TrackMetadata>;
+  peerStatus: PeerStatus
 }
 
 const TRACK_TYPE_TO_DEVICE = {
@@ -14,7 +15,7 @@ const TRACK_TYPE_TO_DEVICE = {
   audio: "microphone",
 } as const;
 
-export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig): TrackManager => {
+export const useTrackManager = ({ mediaManager, tsClient, peerStatus }: TrackManagerConfig): TrackManager => {
   const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
   const [paused, setPaused] = useState<boolean>(false);
   const [currentTrackMiddleware, setCurrentTrackMiddleware] = useState<TrackMiddleware>(null);
@@ -58,7 +59,7 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
   }
 
   function initialize(deviceId?: string) {
-    return mediaManager?.start(deviceId ?? true);
+    return mediaManager?.start(deviceId);
   }
 
   function stop() {
@@ -69,6 +70,8 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
     if (currentTrackId) throw Error("Track already added");
 
     const media = mediaManager.getMedia();
+
+    console.log({ media: media, stream: media?.stream, track: media?.track })
 
     if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
 
@@ -139,6 +142,54 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
     mediaManager.enable();
   }
 
+  async function toggle(mode: ToggleMode) {
+    if (mode === "suspend") {
+      console.log("Suspend")
+      if (mediaManager.getMedia()?.stream) {
+        console.log("disable")
+        mediaManager.disable()
+        if (currentTrack?.trackId) {
+          console.log("pause")
+          await pauseStreaming()
+        }
+      } else {
+        console.log("start")
+        await mediaManager.start()
+        if (currentTrack?.trackId) {
+          console.log("resumeStreaming")
+          await resumeStreaming()
+        } else {
+          console.log("startStreaming")
+          await startStreaming()
+        }
+      }
+    } else if (mode === "turnOff") {
+      if (mediaManager.getMedia()?.stream) {
+        // to immediately disable stream
+        console.log("disable")
+        mediaManager.disable()
+        if (currentTrack) {
+          console.log("pause")
+          await pauseStreaming()
+        }
+        console.log("stop")
+        await mediaManager.stop()
+      } else {
+        console.log("start")
+        await mediaManager.start()
+        // because mediaTrackManger is async I don't have any guarantee that `peerStatus` is up-to-date
+        if (peerStatus === "joined")
+          if (currentTrack?.trackId) {
+            console.log("resumeStreaming")
+            await resumeStreaming()
+          } else {
+            console.log("startStreaming")
+            await startStreaming()
+          }
+      }
+    }
+  }
+
   return {
     currentTrack,
     setTrackMiddleware,
@@ -153,5 +204,6 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
     currentTrackMiddleware,
     refreshStreamedTrack,
     paused,
+    toggle,
   };
 };

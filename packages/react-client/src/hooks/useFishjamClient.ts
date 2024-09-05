@@ -94,7 +94,11 @@ function endpointToPeerState(
   };
 }
 
-export const useFishjamClient = () => {
+/*
+This is an internally used hook.
+It is not meant to be used by the end user.
+*/
+export const useINTERNAL_FishjamClient = () => {
   const { fishjamClientRef, peerStatusState } = useFishjamContext();
   const [peerStatus, setPeerStatus] = peerStatusState;
 

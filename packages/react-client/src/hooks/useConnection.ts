@@ -1,9 +1,9 @@
 import type { UseConnect } from "../types";
 import { useCallback, useMemo } from "react";
-import { useFishjamClient } from "./useFishjamClient";
+import { useINTERNAL_FishjamClient } from "./useFishjamClient";
 
 export function useConnect(): UseConnect {
-  const client = useFishjamClient();
+  const client = useINTERNAL_FishjamClient();
 
   return useMemo(() => {
     return (config) => {
@@ -16,7 +16,7 @@ export function useConnect(): UseConnect {
 }
 
 export function useDisconnect() {
-  const client = useFishjamClient();
+  const client = useINTERNAL_FishjamClient();
 
   return useCallback(() => {
     client.disconnect();

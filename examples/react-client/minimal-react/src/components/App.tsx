@@ -2,7 +2,7 @@ import VideoPlayer from "./VideoPlayer";
 import {
   useConnect,
   useDisconnect,
-  useFishjamClient,
+  useINTERNAL_FishjamClient,
   useParticipants,
   useScreenShare,
   useStatus,
@@ -19,7 +19,7 @@ export const App = () => {
   const status = useStatus();
   const { participants } = useParticipants();
   const screenShare = useScreenShare();
-  const client = useFishjamClient();
+  const client = useINTERNAL_FishjamClient();
 
   {
     // for e2e test

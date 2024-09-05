@@ -236,6 +236,8 @@ export type UseConnect = (config: ConnectConfig) => () => void;
 type DistinguishedTracks = {
   videoTracks: Track[];
   audioTracks: Track[];
+  screenshareVideoTracks: Track[];
+  screenshareAudioTracks: Track[];
 };
 
 export type PeerStateWithTracks = PeerState & DistinguishedTracks;

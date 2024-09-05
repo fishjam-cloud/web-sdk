@@ -2,7 +2,7 @@ import { useFishjamContext } from "./useFishjamContext";
 import type { Device, AudioDevice, DeviceState } from "../types";
 import { useVideoDeviceManager } from "./deviceManagers/useVideoDeviceManager";
 import { useAudioDeviceManager } from "./deviceManagers/useAudioDeviceManager";
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { getAvailableMedia, getCorrectedResult } from "../mediaInitializer";
 import type { Track } from "../state.types";
 

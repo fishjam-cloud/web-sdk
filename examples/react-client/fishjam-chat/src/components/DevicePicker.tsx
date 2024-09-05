@@ -52,6 +52,22 @@ const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
           Stream
         </Button>
       )}
+      <Button
+        disabled={!!device.stream}
+        onClick={async () => {
+          await device.initialize();
+        }}
+      >
+        Start
+      </Button>
+      <Button
+        disabled={!device.stream}
+        onClick={async () => {
+          await device.stop();
+        }}
+      >
+        Stop
+      </Button>
     </div>
   );
 };

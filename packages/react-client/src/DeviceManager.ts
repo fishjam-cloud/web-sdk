@@ -130,11 +130,12 @@ export class DeviceManager
     this.storageConfig?.saveLastDevice(info);
   }
 
-  // todo `audioDeviceId / videoDeviceId === true` means use last device
-  public async start(deviceId?: string | boolean) {
-    const shouldRestart = !!deviceId && deviceId !== this.deviceState.media?.deviceInfo?.deviceId;
+  public async start(deviceId?: string) {
+    const useLastDevice = deviceId === undefined;
+    const isDeviceStopped = this.deviceState.media?.deviceInfo?.deviceId === undefined;
+    const shouldRestart = (deviceId || useLastDevice) && isDeviceStopped;
 
-    const newDevice = deviceId === true ? this.getLastDevice()?.deviceId || true : deviceId;
+    const newDevice = useLastDevice ? this.getLastDevice()?.deviceId || true : deviceId;
 
     const trackConstraints = this.constraints;
 

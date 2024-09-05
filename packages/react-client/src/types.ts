@@ -237,8 +237,10 @@ export type ConnectConfig = Omit<TSClientConnectConfig<PeerMetadata>, "peerMetad
 export type UseConnect = (config: ConnectConfig) => () => void;
 
 type DistinguishedTracks = {
-  videoTracks: Track[];
-  audioTracks: Track[];
+  cameraTracks: Track[];
+  microphoneTracks: Track[];
+  screenshareVideoTracks: Track[];
+  screenshareAudioTracks: Track[];
 };
 
 export type PeerStateWithTracks = PeerState & DistinguishedTracks;

@@ -1,38 +1,30 @@
 import { TrackMiddleware, useCamera } from "@fishjam-cloud/react-client";
-import { useRef, useCallback } from "react";
+import { useCallback } from "react";
 import { BlurProcessor } from "../utils/blur/BlurProcessor";
 import { Button } from "./Button";
 
 export function BlurToggle() {
   const camera = useCamera();
 
-  const blurProcessorRef = useRef<BlurProcessor | null>(null);
-
   const blurMiddleware: TrackMiddleware = useCallback(
     (videoTrack: MediaStreamTrack | null) => {
-      if (!videoTrack) return videoTrack;
+      if (!videoTrack) return { track: null };
 
       const stream = new MediaStream([videoTrack]);
       const blurProcessor = new BlurProcessor(stream);
-      blurProcessorRef.current = blurProcessor;
-
-      return blurProcessor.stream.getVideoTracks()[0];
+      const track = blurProcessor.stream.getVideoTracks()[0];
+      console.log("APPLYING MIDDLEWARE");
+      return { track, onClear: () => blurProcessor.destroy() };
     },
     [],
   );
 
-  const clearBlurMiddleware = async () => {
-    await camera.setTrackMiddleware(null);
-    blurProcessorRef.current?.destroy();
-    blurProcessorRef.current = null;
-  };
-
-  const setBlurMiddleware = () => camera.setTrackMiddleware(blurMiddleware);
-
   const isMiddlewareSet = camera.currentTrackMiddleware === blurMiddleware;
-  const toggleBlurMiddleware = isMiddlewareSet
-    ? clearBlurMiddleware
-    : setBlurMiddleware;
+
+  const toggleBlurMiddleware = () => {
+    const middlewareToSet = isMiddlewareSet ? null : blurMiddleware;
+    camera.setTrackMiddleware(middlewareToSet);
+  };
 
   const title = isMiddlewareSet ? "Clear blur" : "Blur camera";
 

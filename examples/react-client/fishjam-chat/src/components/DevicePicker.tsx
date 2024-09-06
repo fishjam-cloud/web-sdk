@@ -88,12 +88,10 @@ export function DevicePicker() {
       </div>
 
       <div className="flex flex-col items-center">
-        {camera.rawStream && (
-          <VideoPlayer className="w-64" stream={camera.rawStream} />
+        {camera.stream && (
+          <VideoPlayer className="w-64" stream={camera.stream} />
         )}
-        {microphone.rawStream && (
-          <AudioVisualizer stream={microphone.rawStream} />
-        )}
+        {microphone.stream && <AudioVisualizer stream={microphone.stream} />}
       </div>
 
       <BlurToggle />

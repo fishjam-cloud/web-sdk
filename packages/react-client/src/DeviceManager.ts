@@ -131,7 +131,7 @@ export class DeviceManager
   }
 
   public async start(deviceId?: string) {
-    const newDeviceId = deviceId ?? this.getLastDevice()?.deviceId ?? true;
+    const newDeviceId = deviceId ?? this.getLastDevice()?.deviceId ?? true; // true means start any available device
     const currentDeviceId = this.deviceState.media?.deviceInfo?.deviceId;
 
     const shouldReplaceDevice = Boolean(currentDeviceId && currentDeviceId !== newDeviceId);

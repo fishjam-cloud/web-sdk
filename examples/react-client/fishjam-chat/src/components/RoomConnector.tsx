@@ -41,10 +41,10 @@ export function RoomConnector() {
       url.endsWith(ending) ? url : url + ending;
 
     let url = roomManagerUrl.trim();
-    // in case user copied url from the main Fishjam panel
+    // in case user copied url from the main Fishjam Cloud panel
     url = url.replace("/*roomName*/users/*username*", "");
     url = ensureUrlEndsWith(url, "/");
-    // in case user copied url from the app view
+    // in case user copied url from the Fishjam Cloud App view
     url = ensureUrlEndsWith(url, "room-manager/");
 
     const res = await fetch(`${url}${roomName}/users/${userName}`);

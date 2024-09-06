@@ -2,11 +2,11 @@ import VideoPlayer from "./VideoPlayer";
 import {
   useConnect,
   useDisconnect,
-  useINTERNAL_FishjamClient,
   useParticipants,
   useScreenShare,
   useStatus,
 } from "@fishjam-cloud/react-client";
+import { useINTERNAL_FishjamClient } from "@fishjam-cloud/react-client/internal";
 import { useState, Fragment } from "react";
 
 const FISHJAM_URL = "ws://localhost:5002";

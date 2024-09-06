@@ -131,22 +131,23 @@ export class DeviceManager
   }
 
   public async start(deviceId?: string) {
-    const useLastDevice = deviceId === undefined;
-    const isDeviceStopped = this.deviceState.media?.deviceInfo?.deviceId === undefined;
-    const shouldRestart = (deviceId || useLastDevice) && isDeviceStopped;
+    const newDeviceId = deviceId ?? this.getLastDevice()?.deviceId ?? true;
+    const currentDeviceId = this.deviceState.media?.deviceInfo?.deviceId;
 
-    const newDevice = useLastDevice ? this.getLastDevice()?.deviceId || true : deviceId;
+    const shouldReplaceDevice = Boolean(currentDeviceId && currentDeviceId !== newDeviceId);
+    const isDeviceStopped = currentDeviceId === undefined;
+    const shouldProceed = isDeviceStopped || shouldReplaceDevice;
 
     const trackConstraints = this.constraints;
 
-    const exactConstraints = shouldRestart && prepareMediaTrackConstraints(newDevice, trackConstraints);
+    const exactConstraints = shouldProceed && prepareMediaTrackConstraints(newDeviceId, trackConstraints);
     if (!exactConstraints) return;
 
     this.deviceState.mediaStatus = "Requesting";
 
     this.emit(
       "devicesStarted",
-      { ...this.deviceState, restarting: shouldRestart, constraints: newDevice },
+      { ...this.deviceState, restarting: shouldReplaceDevice, constraints: newDeviceId },
       this.deviceState,
     );
 
@@ -178,7 +179,7 @@ export class DeviceManager
       // Manually stopping tracks on its own does not generate the `ended` event.
       // The ended event in Safari has already been emitted and will be handled in the future.
       // Therefore, in the `onTrackEnded` method, events for already stopped tracks are filtered out to prevent the state from being damaged.
-      if (shouldRestart) {
+      if (shouldReplaceDevice) {
         this.deviceState?.media?.track?.stop();
         this.deviceState.media = {
           stream: stream,
@@ -192,7 +193,7 @@ export class DeviceManager
 
       this.deviceState.mediaStatus = "OK";
 
-      this.emit("devicesReady", { ...this.deviceState, restarted: shouldRestart }, this.deviceState);
+      this.emit("devicesReady", { ...this.deviceState, restarted: shouldReplaceDevice }, this.deviceState);
     } catch (err) {
       const parsedError = parseUserMediaError(err);
       const event = {

@@ -1,51 +1,60 @@
 import { useFishjamContext } from "./useFishjamContext";
-import type { Device, AudioDevice, DeviceState } from "../types";
+import type { Device, AudioDevice } from "../types";
 import { useVideoDeviceManager } from "./deviceManagers/useVideoDeviceManager";
 import { useAudioDeviceManager } from "./deviceManagers/useAudioDeviceManager";
 import { useCallback } from "react";
 import { getAvailableMedia, getCorrectedResult } from "../mediaInitializer";
-import type { Track } from "../state.types";
+import { useProcessedPreviewStream } from "./useProcessedPreviewStream";
 
-function getDeviceProperties(currentTrack: Track | null, deviceState: DeviceState) {
-  const rawStream = deviceState.media?.stream ?? null;
+export function useCamera(): Device {
+  const { videoTrackManager } = useFishjamContext();
+  const { deviceState } = useVideoDeviceManager();
+  const { currentTrack, ...trackManager } = videoTrackManager;
+
+  const processedPreviewStream = useProcessedPreviewStream(videoTrackManager, deviceState.media?.track);
+
+  const stream = currentTrack?.stream ?? processedPreviewStream ?? deviceState.media?.stream ?? null;
+  const isStreaming = Boolean(currentTrack?.stream);
+  const track = stream?.getAudioTracks()[0] ?? null;
+  const trackId = currentTrack?.trackId ?? null;
   const devices = deviceState.devices ?? [];
   const activeDevice = deviceState.media?.deviceInfo ?? null;
 
-  const currentlyStreamed =
-    currentTrack?.stream && currentTrack?.track
-      ? {
-          stream: currentTrack.stream,
-          track: currentTrack.track,
-          trackId: currentTrack.trackId,
-        }
-      : null;
-
-  return { rawStream, devices, activeDevice, currentlyStreamed };
-}
-
-export function useCamera(): Device {
-  const {
-    videoTrackManager: { currentTrack, ...trackManager },
-  } = useFishjamContext();
-  const { deviceState } = useVideoDeviceManager();
-
   return {
     ...trackManager,
-    ...getDeviceProperties(currentTrack, deviceState),
+    stream,
+    devices,
+    activeDevice,
+    isStreaming,
+    track,
+    trackId,
   };
 }
 
 export function useMicrophone(): AudioDevice {
-  const {
-    audioTrackManager: { currentTrack, ...trackManager },
-  } = useFishjamContext();
+  const { audioTrackManager } = useFishjamContext();
 
   const { deviceState } = useAudioDeviceManager();
+  const { currentTrack, ...trackManager } = audioTrackManager;
+
+  const processedPreviewStream = useProcessedPreviewStream(audioTrackManager, deviceState.media?.track);
+
+  const stream = currentTrack?.stream ?? processedPreviewStream ?? deviceState.media?.stream ?? null;
+  const isStreaming = Boolean(currentTrack?.stream);
+  const track = stream?.getAudioTracks()[0] ?? null;
+  const trackId = currentTrack?.trackId ?? null;
+  const devices = deviceState.devices ?? [];
+  const activeDevice = deviceState.media?.deviceInfo ?? null;
   const isAudioPlaying = currentTrack?.vadStatus === "speech";
 
   return {
     ...trackManager,
-    ...getDeviceProperties(currentTrack, deviceState),
+    stream,
+    isStreaming,
+    track,
+    trackId,
+    devices,
+    activeDevice,
     isAudioPlaying,
   };
 }

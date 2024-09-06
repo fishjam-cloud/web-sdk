@@ -160,7 +160,9 @@ export interface MediaManager {
   getDeviceType: () => "audio" | "video";
 }
 
-export type TrackMiddleware = ((track: MediaStreamTrack | null) => MediaStreamTrack | null) | null;
+export type TrackMiddleware =
+  | ((track: MediaStreamTrack | null) => { track: MediaStreamTrack | null; onClear?: () => void })
+  | null;
 
 export type ScreenshareState = {
   stream: MediaStream;
@@ -169,8 +171,10 @@ export type ScreenshareState = {
 } | null;
 
 export type Device = {
-  currentlyStreamed: { track: MediaStreamTrack; trackId: TrackId; stream: MediaStream } | null;
-  rawStream: MediaStream | null;
+  isStreaming: boolean;
+  trackId: TrackId | null;
+  track: MediaStreamTrack | null;
+  stream: MediaStream | null;
   devices: MediaDeviceInfo[];
   activeDevice: MediaDeviceInfo | null;
 } & Omit<TrackManager, "currentTrack">;

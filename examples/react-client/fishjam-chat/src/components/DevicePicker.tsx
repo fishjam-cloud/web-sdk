@@ -18,8 +18,6 @@ interface DeviceSelectProps {
 const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
   const hasJoinedRoom = useStatus() === "joined";
 
-  const isTrackStreamed = !!device.currentlyStreamed;
-
   return (
     <div className="flex justify-between gap-4">
       <select
@@ -33,7 +31,7 @@ const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
         ))}
       </select>
 
-      {isTrackStreamed ? (
+      {device.isStreaming ? (
         <Button
           disabled={!hasJoinedRoom}
           onClick={async () => {

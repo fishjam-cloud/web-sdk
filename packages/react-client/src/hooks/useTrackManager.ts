@@ -1,7 +1,7 @@
 import type { FishjamClient, SimulcastConfig, TrackBandwidthLimit } from "@fishjam-cloud/ts-client";
 import type { MediaManager, PeerMetadata, TrackManager, TrackMetadata, TrackMiddleware } from "../types";
 import { getRemoteOrLocalTrack } from "../utils/track";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 interface TrackManagerConfig {
   mediaManager: MediaManager;
@@ -16,6 +16,8 @@ const TRACK_TYPE_TO_DEVICE = {
 export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig): TrackManager => {
   const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
   const [paused, setPaused] = useState<boolean>(false);
+  const clearMiddlewareFnRef = useRef<(() => void) | null>(null);
+
   const [currentTrackMiddleware, setCurrentTrackMiddleware] = useState<TrackMiddleware>(null);
   const type = TRACK_TYPE_TO_DEVICE[mediaManager.getDeviceType()];
 
@@ -33,25 +35,35 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
 
   const currentTrack = useMemo(() => getRemoteOrLocalTrack(tsClient, currentTrackId), [tsClient, currentTrackId]);
 
+  function clearMiddleware() {
+    clearMiddlewareFnRef.current?.();
+    clearMiddlewareFnRef.current = null;
+  }
+
+  function getProcessedTrack(inputTrack: MediaStreamTrack, middleware = currentTrackMiddleware): MediaStreamTrack {
+    clearMiddleware();
+    const { onClear, track = null } = middleware?.(inputTrack) ?? {};
+    if (onClear) clearMiddlewareFnRef.current = onClear;
+    return track ?? inputTrack;
+  }
+
   async function setTrackMiddleware(middleware: TrackMiddleware): Promise<void> {
     const mediaTrack = mediaManager.getTracks()[0];
-
+    setCurrentTrackMiddleware(() => middleware);
     if (!currentTrack || !mediaTrack) return;
 
-    const trackToSet = middleware ? middleware(mediaTrack) : mediaTrack;
-    await tsClient.replaceTrack(currentTrack.trackId, trackToSet);
-
-    setCurrentTrackMiddleware(() => middleware);
+    await tsClient.replaceTrack(currentTrack.trackId, getProcessedTrack(mediaTrack, middleware));
   }
 
   async function initialize(deviceId?: string) {
     await mediaManager?.start(deviceId ?? true);
     if (!currentTrackId) return;
     const newTrack = mediaManager.getTracks()[0];
-    await tsClient.replaceTrack(currentTrackId, newTrack);
+    await tsClient.replaceTrack(currentTrackId, getProcessedTrack(newTrack));
   }
 
   function stop() {
+    clearMiddleware();
     return mediaManager?.stop();
   }
 
@@ -73,7 +85,7 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
 
     const trackMetadata: TrackMetadata = { ...metadata, displayName, paused: false };
 
-    const processedTrack = currentTrackMiddleware?.(media.track) ?? media.track;
+    const processedTrack = getProcessedTrack(media.track);
 
     const remoteTrackId = await tsClient.addTrack(processedTrack, trackMetadata, simulcastConfig, maxBandwidth);
 
@@ -88,13 +100,12 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
 
     const newTrack = mediaManager.getTracks()[0];
     if (!newTrack) throw Error("New track is empty");
-
-    return tsClient.replaceTrack(currentTrack.trackId, newTrack);
+    return tsClient.replaceTrack(currentTrack.trackId, getProcessedTrack(newTrack));
   }
 
   async function stopStreaming() {
     if (!currentTrack) return;
-
+    clearMiddleware();
     setCurrentTrackId(null);
     setPaused(true);
     return tsClient.removeTrack(currentTrack.trackId);
@@ -117,9 +128,9 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
     const media = mediaManager.getMedia();
 
     if (!media) throw Error("Device is unavailable");
-
+    const processedTrack = media.track ? getProcessedTrack(media.track) : null;
     setPaused(false);
-    await tsClient.replaceTrack(currentTrack.trackId, media.track);
+    await tsClient.replaceTrack(currentTrack.trackId, processedTrack);
 
     const trackMetadata: TrackMetadata = { ...metadata, paused: false };
 

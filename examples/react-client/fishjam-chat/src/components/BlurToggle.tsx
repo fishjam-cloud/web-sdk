@@ -12,19 +12,19 @@ export function BlurToggle() {
 
       const stream = new MediaStream([videoTrack]);
       const blurProcessor = new BlurProcessor(stream);
-      const track = blurProcessor.stream.getVideoTracks()[0];
-      console.log("APPLYING MIDDLEWARE");
-      return { track, onClear: () => blurProcessor.destroy() };
+
+      return {
+        track: blurProcessor.track,
+        onClear: () => blurProcessor.destroy(),
+      };
     },
     [],
   );
 
   const isMiddlewareSet = camera.currentTrackMiddleware === blurMiddleware;
 
-  const toggleBlurMiddleware = () => {
-    const middlewareToSet = isMiddlewareSet ? null : blurMiddleware;
-    camera.setTrackMiddleware(middlewareToSet);
-  };
+  const toggleBlurMiddleware = () =>
+    camera.setTrackMiddleware(isMiddlewareSet ? null : blurMiddleware);
 
   const title = isMiddlewareSet ? "Clear blur" : "Blur camera";
 

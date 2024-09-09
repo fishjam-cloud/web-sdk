@@ -67,17 +67,17 @@ export const useScreenShare = (): ScreenshareApi => {
   const setTracksMiddleware = async (middleware: TracksMiddleware | null): Promise<void> => {
     if (!state?.stream) return;
 
-    const [currentVideo, currentAudio] = getTracks(state.stream);
+    const [video, audio] = getTracks(state.stream);
 
     cleanMiddleware();
 
-    if (middleware) {
-      const { videoTrack, audioTrack, onClear } = middleware(currentVideo, currentAudio);
-      cleanMiddlewareFnRef.current = onClear;
-      await replaceTracks(videoTrack, audioTrack);
-    }
-
-    await replaceTracks(currentVideo, currentAudio);
+    const { videoTrack, audioTrack, onClear } = middleware?.(video, audio) ?? {
+      videoTrack: video,
+      audioTrack: audio,
+      onClear: null,
+    };
+    cleanMiddlewareFnRef.current = onClear;
+    await replaceTracks(videoTrack, audioTrack);
   };
 
   const stopStreaming: ScreenshareApi["stopStreaming"] = useCallback(async () => {

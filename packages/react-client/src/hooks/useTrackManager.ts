@@ -1,13 +1,11 @@
 import type { FishjamClient, SimulcastConfig, TrackBandwidthLimit } from "@fishjam-cloud/ts-client";
 import type { MediaManager, PeerMetadata, ToggleMode, TrackManager, TrackMetadata, TrackMiddleware } from "../types";
 import { getRemoteOrLocalTrack } from "../utils/track";
-import { useEffect, useMemo, useState } from "react";
-import type { PeerStatus } from "../state.types";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 interface TrackManagerConfig {
   mediaManager: MediaManager;
   tsClient: FishjamClient<PeerMetadata, TrackMetadata>;
-  peerStatus: PeerStatus
 }
 
 const TRACK_TYPE_TO_DEVICE = {
@@ -15,20 +13,31 @@ const TRACK_TYPE_TO_DEVICE = {
   audio: "microphone",
 } as const;
 
-export const useTrackManager = ({ mediaManager, tsClient, peerStatus }: TrackManagerConfig): TrackManager => {
+export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig): TrackManager => {
   const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
   const [paused, setPaused] = useState<boolean>(false);
   const [currentTrackMiddleware, setCurrentTrackMiddleware] = useState<TrackMiddleware>(null);
   const type = TRACK_TYPE_TO_DEVICE[mediaManager.getDeviceType()];
 
+  // describe why usePeerStatus()
+  const joinedRef = useRef<boolean>(false);
+
   const metadata: TrackMetadata = { type, paused };
 
   useEffect(() => {
+    const onJoined = () => {
+      joinedRef.current = true;
+    }
+
     const disconnectedHandler = () => {
+      joinedRef.current = false;
       setCurrentTrackId(null);
     };
+
+    tsClient.on("joined", onJoined)
     tsClient.on("disconnected", disconnectedHandler);
     return () => {
+      tsClient.on("joined", onJoined)
       tsClient.off("disconnected", disconnectedHandler);
     };
   }, [tsClient]);
@@ -137,49 +146,38 @@ export const useTrackManager = ({ mediaManager, tsClient, peerStatus }: TrackMan
   }
 
   async function toggle(mode: ToggleMode) {
-    if (mode === "suspend") {
-      console.log("Suspend")
-      if (mediaManager.getMedia()?.stream) {
-        console.log("disable")
-        mediaManager.disable()
-        if (currentTrack?.trackId) {
-          console.log("pause")
-          await pauseStreaming()
-        }
-      } else {
-        console.log("start")
-        await mediaManager.start()
-        if (currentTrack?.trackId) {
-          console.log("resumeStreaming")
-          await resumeStreaming()
-        } else {
-          console.log("startStreaming")
-          await startStreaming()
-        }
+    const suspend = async () => {
+      console.log("disable")
+      mediaManager.disable()
+      if (currentTrack?.trackId) {
+        console.log("pause")
+        await pauseStreaming()
       }
-    } else if (mode === "turnOff") {
-      if (mediaManager.getMedia()?.stream) {
-        // to immediately disable stream
-        console.log("disable")
-        mediaManager.disable()
-        if (currentTrack) {
-          console.log("pause")
-          await pauseStreaming()
-        }
-        console.log("stop")
-        await mediaManager.stop()
+    }
+    const resume = async () => {
+      if (currentTrack?.trackId) {
+        console.log("resumeStreaming")
+        await resumeStreaming()
       } else {
-        console.log("start")
-        await mediaManager.start()
-        // because mediaTrackManger is async I don't have any guarantee that `peerStatus` is up-to-date
-        if (peerStatus === "joined")
-          if (currentTrack?.trackId) {
-            console.log("resumeStreaming")
-            await resumeStreaming()
-          } else {
-            console.log("startStreaming")
-            await startStreaming()
-          }
+        console.log("startStreaming")
+        await startStreaming()
+      }
+    }
+
+
+    if (mediaManager.getMedia()?.stream) {
+      await suspend()
+      console.log("stop")
+
+      if (mode === "turnOff") {
+        await mediaManager.stop()
+      }
+    } else {
+      console.log("start")
+      await mediaManager.start()
+
+      if (joinedRef.current) {
+        await resume()
       }
     }
   }

@@ -19,7 +19,7 @@ const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
   const hasJoinedRoom = useStatus() === "joined";
 
   return (
-    <div className="flex justify-between gap-4">
+    <div className="flex flex-col justify-between gap-4">
       <select
         className="w-full flex-shrink"
         onChange={(e) => device.initialize(e.target.value)}
@@ -31,25 +31,47 @@ const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
         ))}
       </select>
 
-      {device.isStreaming ? (
-        <Button
-          disabled={!hasJoinedRoom}
-          onClick={async () => {
-            await device.stopStreaming();
-          }}
-        >
-          Stop
-        </Button>
-      ) : (
-        <Button
-          disabled={!hasJoinedRoom}
-          onClick={async () => {
-            await device.startStreaming();
-          }}
-        >
-          Stream
-        </Button>
-      )}
+      <div className="flex justify-between">
+        {device.isStreaming ? (
+          <Button
+            disabled={!hasJoinedRoom}
+            onClick={async () => {
+              await device.stopStreaming();
+            }}
+          >
+            Stop streaming
+          </Button>
+        ) : (
+          <Button
+            disabled={!hasJoinedRoom}
+            onClick={async () => {
+              await device.startStreaming();
+            }}
+          >
+            Start streaming
+          </Button>
+        )}
+
+        {device.stream ? (
+          <Button
+            disabled={!device.stream}
+            onClick={async () => {
+              await device.stop();
+            }}
+          >
+            Stop device
+          </Button>
+        ) : (
+          <Button
+            disabled={!!device.stream}
+            onClick={async () => {
+              await device.initialize();
+            }}
+          >
+            Start device
+          </Button>
+        )}
+      </div>
     </div>
   );
 };

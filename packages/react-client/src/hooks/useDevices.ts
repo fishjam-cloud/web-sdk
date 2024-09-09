@@ -64,6 +64,8 @@ export const useInitializeDevices = () => {
 
   const initializeDevices = useCallback(async () => {
     if (hasDevicesBeenInitializedRef.current) return;
+    hasDevicesBeenInitializedRef.current = true;
+
     const videoManager = videoDeviceManagerRef.current;
     const audioManager = audioDeviceManagerRef.current;
 
@@ -102,7 +104,6 @@ export const useInitializeDevices = () => {
       !!constraints.audio,
       deviceErrors.audio,
     );
-    hasDevicesBeenInitializedRef.current = true;
   }, [videoDeviceManagerRef, audioDeviceManagerRef, hasDevicesBeenInitializedRef]);
 
   return { initializeDevices };

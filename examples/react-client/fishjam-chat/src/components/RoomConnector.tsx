@@ -51,7 +51,7 @@ export function RoomConnector() {
     }
 
     // in case user started room manager locally
-    // and provide only host (localhost:5004) or origin (http://localhost:5004)
+    // and provided only host (localhost:5004) or origin (http://localhost:5004)
     if (new URL(url).pathname === "/") {
       url = ensureUrlEndsWith(url, "api/rooms/");
     }

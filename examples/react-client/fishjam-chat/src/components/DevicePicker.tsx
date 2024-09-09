@@ -79,14 +79,14 @@ const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
             await device.toggle();
           }}
         >
-          toggle("turnOff")
+          toggle
         </Button>
         <Button
           onClick={async () => {
             await device.toggle("soft");
           }}
         >
-          toggle("suspend")
+          soft toggle
         </Button>
       </div>
     </div>

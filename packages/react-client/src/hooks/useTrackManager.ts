@@ -18,19 +18,17 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
   const [paused, setPaused] = useState<boolean>(false);
   const [currentTrackMiddleware, setCurrentTrackMiddleware] = useState<TrackMiddleware>(null);
   const type = TRACK_TYPE_TO_DEVICE[mediaManager.getDeviceType()];
-
-  // describe why usePeerStatus()
-  const joinedRef = useRef<boolean>(false);
+  const joined = useRef<boolean>(false);
 
   const metadata: TrackMetadata = { type, paused };
 
   useEffect(() => {
     const onJoined = () => {
-      joinedRef.current = true;
+      joined.current = true;
     };
 
     const disconnectedHandler = () => {
-      joinedRef.current = false;
+      joined.current = false;
       setCurrentTrackId(null);
     };
 
@@ -144,7 +142,7 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
   }
 
   const stream = async () => {
-    if (joinedRef.current) {
+    if (joined.current) {
       if (currentTrack?.trackId) {
         await resumeStreaming();
       } else {

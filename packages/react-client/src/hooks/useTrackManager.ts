@@ -40,9 +40,9 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
     clearMiddlewareFnRef.current = null;
   }
 
-  function getProcessedTrack(inputTrack: MediaStreamTrack, middleware = currentTrackMiddleware): MediaStreamTrack {
+  function clearAndGetProcessedTrack(inputTrack: MediaStreamTrack): MediaStreamTrack {
     clearMiddleware();
-    const { onClear, track = null } = middleware?.(inputTrack) ?? {};
+    const { onClear, track } = currentTrackMiddleware?.(inputTrack) ?? {};
     if (onClear) clearMiddlewareFnRef.current = onClear;
     return track ?? inputTrack;
   }
@@ -52,14 +52,18 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
     setCurrentTrackMiddleware(() => middleware);
     if (!currentTrack || !mediaTrack) return;
 
-    await tsClient.replaceTrack(currentTrack.trackId, getProcessedTrack(mediaTrack, middleware));
+    clearMiddleware();
+    const { onClear, track } = middleware?.(mediaTrack) ?? { track: mediaTrack };
+    if (onClear) clearMiddlewareFnRef.current = onClear;
+
+    await tsClient.replaceTrack(currentTrack.trackId, track);
   }
 
   async function initialize(deviceId?: string) {
     await mediaManager?.start(deviceId ?? true);
     if (!currentTrackId) return;
     const newTrack = mediaManager.getTracks()[0];
-    await tsClient.replaceTrack(currentTrackId, getProcessedTrack(newTrack));
+    await tsClient.replaceTrack(currentTrackId, clearAndGetProcessedTrack(newTrack));
   }
 
   function stop() {
@@ -85,7 +89,7 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
 
     const trackMetadata: TrackMetadata = { ...metadata, displayName, paused: false };
 
-    const processedTrack = getProcessedTrack(media.track);
+    const processedTrack = clearAndGetProcessedTrack(media.track);
 
     const remoteTrackId = await tsClient.addTrack(processedTrack, trackMetadata, simulcastConfig, maxBandwidth);
 
@@ -100,7 +104,7 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
 
     const newTrack = mediaManager.getTracks()[0];
     if (!newTrack) throw Error("New track is empty");
-    return tsClient.replaceTrack(currentTrack.trackId, getProcessedTrack(newTrack));
+    return tsClient.replaceTrack(currentTrack.trackId, clearAndGetProcessedTrack(newTrack));
   }
 
   async function stopStreaming() {
@@ -128,7 +132,7 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
     const media = mediaManager.getMedia();
 
     if (!media) throw Error("Device is unavailable");
-    const processedTrack = media.track ? getProcessedTrack(media.track) : null;
+    const processedTrack = media.track ? clearAndGetProcessedTrack(media.track) : null;
     setPaused(false);
     await tsClient.replaceTrack(currentTrack.trackId, processedTrack);
 

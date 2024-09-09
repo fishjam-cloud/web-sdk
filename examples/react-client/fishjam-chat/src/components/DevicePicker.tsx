@@ -21,7 +21,7 @@ const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
   const isTrackStreamed = !!device.streamedTrack;
 
   return (
-    <div className="flex justify-between gap-4">
+    <div className="flex flex-col justify-between gap-4">
       <select
         className="w-full flex-shrink"
         onChange={(e) => device.initialize(e.target.value)}
@@ -33,32 +33,62 @@ const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
         ))}
       </select>
 
-      {isTrackStreamed ? (
+      <div className="flex justify-between">
+        {isTrackStreamed ? (
+          <Button
+            disabled={!hasJoinedRoom}
+            onClick={async () => {
+              await device.stopStreaming();
+            }}
+          >
+            Stop streaming
+          </Button>
+        ) : (
+          <Button
+            disabled={!hasJoinedRoom}
+            onClick={async () => {
+              await device.startStreaming();
+            }}
+          >
+            Start streaming
+          </Button>
+        )}
+        {device.stream ? (
+          <Button
+            disabled={!device.stream}
+            onClick={async () => {
+              await device.stop();
+            }}
+          >
+            Stop device
+          </Button>
+        ) : (
+          <Button
+            disabled={!!device.stream}
+            onClick={async () => {
+              await device.initialize();
+            }}
+          >
+            Start device
+          </Button>
+        )}
+      </div>
+      <div className="flex justify-between">
         <Button
-          disabled={!hasJoinedRoom}
           onClick={async () => {
-            await device.stopStreaming();
+            await device.toggle("turnOff");
           }}
         >
-          Stop
+          toggle("turnOff")
         </Button>
-      ) : (
         <Button
-          disabled={!hasJoinedRoom}
           onClick={async () => {
-            await device.startStreaming();
+            await device.toggle("suspend");
           }}
         >
-          Stream
+          toggle("suspend")
         </Button>
-      )}
-      <Button
-        onClick={async () => {
-          await device.toggle("turnOff");
-        }}
-      >
-        Toggle
-      </Button>
+      </div>
     </div>
   );
 };
@@ -73,9 +103,9 @@ export function DevicePicker() {
   return (
     <section className="space-y-8">
       <div className="flex flex-col gap-4">
-        <DeviceSelect device={camera}/>
+        <DeviceSelect device={camera} />
 
-        <DeviceSelect device={microphone}/>
+        <DeviceSelect device={microphone} />
 
         {screenShare.stream ? (
           <Button
@@ -96,12 +126,12 @@ export function DevicePicker() {
 
       <div className="flex flex-col items-center">
         {camera.stream && (
-          <VideoPlayer className="w-64" stream={camera.stream}/>
+          <VideoPlayer className="w-64" stream={camera.stream} />
         )}
-        {microphone.stream && <AudioVisualizer stream={microphone.stream}/>}
+        {microphone.stream && <AudioVisualizer stream={microphone.stream} />}
       </div>
 
-      <BlurToggle/>
+      <BlurToggle />
     </section>
   );
 }

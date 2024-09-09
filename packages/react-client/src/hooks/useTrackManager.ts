@@ -27,17 +27,17 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
   useEffect(() => {
     const onJoined = () => {
       joinedRef.current = true;
-    }
+    };
 
     const disconnectedHandler = () => {
       joinedRef.current = false;
       setCurrentTrackId(null);
     };
 
-    tsClient.on("joined", onJoined)
+    tsClient.on("joined", onJoined);
     tsClient.on("disconnected", disconnectedHandler);
     return () => {
-      tsClient.on("joined", onJoined)
+      tsClient.on("joined", onJoined);
       tsClient.off("disconnected", disconnectedHandler);
     };
   }, [tsClient]);
@@ -70,8 +70,6 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
     if (currentTrackId) throw Error("Track already added");
 
     const media = mediaManager.getMedia();
-
-    console.log({ media: media, stream: media?.stream, track: media?.track })
 
     if (!media || !media.stream || !media.track) throw Error("Device is unavailable");
 
@@ -145,40 +143,38 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
     mediaManager.enable();
   }
 
-  async function toggle(mode: ToggleMode) {
-    const suspend = async () => {
-      console.log("disable")
-      mediaManager.disable()
+  const stream = async () => {
+    if (joinedRef.current) {
       if (currentTrack?.trackId) {
-        console.log("pause")
-        await pauseStreaming()
-      }
-    }
-    const resume = async () => {
-      if (currentTrack?.trackId) {
-        console.log("resumeStreaming")
-        await resumeStreaming()
+        await resumeStreaming();
       } else {
-        console.log("startStreaming")
-        await startStreaming()
+        await startStreaming();
       }
     }
+  };
 
+  async function toggle(mode: ToggleMode) {
+    const mediaStream = mediaManager.getMedia()?.stream;
+    const track =
+      mediaManager.getDeviceType() === "video"
+        ? mediaStream?.getVideoTracks()?.[0]
+        : mediaStream?.getAudioTracks()?.[0];
+    const enabled = Boolean(track?.enabled);
 
-    if (mediaManager.getMedia()?.stream) {
-      await suspend()
-      console.log("stop")
-
+    if (mediaStream && enabled) {
+      mediaManager.disable();
+      if (currentTrack?.trackId) {
+        await pauseStreaming();
+      }
       if (mode === "turnOff") {
-        await mediaManager.stop()
+        await mediaManager.stop();
       }
+    } else if (mediaStream && !enabled) {
+      mediaManager.enable();
+      await stream();
     } else {
-      console.log("start")
-      await mediaManager.start()
-
-      if (joinedRef.current) {
-        await resume()
-      }
+      await mediaManager.start();
+      await stream();
     }
   }
 

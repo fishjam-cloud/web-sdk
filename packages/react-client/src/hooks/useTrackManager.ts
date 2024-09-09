@@ -153,7 +153,7 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
     }
   };
 
-  async function toggle(mode: ToggleMode) {
+  async function toggle(mode: ToggleMode = "hard") {
     const mediaStream = mediaManager.getMedia()?.stream;
     const track =
       mediaManager.getDeviceType() === "video"
@@ -166,14 +166,15 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
       if (currentTrack?.trackId) {
         await pauseStreaming();
       }
-      if (mode === "turnOff") {
+
+      if (mode === "hard") {
         await mediaManager.stop();
       }
     } else if (mediaStream && !enabled) {
       mediaManager.enable();
       await stream();
     } else {
-      await mediaManager.start();
+      await mediaManager.start(true);
       await stream();
     }
   }

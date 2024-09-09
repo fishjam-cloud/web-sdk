@@ -130,20 +130,16 @@ export class DeviceManager
     this.storageConfig?.saveLastDevice(info);
   }
 
-  public async start(deviceId?: string) {
-    const useLastDevice = deviceId === undefined;
-    const isDeviceStopped = this.deviceState.media?.deviceInfo?.deviceId === undefined;
-    const shouldRestart = (deviceId || useLastDevice) && isDeviceStopped;
+  // todo `audioDeviceId / videoDeviceId === true` means use last device
+  public async start(deviceId?: string | boolean) {
+    const shouldRestart = !!deviceId && deviceId !== this.deviceState.media?.deviceInfo?.deviceId;
 
-    const newDevice = useLastDevice ? this.getLastDevice()?.deviceId || true : deviceId;
+    const newDevice = deviceId === true ? this.getLastDevice()?.deviceId || true : deviceId;
 
     const trackConstraints = this.constraints;
 
     const exactConstraints = shouldRestart && prepareMediaTrackConstraints(newDevice, trackConstraints);
-
-    if (!exactConstraints) {
-      return;
-    }
+    if (!exactConstraints) return;
 
     this.deviceState.mediaStatus = "Requesting";
 

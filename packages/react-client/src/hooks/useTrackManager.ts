@@ -56,7 +56,7 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
   }
 
   async function initialize(deviceId?: string) {
-    await mediaManager?.start(deviceId);
+    await mediaManager?.start(deviceId ?? true);
     if (!currentTrackId) return;
     const newTrack = mediaManager.getTracks()[0];
     await tsClient.replaceTrack(currentTrackId, newTrack);

@@ -1,7 +1,7 @@
 import type { FishjamClient, SimulcastConfig, TrackBandwidthLimit } from "@fishjam-cloud/ts-client";
-import type { MediaManager, PeerMetadata, TrackManager, TrackMetadata, TrackMiddleware } from "../types";
+import type { MediaManager, PeerMetadata, ToggleMode, TrackManager, TrackMetadata, TrackMiddleware } from "../types";
 import { getRemoteOrLocalTrack } from "../utils/track";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 interface TrackManagerConfig {
   mediaManager: MediaManager;
@@ -19,14 +19,25 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
   const [currentTrackMiddleware, setCurrentTrackMiddleware] = useState<TrackMiddleware>(null);
   const type = TRACK_TYPE_TO_DEVICE[mediaManager.getDeviceType()];
 
+  // describe why usePeerStatus()
+  const joinedRef = useRef<boolean>(false);
+
   const metadata: TrackMetadata = { type, paused };
 
   useEffect(() => {
+    const onJoined = () => {
+      joinedRef.current = true;
+    };
+
     const disconnectedHandler = () => {
+      joinedRef.current = false;
       setCurrentTrackId(null);
     };
+
+    tsClient.on("joined", onJoined);
     tsClient.on("disconnected", disconnectedHandler);
     return () => {
+      tsClient.on("joined", onJoined);
       tsClient.off("disconnected", disconnectedHandler);
     };
   }, [tsClient]);
@@ -132,6 +143,42 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
     mediaManager.enable();
   }
 
+  const stream = async () => {
+    if (joinedRef.current) {
+      if (currentTrack?.trackId) {
+        await resumeStreaming();
+      } else {
+        await startStreaming();
+      }
+    }
+  };
+
+  async function toggle(mode: ToggleMode = "hard") {
+    const mediaStream = mediaManager.getMedia()?.stream;
+    const track =
+      mediaManager.getDeviceType() === "video"
+        ? mediaStream?.getVideoTracks()?.[0]
+        : mediaStream?.getAudioTracks()?.[0];
+    const enabled = Boolean(track?.enabled);
+
+    if (mediaStream && enabled) {
+      mediaManager.disable();
+      if (currentTrack?.trackId) {
+        await pauseStreaming();
+      }
+
+      if (mode === "hard") {
+        await mediaManager.stop();
+      }
+    } else if (mediaStream && !enabled) {
+      mediaManager.enable();
+      await stream();
+    } else {
+      await mediaManager.start(true);
+      await stream();
+    }
+  }
+
   return {
     currentTrack,
     setTrackMiddleware,
@@ -146,5 +193,6 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
     currentTrackMiddleware,
     refreshStreamedTrack,
     paused,
+    toggle,
   };
 };

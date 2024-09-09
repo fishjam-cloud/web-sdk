@@ -73,6 +73,22 @@ const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
           </Button>
         )}
       </div>
+      <div className="flex justify-between">
+        <Button
+          onClick={async () => {
+            await device.toggle();
+          }}
+        >
+          toggle("turnOff")
+        </Button>
+        <Button
+          onClick={async () => {
+            await device.toggle("soft");
+          }}
+        >
+          toggle("suspend")
+        </Button>
+      </div>
     </div>
   );
 };

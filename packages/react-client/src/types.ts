@@ -178,6 +178,8 @@ export type Device = {
 
 export type AudioDevice = Device & { isAudioPlaying: boolean };
 
+export type ToggleMode = "soft" | "hard";
+
 export interface TrackManager {
   initialize: (deviceId?: string) => Promise<void>;
   stop: () => Promise<void>;
@@ -192,6 +194,7 @@ export interface TrackManager {
   currentTrackMiddleware: TrackMiddleware;
   refreshStreamedTrack: () => Promise<void>;
   currentTrack: Track | null;
+  toggle: (mode?: ToggleMode) => Promise<void>;
 }
 
 export type UserMediaAPI = {

@@ -6,7 +6,7 @@ import {
   useScreenShare,
   useStatus,
 } from "@fishjam-cloud/react-client";
-import { useINTERNAL_FishjamClient } from "@fishjam-cloud/react-client/internal";
+import { useFishjamClient_DO_NOT_USE } from "@fishjam-cloud/react-client/internal";
 import { useState, Fragment } from "react";
 
 const FISHJAM_URL = "ws://localhost:5002";
@@ -19,7 +19,7 @@ export const App = () => {
   const status = useStatus();
   const { participants } = useParticipants();
   const screenShare = useScreenShare();
-  const client = useINTERNAL_FishjamClient();
+  const client = useFishjamClient_DO_NOT_USE();
 
   {
     // for e2e test

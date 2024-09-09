@@ -1,6 +1,6 @@
 import type { PeerState } from "../state.types";
 import type { PeerStateWithTracks } from "../types";
-import { useINTERNAL_FishjamClient } from "./useFishjamClient";
+import { useFishjamClient_DO_NOT_USE } from "./useFishjamClient";
 
 function getPeerWithDistinguishedTracks(peerState: PeerState): PeerStateWithTracks {
   const peerTracks = Object.values(peerState.tracks ?? {});
@@ -12,7 +12,7 @@ function getPeerWithDistinguishedTracks(peerState: PeerState): PeerStateWithTrac
 }
 
 export function useParticipants() {
-  const { peers, localPeer } = useINTERNAL_FishjamClient();
+  const { peers, localPeer } = useFishjamClient_DO_NOT_USE();
 
   const localParticipant = localPeer ? getPeerWithDistinguishedTracks(localPeer) : null;
   const participants = Object.values(peers).map(getPeerWithDistinguishedTracks);

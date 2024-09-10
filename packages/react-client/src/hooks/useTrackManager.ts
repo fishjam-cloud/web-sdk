@@ -153,7 +153,7 @@ export const useTrackManager = ({ mediaManager, tsClient }: TrackManagerConfig):
 
   async function toggle(mode: ToggleMode = "hard") {
     const mediaStream = mediaManager.getMedia()?.stream;
-    const track = mediaManager.getTracks()?.[0]
+    const track = mediaManager.getTracks()?.[0];
     const enabled = Boolean(track?.enabled);
 
     if (mediaStream && enabled) {

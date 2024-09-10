@@ -22,7 +22,10 @@ export type DeviceManagerEvents = {
     state: DeviceState,
   ) => void;
   managerInitialized: (state: DeviceState) => void;
-  devicesStarted: (event: { restarting: boolean; constraints?: string | boolean }, state: DeviceState) => void;
+  devicesStarted: (
+    event: { restarting: boolean; constraints?: MediaTrackConstraints | boolean },
+    state: DeviceState,
+  ) => void;
   deviceReady: (event: { stream: MediaStream }, state: DeviceState) => void;
   devicesReady: (event: DeviceState & { restarted: boolean }, state: DeviceState) => void;
   deviceStopped: (state: DeviceState) => void;
@@ -131,7 +134,7 @@ export class DeviceManager
   }
 
   public async start(deviceId?: string) {
-    const newDeviceId = deviceId ?? this.getLastDevice()?.deviceId ?? true; // true means start any available device
+    const newDeviceId: string | undefined = deviceId ?? this.getLastDevice()?.deviceId;
     const currentDeviceId = this.deviceState.media?.deviceInfo?.deviceId;
 
     const shouldReplaceDevice = Boolean(currentDeviceId && currentDeviceId !== newDeviceId);
@@ -147,7 +150,7 @@ export class DeviceManager
 
     this.emit(
       "devicesStarted",
-      { ...this.deviceState, restarting: shouldReplaceDevice, constraints: newDeviceId },
+      { ...this.deviceState, restarting: shouldReplaceDevice, constraints: exactConstraints },
       this.deviceState,
     );
 

@@ -10,7 +10,7 @@ export type FishjamContextType = {
   audioDeviceManagerRef: MutableRefObject<DeviceManager>;
   hasDevicesBeenInitializedRef: MutableRefObject<boolean>;
   screenshareState: [ScreenshareState, React.Dispatch<React.SetStateAction<ScreenshareState>>];
-  peerStatus: PeerStatus,
+  peerStatus: PeerStatus;
   videoTrackManager: TrackManager;
   audioTrackManager: TrackManager;
 };

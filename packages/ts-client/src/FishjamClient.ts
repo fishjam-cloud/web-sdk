@@ -321,7 +321,7 @@ export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as
    * @param {ConnectConfig} config - Configuration object for the client
    */
   connect(config: ConnectConfig<PeerMetadata>): void {
-    this.emit("connectionStarted")
+    this.emit('connectionStarted');
     this.reconnectManager.reset(config.peerMetadata);
     this.connectConfig = config;
 

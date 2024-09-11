@@ -7,7 +7,7 @@ import type { PeerStatus } from "../state.types";
 interface TrackManagerConfig {
   mediaManager: MediaManager;
   tsClient: FishjamClient<PeerMetadata, TrackMetadata>;
-  getCurrentPeerState: () => PeerStatus
+  getCurrentPeerState: () => PeerStatus;
 }
 
 const TRACK_TYPE_TO_DEVICE = {

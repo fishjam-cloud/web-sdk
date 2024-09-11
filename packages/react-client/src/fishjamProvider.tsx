@@ -30,7 +30,7 @@ export function FishjamProvider({ children, config, deviceManagerDefaultConfig }
   const audioTrackManager = useTrackManager({
     mediaManager: audioDeviceManagerRef.current,
     tsClient: fishjamClientRef.current,
-    getCurrentPeerState
+    getCurrentPeerState,
   });
 
   const context = {

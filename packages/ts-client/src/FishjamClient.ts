@@ -17,6 +17,7 @@ import type { ReconnectConfig } from './reconnection';
 import { ReconnectManager } from './reconnection';
 import type { AuthErrorReason } from './auth';
 import { isAuthError } from './auth';
+import { ConnectPromise } from './ConnectPromise';
 
 const STATISTICS_INTERVAL = 10_000;
 
@@ -314,11 +315,15 @@ export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as
    *
    * @param {ConnectConfig} config - Configuration object for the client
    */
-  connect(config: ConnectConfig<PeerMetadata>): void {
+  public async connect(config: ConnectConfig<PeerMetadata>): Promise<void> {
+    const result = new ConnectPromise(this);
+
     this.reconnectManager.reset(config.peerMetadata);
     this.connectConfig = config;
 
     this.initConnection(config.peerMetadata);
+
+    return result.getPromise();
   }
 
   private async initConnection(peerMetadata: PeerMetadata): Promise<void> {

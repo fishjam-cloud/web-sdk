@@ -15,7 +15,7 @@ export const usePeerStatus = (client: FishjamClient<PeerMetadata, TrackMetadata>
     [setPeerStatusState],
   );
 
-  const getCurrentPeerState = useCallback(() => peerStatusRef.current, []);
+  const getCurrentPeerStatus = useCallback(() => peerStatusRef.current, []);
 
   useEffect(() => {
     const setConnecting = () => {
@@ -58,5 +58,5 @@ export const usePeerStatus = (client: FishjamClient<PeerMetadata, TrackMetadata>
     };
   }, [client, setPeerStatus]);
 
-  return { peerStatus, getCurrentPeerState } as const;
+  return { peerStatus, getCurrentPeerStatus } as const;
 };

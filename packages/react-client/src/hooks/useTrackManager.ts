@@ -7,7 +7,7 @@ import type { PeerStatus } from "../state.types";
 interface TrackManagerConfig {
   mediaManager: MediaManager;
   tsClient: FishjamClient<PeerMetadata, TrackMetadata>;
-  getCurrentPeerState: () => PeerStatus;
+  getCurrentPeerStatus: () => PeerStatus;
 }
 
 const TRACK_TYPE_TO_DEVICE = {
@@ -15,7 +15,7 @@ const TRACK_TYPE_TO_DEVICE = {
   audio: "microphone",
 } as const;
 
-export const useTrackManager = ({ mediaManager, tsClient, getCurrentPeerState }: TrackManagerConfig): TrackManager => {
+export const useTrackManager = ({ mediaManager, tsClient, getCurrentPeerStatus }: TrackManagerConfig): TrackManager => {
   const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
   const [paused, setPaused] = useState<boolean>(false);
   const clearMiddlewareFnRef = useRef<(() => void) | null>(null);
@@ -153,7 +153,7 @@ export const useTrackManager = ({ mediaManager, tsClient, getCurrentPeerState }:
   }
 
   const stream = async () => {
-    if (getCurrentPeerState() !== "joined") return;
+    if (getCurrentPeerStatus() !== "joined") return;
 
     if (currentTrack?.trackId) {
       await resumeStreaming();

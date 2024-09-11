@@ -64,9 +64,9 @@ export function RoomConnector() {
     };
 
     connect({
-      token,
+      token:  token,
       url: fishjamUrl,
-    });
+    })
   };
 
   const { defaultRoomManagerUrl, defaultUserName, defaultRoomName } =

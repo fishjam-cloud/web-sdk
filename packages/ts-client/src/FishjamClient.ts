@@ -17,6 +17,7 @@ import type { ReconnectConfig } from './reconnection';
 import { ReconnectManager } from './reconnection';
 import type { AuthErrorReason } from './auth';
 import { isAuthError } from './auth';
+import { Deferred } from "./webrtc/deferred";
 
 const STATISTICS_INTERVAL = 10_000;
 
@@ -270,7 +271,7 @@ export type CreateConfig<PeerMetadata, TrackMetadata> = {
  * ```
  */
 export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as {
-  new <PeerMetadata, TrackMetadata>(): TypedEmitter<Required<MessageEvents<PeerMetadata, TrackMetadata>>>;
+  new<PeerMetadata, TrackMetadata>(): TypedEmitter<Required<MessageEvents<PeerMetadata, TrackMetadata>>>;
 })<PeerMetadata, TrackMetadata> {
   private websocket: WebSocket | null = null;
   private webrtc: WebRTCEndpoint<PeerMetadata, TrackMetadata> | null = null;
@@ -314,11 +315,38 @@ export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as
    *
    * @param {ConnectConfig} config - Configuration object for the client
    */
-  connect(config: ConnectConfig<PeerMetadata>): void {
+  public async connect(config: ConnectConfig<PeerMetadata>): Promise<void> {
+    console.log("starting")
+    const result = new Deferred<void>()
+
+    const onSuccess = () => {
+      console.log("joined")
+      result.resolve()
+    }
+    const onError = () => {
+      console.log("joinError")
+      result.reject("joinError")
+    }
+
+    this.on("joined", onSuccess)
+    this.on("joinError", onError)
+    this.on("authError", onError)
+    this.on("socketError", onError)
+
     this.reconnectManager.reset(config.peerMetadata);
     this.connectConfig = config;
 
     this.initConnection(config.peerMetadata);
+
+    try {
+      // await is necessary in order to wait for finally section
+      return await result.promise
+    } finally {
+      this.removeListener("joined", onSuccess)
+      this.removeListener("joinError", onError)
+      this.removeListener("authError", onError)
+      this.removeListener("socketError", onError)
+    }
   }
 
   private async initConnection(peerMetadata: PeerMetadata): Promise<void> {

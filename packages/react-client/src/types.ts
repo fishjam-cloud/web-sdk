@@ -231,7 +231,7 @@ export type TracksMiddleware = (
 ) => [MediaStreamTrack, MediaStreamTrack | null];
 
 export type ConnectConfig = Omit<TSClientConnectConfig<PeerMetadata>, "peerMetadata"> & { peerMetadata?: PeerMetadata };
-export type UseConnect = (config: ConnectConfig) => () => void;
+export type UseConnect = (config: ConnectConfig) => Promise<void>;
 
 type DistinguishedTracks = {
   cameraTracks: Track[];

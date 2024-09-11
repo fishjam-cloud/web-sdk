@@ -1,27 +1,40 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { PeerStatus } from "../state.types";
 import type { FishjamClient } from "@fishjam-cloud/ts-client";
 import type { PeerMetadata, TrackMetadata } from "../types";
 
 export const usePeerStatus = (client: FishjamClient<PeerMetadata, TrackMetadata>) => {
   const [peerStatus, setPeerStatus] = useState<PeerStatus>(null);
+  const peerStatusRef = useRef<PeerStatus>(null);
+
+  const setInnerStatus = useCallback((status: PeerStatus) => {
+    peerStatusRef.current = status
+    setPeerStatus(status)
+  }, [setPeerStatus]);
+
+  const getCurrentPeerState = useCallback(() => peerStatusRef.current, []);
 
   useEffect(() => {
+    const setConnecting = () => {
+      setInnerStatus("connecting");
+    };
     const setAuthenticated = () => {
-      setPeerStatus("authenticated");
+      setInnerStatus("authenticated");
     };
     const setError = () => {
-      setPeerStatus("error");
+      setInnerStatus("error");
     };
     const setJoined = () => {
-      setPeerStatus("joined");
+      setInnerStatus("joined");
     };
     const setDisconnected = () => {
-      setPeerStatus(null);
+      setInnerStatus(null);
     };
     const setConnected = () => {
-      setPeerStatus("connected");
+      setInnerStatus("connected");
     };
+
+    client.on("connectionStarted", setConnecting);
     client.on("authSuccess", setAuthenticated);
     client.on("joined", setJoined);
     client.on("authError", setError);
@@ -31,6 +44,7 @@ export const usePeerStatus = (client: FishjamClient<PeerMetadata, TrackMetadata>
     client.on("socketOpen", setConnected);
 
     return () => {
+      client.off("connectionStarted", setConnecting);
       client.off("authSuccess", setAuthenticated);
       client.off("joined", setJoined);
       client.off("authError", setError);
@@ -39,7 +53,7 @@ export const usePeerStatus = (client: FishjamClient<PeerMetadata, TrackMetadata>
       client.off("disconnected", setDisconnected);
       client.off("socketOpen", setConnected);
     };
-  }, [client]);
+  }, [client, setInnerStatus]);
 
-  return [peerStatus, setPeerStatus] as const;
+  return { peerStatus, getCurrentPeerState } as const;
 };

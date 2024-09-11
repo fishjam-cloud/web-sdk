@@ -17,7 +17,7 @@ import type { ReconnectConfig } from './reconnection';
 import { ReconnectManager } from './reconnection';
 import type { AuthErrorReason } from './auth';
 import { isAuthError } from './auth';
-import { ConnectPromise } from "./ConnectPromise";
+import { ConnectPromise } from './ConnectPromise';
 
 const STATISTICS_INTERVAL = 10_000;
 
@@ -271,7 +271,7 @@ export type CreateConfig<PeerMetadata, TrackMetadata> = {
  * ```
  */
 export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as {
-  new<PeerMetadata, TrackMetadata>(): TypedEmitter<Required<MessageEvents<PeerMetadata, TrackMetadata>>>;
+  new <PeerMetadata, TrackMetadata>(): TypedEmitter<Required<MessageEvents<PeerMetadata, TrackMetadata>>>;
 })<PeerMetadata, TrackMetadata> {
   private websocket: WebSocket | null = null;
   private webrtc: WebRTCEndpoint<PeerMetadata, TrackMetadata> | null = null;
@@ -316,14 +316,14 @@ export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as
    * @param {ConnectConfig} config - Configuration object for the client
    */
   public async connect(config: ConnectConfig<PeerMetadata>): Promise<void> {
-    const result = new ConnectPromise(this)
+    const result = new ConnectPromise(this);
 
     this.reconnectManager.reset(config.peerMetadata);
     this.connectConfig = config;
 
     this.initConnection(config.peerMetadata);
 
-    return result.getPromise()
+    return result.getPromise();
   }
 
   private async initConnection(peerMetadata: PeerMetadata): Promise<void> {

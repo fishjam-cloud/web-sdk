@@ -35,10 +35,10 @@ export function RoomConnector() {
   const isUserConnected = status === "joined";
 
   const connectToRoom = async ({
-                                 roomManagerUrl,
-                                 roomName,
-                                 userName,
-                               }: FormProps) => {
+    roomManagerUrl,
+    roomName,
+    userName,
+  }: FormProps) => {
     const ensureUrlEndsWith = (url: string, ending: string) =>
       url.endsWith(ending) ? url : url + ending;
 
@@ -76,7 +76,7 @@ export function RoomConnector() {
     connect({
       token: token,
       url: fishjamUrl,
-    })
+    });
   };
 
   const { defaultRoomManagerUrl, defaultUserName, defaultRoomName } =

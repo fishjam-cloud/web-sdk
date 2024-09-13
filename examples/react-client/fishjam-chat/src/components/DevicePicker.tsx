@@ -77,15 +77,17 @@ const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
           onClick={async () => {
             await device.toggle();
           }}
+          title="Stops and starts the physical device"
         >
-          toggle
+          Toggle Device
         </Button>
         <Button
           onClick={async () => {
             await device.toggle("soft");
           }}
+          title="Disables or enables the device. Starts the device if it is stopped"
         >
-          soft toggle
+          Toggle Device (soft)
         </Button>
       </div>
     </div>

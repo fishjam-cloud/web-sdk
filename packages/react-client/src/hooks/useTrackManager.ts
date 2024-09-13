@@ -162,6 +162,9 @@ export const useTrackManager = ({ mediaManager, tsClient, getCurrentPeerStatus }
     }
   };
 
+  /**
+   * @see {@link TrackManager#toggle} for more details.
+   */
   async function toggle(mode: ToggleMode = "hard") {
     const mediaStream = mediaManager.getMedia()?.stream;
     const track = mediaManager.getTracks()?.[0];

@@ -183,7 +183,7 @@ export const useTrackManager = ({ mediaManager, tsClient, getCurrentPeerStatus }
       mediaManager.enable();
       await stream();
     } else {
-      await mediaManager.start(true);
+      await mediaManager.start();
       await stream();
     }
   }

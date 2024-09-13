@@ -18,8 +18,6 @@ interface DeviceSelectProps {
 const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
   const hasJoinedRoom = useStatus() === "joined";
 
-  const isTrackStreamed = !!device.streamedTrack;
-
   return (
     <div className="flex flex-col justify-between gap-4">
       <select
@@ -34,7 +32,7 @@ const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
       </select>
 
       <div className="flex justify-between">
-        {isTrackStreamed ? (
+        {device.isStreaming ? (
           <Button
             disabled={!hasJoinedRoom}
             onClick={async () => {
@@ -53,6 +51,7 @@ const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
             Start streaming
           </Button>
         )}
+
         {device.stream ? (
           <Button
             disabled={!device.stream}
@@ -72,6 +71,24 @@ const DeviceSelect: FC<DeviceSelectProps> = ({ device }) => {
             Start device
           </Button>
         )}
+      </div>
+      <div className="flex justify-between">
+        <Button
+          onClick={async () => {
+            await device.toggle();
+          }}
+          title="Stops and starts the physical device"
+        >
+          Toggle Device
+        </Button>
+        <Button
+          onClick={async () => {
+            await device.toggle("soft");
+          }}
+          title="Disables or enables the device. Starts the device if it is stopped"
+        >
+          Toggle Device (soft)
+        </Button>
       </div>
     </div>
   );

@@ -160,23 +160,30 @@ export interface MediaManager {
   getDeviceType: () => "audio" | "video";
 }
 
-export type TrackMiddleware = ((track: MediaStreamTrack | null) => MediaStreamTrack | null) | null;
+export type TrackMiddleware =
+  | ((track: MediaStreamTrack | null) => { track: MediaStreamTrack | null; onClear?: () => void })
+  | null;
 
-export type ScreenshareState = {
-  stream: MediaStream;
-  trackIds: { videoId: string; audioId?: string };
-  tracksMiddleware?: TracksMiddleware | null;
-} | null;
+export type ScreenshareState = (
+  | {
+      stream: MediaStream;
+      trackIds: { videoId: string; audioId?: string };
+    }
+  | { stream: null; trackIds: null }
+) & { tracksMiddleware?: TracksMiddleware | null };
 
 export type Device = {
-  streamedTrack: MediaStreamTrack | null;
-  streamedTrackId: TrackId | null;
+  isStreaming: boolean;
+  trackId: TrackId | null;
+  track: MediaStreamTrack | null;
   stream: MediaStream | null;
   devices: MediaDeviceInfo[];
   activeDevice: MediaDeviceInfo | null;
 } & Omit<TrackManager, "currentTrack">;
 
 export type AudioDevice = Device & { isAudioPlaying: boolean };
+
+export type ToggleMode = "soft" | "hard";
 
 export interface TrackManager {
   initialize: (deviceId?: string) => Promise<void>;
@@ -192,6 +199,23 @@ export interface TrackManager {
   currentTrackMiddleware: TrackMiddleware;
   refreshStreamedTrack: () => Promise<void>;
   currentTrack: Track | null;
+
+  /**
+   * Toggles the media stream state based on the provided mode.
+   * Either initiates or terminates the device or enables or disables the stream.
+   *
+   * @param {ToggleMode} [mode] - The toggle mode, either "hard" or "soft". Defaults to "hard".
+   *
+   * - **Hard Mode** - Turns the physical device on and off.
+   *   - If started: disables the media stream, pauses streaming, and stops the device.
+   *   - If stopped: starts the device and begins (or resumes) streaming.
+   *
+   * - **Soft Mode** - Enables and disables the media stream. Starts the device if needed.
+   *   - If enabled: disables the media stream and pauses streaming, but does not stop the device.
+   *   - If disabled: enables the media stream and starts (or resumes) streaming.
+   *   - If stopped: starts the device, enables the media stream, and starts (or resumes) streaming.
+   */
+  toggle: (mode?: ToggleMode) => Promise<void>;
 }
 
 export type UserMediaAPI = {
@@ -228,10 +252,10 @@ export type Devices = {
 export type TracksMiddleware = (
   videoTrack: MediaStreamTrack,
   audioTrack: MediaStreamTrack | null,
-) => [MediaStreamTrack, MediaStreamTrack | null];
+) => { videoTrack: MediaStreamTrack; audioTrack: MediaStreamTrack | null; onClear: () => void };
 
 export type ConnectConfig = Omit<TSClientConnectConfig<PeerMetadata>, "peerMetadata"> & { peerMetadata?: PeerMetadata };
-export type UseConnect = (config: ConnectConfig) => () => void;
+export type UseConnect = (config: ConnectConfig) => Promise<void>;
 
 type DistinguishedTracks = {
   cameraTracks: Track[];

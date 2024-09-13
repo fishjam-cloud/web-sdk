@@ -1,40 +1,33 @@
 import { Deferred } from './webrtc/deferred';
 import type { FishjamClient } from './FishjamClient';
 
-export class ConnectPromise<P, T> {
-  private readonly result: Deferred<void>;
-  private readonly clearCallbacks: () => void;
-
-  constructor(fishjamClient: FishjamClient<P, T>) {
-    this.result = new Deferred<void>();
-
-    const onSuccess = () => {
-      this.result.resolve();
-    };
-    const onError = () => {
-      this.result.reject('joinError');
-    };
-
-    fishjamClient.on('joined', onSuccess);
-    fishjamClient.on('joinError', onError);
-    fishjamClient.on('authError', onError);
-    fishjamClient.on('socketError', onError);
-
-    this.clearCallbacks = () => {
-      fishjamClient.removeListener('joined', onSuccess);
-      fishjamClient.removeListener('joinError', onError);
-      fishjamClient.removeListener('authError', onError);
-      fishjamClient.removeListener('socketError', onError);
-    };
+export function connectPromiseFn<P, T>(fishjamClient: FishjamClient<P, T>) {
+  const result = new Deferred<void>();
+  let clearCallbacks: (() => void) | null = () => {
+    console.log("Bad clear")
   }
 
-  public async getPromise(): Promise<void> {
-    try {
-      // `await` is necessary in order to wait until the promise resolves or rejects.
-      // Without it, the finally section clears callbacks immediately.
-      return await this.result.promise;
-    } finally {
-      this.clearCallbacks();
-    }
-  }
+  const onSuccess = () => {
+    clearCallbacks?.();
+    result.resolve();
+  };
+  const onError = () => {
+    clearCallbacks?.();
+    result.reject('joinError');
+  };
+
+  fishjamClient.on('joined', onSuccess);
+  fishjamClient.on('joinError', onError);
+  fishjamClient.on('authError', onError);
+  fishjamClient.on('socketError', onError);
+
+  clearCallbacks = () => {
+    console.log("Real clear")
+    fishjamClient.removeListener('joined', onSuccess);
+    fishjamClient.removeListener('joinError', onError);
+    fishjamClient.removeListener('authError', onError);
+    fishjamClient.removeListener('socketError', onError);
+  };
+
+  return result.promise
 }

@@ -26,12 +26,20 @@ export const useTrackManager = ({ mediaManager, tsClient, getCurrentPeerStatus }
   const metadata: TrackMetadata = { type, paused };
 
   useEffect(() => {
+    const joinedHandler = () => {
+      if (mediaManager.getTracks().length > 0) {
+        startStreaming();
+      }
+    };
+
     const disconnectedHandler = () => {
       setCurrentTrackId(null);
     };
 
+    tsClient.on("joined", joinedHandler);
     tsClient.on("disconnected", disconnectedHandler);
     return () => {
+      tsClient.off("joined", joinedHandler);
       tsClient.off("disconnected", disconnectedHandler);
     };
   }, [tsClient]);

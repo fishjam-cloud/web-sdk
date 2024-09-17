@@ -39,12 +39,10 @@ export const getAvailableMedia = async (
   deviceErrors: AudioVideo<DeviceError | null> = defaultErrors,
 ): Promise<[MediaStream | null, AudioVideo<DeviceError | null>]> => {
   try {
-    console.log("Invocation 1");
     return [await navigator.mediaDevices.getUserMedia(constraints), deviceErrors];
   } catch (err: unknown) {
     if (!(err instanceof DOMException)) return [null, { audio: UNHANDLED_ERROR, video: UNHANDLED_ERROR }];
 
-    console.log(err);
     if (err.name === deviceErrors.audio?.name || err.name === deviceErrors.video?.name) return [null, deviceErrors];
 
     switch (err.name) {

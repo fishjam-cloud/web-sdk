@@ -35,7 +35,7 @@ export const App = () => {
       />
       <div style={{ display: "flex", flexDirection: "row", gap: "8px" }}>
         <button
-          disabled={token === "" || status === "joined"}
+          disabled={token === "" || status === "connected"}
           onClick={() => {
             if (!token || token === "") throw Error("Token is empty");
             connect({
@@ -47,7 +47,7 @@ export const App = () => {
           Connect
         </button>
         <button
-          disabled={status !== "joined"}
+          disabled={status !== "connected"}
           onClick={() => {
             disconnect();
           }}
@@ -55,7 +55,7 @@ export const App = () => {
           Disconnect
         </button>
         <button
-          disabled={status !== "joined"}
+          disabled={status !== "connected"}
           onClick={async () => {
             // stream video only
             screenShare.startStreaming({ audioConstraints: false });
@@ -67,20 +67,17 @@ export const App = () => {
       </div>
 
       {/* Render the video remote tracks from other peers*/}
-      {participants.map((participant) => (
-        <Fragment key={participant.id}>
-          {[
-            ...participant.screenshareVideoTracks,
-            ...participant.cameraTracks,
-          ].map((track) => (
-            <VideoPlayer
-              key={track.trackId}
-              stream={track.stream}
-              peerId={participant.id}
-            />
-          ))}
-        </Fragment>
-      ))}
+      {participants.map(({ id, cameraTrack, screenShareVideoTrack }) => {
+        const camera = cameraTrack?.stream
+        const screenShare = screenShareVideoTrack?.stream
+
+        return (
+          <Fragment key={id}>
+            {camera && <VideoPlayer stream={camera} peerId={id} />}
+            {screenShare && <VideoPlayer stream={screenShare} peerId={id} />}
+          </Fragment>
+        );
+      })}
     </div>
   );
 };

@@ -87,12 +87,7 @@ export const MainControls = () => {
   const disconnect = useDisconnect();
 
   const { localParticipant } = useParticipants();
-  const localTracks = localParticipant
-    ? [
-        ...localParticipant.cameraTracks,
-        ...localParticipant.screenshareVideoTracks,
-      ]
-    : [];
+  const localTracks = [localParticipant?.cameraTrack, localParticipant?.screenShareVideoTrack]
 
   const [broadcastVideoOnConnect, setBroadcastVideoOnConnect] = useAtom(
     broadcastVideoOnConnectAtom,
@@ -174,12 +169,7 @@ export const MainControls = () => {
 
           <button
             className="btn btn-success btn-sm"
-            disabled={
-              token === "" ||
-              status === "authenticated" ||
-              status === "connected" ||
-              status === "joined"
-            }
+            disabled={token === "" || status === "connected"}
             onClick={() => {
               if (!token || token === "") throw Error("Token is empty");
               connect({
@@ -193,12 +183,7 @@ export const MainControls = () => {
 
           <button
             className="btn btn-success btn-sm"
-            disabled={
-              token === "" ||
-              status === "authenticated" ||
-              status === "connected" ||
-              status === "joined"
-            }
+            disabled={token === ""}
             onClick={() => {
               if (!token || token === "") throw Error("Token is empty");
               disconnect();
@@ -214,9 +199,7 @@ export const MainControls = () => {
 
           <button
             className="btn btn-error btn-sm"
-            disabled={
-              status === null || status === "closed" || status === "error"
-            }
+            disabled={status !== "connected"}
             onClick={() => {
               disconnect();
             }}
@@ -229,7 +212,7 @@ export const MainControls = () => {
           <Badge status={status} />
         </div>
 
-        <div className="flex w-full flex-col">
+        <div className="flex w-full flex-col">s
           <ThreeStateRadio
             name="Broadcast video on connect (default false)"
             value={broadcastVideoOnConnect}
@@ -405,19 +388,20 @@ export const MainControls = () => {
             <h3>Streaming:</h3>
 
             <div className="flex max-w-[500px] flex-col gap-2">
-              {localTracks?.map(({ trackId, stream, track }) => (
-                <div key={trackId} className="max-w-[500px] border">
-                  <span>trackId: {trackId}</span>
+              {localTracks?.filter(track => !!track)
+                .map(({ trackId, stream, track }) => (
+                  <div key={trackId} className="max-w-[500px] border">
+                    <span>trackId: {trackId}</span>
 
-                  {track?.kind === "audio" && (
-                    <AudioVisualizer trackId={track.id} stream={stream} />
-                  )}
+                    {track?.kind === "audio" && (
+                      <AudioVisualizer trackId={track.id} stream={stream} />
+                    )}
 
-                  {track?.kind === "video" && (
-                    <VideoPlayer key={trackId} stream={stream} />
-                  )}
-                </div>
-              ))}
+                    {track?.kind === "video" && (
+                      <VideoPlayer key={trackId} stream={stream} />
+                    )}
+                  </div>
+                ))}
             </div>
           </div>
         </div>

@@ -35,30 +35,45 @@ function App() {
                 id="You"
                 name="You"
                 videoTrack={localParticipant.cameraTrack}
+                audioTrack={localParticipant.microphoneTrack}
               />
               {localParticipant.screenShareVideoTrack && (
                 <Tile
                   id="Your screen share"
                   name="Your screen share"
                   videoTrack={localParticipant.screenShareVideoTrack}
+                  audioTrack={localParticipant.screenShareAudioTrack}
                 />
               )}
             </>
           )}
 
           {participants.map(
-            ({ id, cameraTrack, screenShareVideoTrack, metadata }) => {
+            ({
+              id,
+              cameraTrack,
+              microphoneTrack,
+              screenShareVideoTrack,
+              screenShareAudioTrack,
+              metadata,
+            }) => {
               const label = metadata?.displayName ?? id;
 
               return (
                 <Fragment key={id}>
-                  <Tile id={id} name={label} videoTrack={cameraTrack} />
+                  <Tile
+                    id={id}
+                    name={label}
+                    videoTrack={cameraTrack}
+                    audioTrack={microphoneTrack}
+                  />
 
                   {screenShareVideoTrack && (
                     <Tile
                       id={id}
                       name={`Screen share: ${label}`}
                       videoTrack={screenShareVideoTrack}
+                      audioTrack={screenShareAudioTrack}
                     />
                   )}
                 </Fragment>

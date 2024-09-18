@@ -6,13 +6,10 @@ type Props = {
 
 const getBadgeColor = (status: PeerStatus) => {
   switch (status) {
-    case "joined":
+    case "connected":
       return "badge-success";
     case "error":
       return "badge-error";
-    case "authenticated":
-    case "connected":
-      return "badge-info";
     case "connecting":
       return "badge-warning";
   }

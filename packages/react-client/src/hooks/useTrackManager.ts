@@ -148,7 +148,7 @@ export const useTrackManager = ({ mediaManager, tsClient, getCurrentPeerStatus }
   }
 
   const stream = async () => {
-    if (getCurrentPeerStatus() !== "joined") return;
+    if (getCurrentPeerStatus() !== "connected") return;
 
     if (currentTrack?.trackId) {
       await resumeStreaming();

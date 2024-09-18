@@ -36,4 +36,4 @@ export type PeerState = {
   tracks: Record<TrackId, Track>;
 };
 
-export type PeerStatus = "connecting" | "connected" | "authenticated" | "joined" | "error" | "closed" | null;
+export type PeerStatus = "connecting" | "connected" | "error" | "idle";

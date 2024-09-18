@@ -66,7 +66,7 @@ export const DeviceControls = ({
 
       <button
         className="btn btn-success btn-sm"
-        disabled={status !== "joined" || device.isStreaming}
+        disabled={status !== "connected" || device.isStreaming}
         onClick={() => {
           device?.startStreaming();
         }}
@@ -76,7 +76,7 @@ export const DeviceControls = ({
 
       <button
         className="btn btn-error btn-sm"
-        disabled={status !== "joined" || !device.isStreaming}
+        disabled={status !== "connected" || !device.isStreaming}
         onClick={() => {
           device?.stopStreaming();
         }}

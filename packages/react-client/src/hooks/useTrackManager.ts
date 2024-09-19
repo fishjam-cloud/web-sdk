@@ -15,7 +15,11 @@ const TRACK_TYPE_TO_DEVICE = {
   audio: "microphone",
 } as const;
 
-export const useTrackManager = ({ mediaManager, tsClient, getCurrentParticipantStatus }: TrackManagerConfig): TrackManager => {
+export const useTrackManager = ({
+  mediaManager,
+  tsClient,
+  getCurrentParticipantStatus,
+}: TrackManagerConfig): TrackManager => {
   const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
   const [paused, setPaused] = useState<boolean>(false);
   const clearMiddlewareFnRef = useRef<(() => void) | null>(null);

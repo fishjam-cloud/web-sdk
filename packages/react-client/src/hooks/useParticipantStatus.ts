@@ -3,32 +3,32 @@ import type { ParticipantStatus } from "../state.types";
 import type { FishjamClient } from "@fishjam-cloud/ts-client";
 import type { PeerMetadata, TrackMetadata } from "../types";
 
-export const usePeerStatus = (client: FishjamClient<PeerMetadata, TrackMetadata>) => {
-  const [peerStatus, setPeerStatusState] = useState<ParticipantStatus>("idle");
+export const useParticipantStatus = (client: FishjamClient<PeerMetadata, TrackMetadata>) => {
+  const [peerStatus, setParticipantStatusState] = useState<ParticipantStatus>("idle");
   const peerStatusRef = useRef<ParticipantStatus>("idle");
 
-  const setPeerStatus = useCallback(
+  const setParticipantStatus = useCallback(
     (status: ParticipantStatus) => {
       peerStatusRef.current = status;
-      setPeerStatusState(status);
+      setParticipantStatusState(status);
     },
-    [setPeerStatusState],
+    [setParticipantStatusState],
   );
 
-  const getCurrentPeerStatus = useCallback(() => peerStatusRef.current, []);
+  const getCurrentParticipantStatus = useCallback(() => peerStatusRef.current, []);
 
   useEffect(() => {
     const setConnecting = () => {
-      setPeerStatus("connecting");
+      setParticipantStatus("connecting");
     };
     const setError = () => {
-      setPeerStatus("error");
+      setParticipantStatus("error");
     };
     const setJoined = () => {
-      setPeerStatus("connected");
+      setParticipantStatus("connected");
     };
     const setDisconnected = () => {
-      setPeerStatus("idle");
+      setParticipantStatus("idle");
     };
 
     client.on("connectionStarted", setConnecting);
@@ -46,7 +46,7 @@ export const usePeerStatus = (client: FishjamClient<PeerMetadata, TrackMetadata>
       client.off("connectionError", setError);
       client.off("disconnected", setDisconnected);
     };
-  }, [client, setPeerStatus]);
+  }, [client, setParticipantStatus]);
 
-  return { peerStatus, getCurrentPeerStatus } as const;
+  return { peerStatus, getCurrentParticipantStatus } as const;
 };

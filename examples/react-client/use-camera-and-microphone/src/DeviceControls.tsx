@@ -1,11 +1,11 @@
 import type {
-  PeerStatus,
+  ParticipantStatus,
   Device,
   AudioDevice,
 } from "@fishjam-cloud/react-client";
 
 type DeviceControlsProps = {
-  status: PeerStatus;
+  status: ParticipantStatus;
 } & (
   | {
       device: AudioDevice;

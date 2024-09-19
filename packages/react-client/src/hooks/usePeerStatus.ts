@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { PeerStatus } from "../state.types";
+import type { ParticipantStatus } from "../state.types";
 import type { FishjamClient } from "@fishjam-cloud/ts-client";
 import type { PeerMetadata, TrackMetadata } from "../types";
 
 export const usePeerStatus = (client: FishjamClient<PeerMetadata, TrackMetadata>) => {
-  const [peerStatus, setPeerStatusState] = useState<PeerStatus>("idle");
-  const peerStatusRef = useRef<PeerStatus>("idle");
+  const [peerStatus, setPeerStatusState] = useState<ParticipantStatus>("idle");
+  const peerStatusRef = useRef<ParticipantStatus>("idle");
 
   const setPeerStatus = useCallback(
-    (status: PeerStatus) => {
+    (status: ParticipantStatus) => {
       peerStatusRef.current = status;
       setPeerStatusState(status);
     },

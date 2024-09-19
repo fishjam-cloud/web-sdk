@@ -36,4 +36,12 @@ export type PeerState = {
   tracks: Record<TrackId, Track>;
 };
 
-export type PeerStatus = "connecting" | "connected" | "error" | "idle";
+/**
+ * Represents the possible statuses of a peer connection.
+ *
+ * idle - Participant is not connected, either never connected or successfully disconnected.
+ * connecting - Participant is in the process of connecting.
+ * connected - Participant has successfully connected.
+ * error - There was an error in the connection process.
+ */
+export type ParticipantStatus = "connecting" | "connected" | "error" | "idle";

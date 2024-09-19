@@ -2,12 +2,12 @@ import type { FishjamClient, SimulcastConfig, TrackBandwidthLimit } from "@fishj
 import type { MediaManager, PeerMetadata, ToggleMode, TrackManager, TrackMetadata, TrackMiddleware } from "../types";
 import { getRemoteOrLocalTrack } from "../utils/track";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { PeerStatus } from "../state.types";
+import type { ParticipantStatus } from "../state.types";
 
 interface TrackManagerConfig {
   mediaManager: MediaManager;
   tsClient: FishjamClient<PeerMetadata, TrackMetadata>;
-  getCurrentPeerStatus: () => PeerStatus;
+  getCurrentPeerStatus: () => ParticipantStatus;
 }
 
 const TRACK_TYPE_TO_DEVICE = {

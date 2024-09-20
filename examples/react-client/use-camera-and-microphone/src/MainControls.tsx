@@ -172,12 +172,7 @@ export const MainControls = () => {
 
           <button
             className="btn btn-success btn-sm"
-            disabled={
-              token === "" ||
-              status === "authenticated" ||
-              status === "connected" ||
-              status === "joined"
-            }
+            disabled={token === "" || status === "connected"}
             onClick={() => {
               if (!token || token === "") throw Error("Token is empty");
               connect({
@@ -191,12 +186,7 @@ export const MainControls = () => {
 
           <button
             className="btn btn-success btn-sm"
-            disabled={
-              token === "" ||
-              status === "authenticated" ||
-              status === "connected" ||
-              status === "joined"
-            }
+            disabled={token === ""}
             onClick={() => {
               if (!token || token === "") throw Error("Token is empty");
               disconnect();
@@ -212,9 +202,7 @@ export const MainControls = () => {
 
           <button
             className="btn btn-error btn-sm"
-            disabled={
-              status === null || status === "closed" || status === "error"
-            }
+            disabled={status !== "connected"}
             onClick={() => {
               disconnect();
             }}

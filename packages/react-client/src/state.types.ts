@@ -30,7 +30,10 @@ export type TrackWithOrigin = Track & {
 
 export type PeerState = {
   id: PeerId;
-  metadata?: PeerMetadata;
+  metadata: {
+    peer?: PeerMetadata;
+    server: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  };
   rawMetadata: Record<string, unknown>;
   metadataParsingError?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   tracks: Record<TrackId, Track>;

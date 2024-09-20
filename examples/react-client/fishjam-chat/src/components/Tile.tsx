@@ -5,12 +5,12 @@ import AudioVisualizer from "./AudioVisualizer.tsx";
 type Props = {
   id: string;
   name: string;
-  videoTrack: Track | undefined;
-  audioTrack?: Track | undefined;
+  videoTrack?: Track;
+  audioTrack?: Track;
 };
 
 export function Tile({ videoTrack, audioTrack, name, id }: Props) {
-  const isMuted = !audioTrack || audioTrack?.metadata?.paused;
+  const isMuted = !audioTrack || audioTrack.metadata?.paused;
   const isSpeaking = audioTrack?.vadStatus === "speech";
 
   return (

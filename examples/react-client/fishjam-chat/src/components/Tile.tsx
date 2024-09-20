@@ -1,6 +1,6 @@
 import VideoPlayer from "./VideoPlayer";
 import { Track } from "@fishjam-cloud/react-client";
-import AudioVisualizer from "./AudioVisualizer.tsx";
+import AudioVisualizer from "./AudioVisualizer";
 
 type Props = {
   id: string;

@@ -4,18 +4,18 @@ import type { FishjamClient } from "@fishjam-cloud/ts-client";
 import type { PeerMetadata, TrackMetadata } from "../types";
 
 export const useParticipantStatus = (client: FishjamClient<PeerMetadata, TrackMetadata>) => {
-  const [peerStatus, setParticipantStatusState] = useState<ParticipantStatus>("idle");
-  const peerStatusRef = useRef<ParticipantStatus>("idle");
+  const [participantStatus, setParticipantStatusState] = useState<ParticipantStatus>("idle");
+  const participantStatusRef = useRef<ParticipantStatus>("idle");
 
   const setParticipantStatus = useCallback(
     (status: ParticipantStatus) => {
-      peerStatusRef.current = status;
+      participantStatusRef.current = status;
       setParticipantStatusState(status);
     },
     [setParticipantStatusState],
   );
 
-  const getCurrentParticipantStatus = useCallback(() => peerStatusRef.current, []);
+  const getCurrentParticipantStatus = useCallback(() => participantStatusRef.current, []);
 
   useEffect(() => {
     const setConnecting = () => {
@@ -48,5 +48,5 @@ export const useParticipantStatus = (client: FishjamClient<PeerMetadata, TrackMe
     };
   }, [client, setParticipantStatus]);
 
-  return { peerStatus, getCurrentParticipantStatus } as const;
+  return { participantStatus, getCurrentParticipantStatus } as const;
 };

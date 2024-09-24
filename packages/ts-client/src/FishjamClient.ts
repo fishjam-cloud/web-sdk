@@ -366,7 +366,6 @@ export class FishjamClient<PeerMetadata, TrackMetadata> extends (EventEmitter as
 
     const socketOpenHandler = (event: Event) => {
       this.emit('socketOpen', event);
-      console.log(token);
       const message = PeerMessage.encode({ authRequest: { token } }).finish();
       this.websocket?.send(message);
     };

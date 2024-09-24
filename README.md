@@ -1,6 +1,6 @@
 # Fishjam Cloud Web Client
 
-React and TypeScript client libraries for [Fishjam Cloud](https://cloud.fishjam.stream).
+React and TypeScript client libraries for [Fishjam Cloud](https://fishjam.io).
 
 ## Documentation
 

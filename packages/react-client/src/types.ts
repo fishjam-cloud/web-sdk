@@ -6,9 +6,12 @@ import type {
 } from "@fishjam-cloud/ts-client";
 import type { PeerState, Track, TrackId } from "./state.types";
 
+export type ClientPeerMetadata = {
+  displayName?: string;
+};
 // todo change to Inner / Hidden metadata
 export type PeerMetadata = {
-  displayName?: string;
+  peer?: ClientPeerMetadata;
 };
 
 export type TrackMetadata = {

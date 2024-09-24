@@ -78,7 +78,7 @@ export function RoomConnector() {
     await connect({
       token: participantToken,
       url: fishjamUrl,
-      peerMetadata: { displayName: participantName },
+      peerMetadata: { peer: { displayName: participantName } },
     });
   };
 

@@ -4,6 +4,7 @@ services:
   fishjam:
     image: "ghcr.io/fishjam-cloud/fishjam:0.8.0"
     container_name: fishjam
+    platform: linux/x86_64
     restart: on-failure
     healthcheck:
       test: >

@@ -266,10 +266,5 @@ type DistinguishedTracks = {
 
 export type PeerStateWithTracks = PeerState & DistinguishedTracks;
 
-export type Participiants = {
-  localPeer: PeerStateWithTracks | null;
-  peers: PeerStateWithTracks[];
-};
-
 export type TrackType = TrackKind | "audiovideo";
 export type MediaDeviceType = "displayMedia" | "userMedia";

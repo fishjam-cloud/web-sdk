@@ -17,7 +17,6 @@ export type { PeerState, Track, PeerId, TrackId, TrackWithOrigin, Origin, PeerSt
 
 export type {
   DeviceManagerConfig,
-  Participiants,
   StorageConfig,
   Devices,
   Device,

@@ -1,11 +1,4 @@
-import type {
-  DeviceManagerConfig,
-  DeviceState,
-  MediaManager,
-  StorageConfig,
-  DeviceError,
-  DeviceManagerStatus,
-} from "./types";
+import type { DeviceError, DeviceManagerStatus, DeviceState, MediaManager, StorageConfig } from "./types";
 
 import { prepareMediaTrackConstraints, toMediaTrackConstraints } from "./constraints";
 
@@ -35,12 +28,19 @@ export type DeviceManagerEvents = {
   error: (event: any, state: DeviceState) => void;
 };
 
+export type DeviceManagerConfig = {
+  deviceType: "audio" | "video";
+  defaultConstraints: MediaTrackConstraints;
+  userConstraints?: boolean | MediaTrackConstraints;
+  storage?: boolean | StorageConfig;
+};
+
 export class DeviceManager
   extends (EventEmitter as new () => TypedEmitter<DeviceManagerEvents>)
   implements MediaManager
 {
-  private constraints: MediaTrackConstraints | undefined;
-  private storageConfig: StorageConfig | null;
+  private readonly constraints: boolean | MediaTrackConstraints;
+  private readonly storageConfig: StorageConfig | null;
 
   private status: DeviceManagerStatus = "uninitialized";
   private readonly deviceType: "audio" | "video";
@@ -53,11 +53,11 @@ export class DeviceManager
     error: null,
   };
 
-  constructor(deviceType: "audio" | "video", defaultConfig?: DeviceManagerConfig) {
+  constructor({ deviceType, storage, userConstraints, defaultConstraints }: DeviceManagerConfig) {
     super();
-    this.storageConfig = this.createStorageConfig(deviceType, defaultConfig?.storage);
+    this.storageConfig = this.createStorageConfig(deviceType, storage);
     this.deviceType = deviceType;
-    this.constraints = toMediaTrackConstraints(defaultConfig?.trackConstraints ?? true);
+    this.constraints = toMediaTrackConstraints(defaultConstraints, userConstraints);
   }
 
   private createStorageConfig(deviceType: "audio" | "video", storage?: boolean | StorageConfig): StorageConfig | null {
@@ -70,13 +70,8 @@ export class DeviceManager
     return this.status;
   }
 
-  public getConstraints(
-    currentConstraints: boolean | MediaTrackConstraints | undefined,
-  ): MediaTrackConstraints | undefined {
-    if (currentConstraints === false) return undefined;
-    if (currentConstraints === undefined || currentConstraints === true) return this.constraints;
-
-    return currentConstraints ?? this.constraints;
+  public getConstraints(): MediaTrackConstraints | boolean {
+    return this.constraints;
   }
 
   public getMedia = () => this.deviceState.media;
@@ -129,7 +124,6 @@ export class DeviceManager
   }
 
   private saveLastDevice(info: MediaDeviceInfo) {
-    if (!this.storageConfig) console.warn("Device manager storage has been disabled");
     this.storageConfig?.saveLastDevice(info);
   }
 
@@ -141,9 +135,7 @@ export class DeviceManager
     const isDeviceStopped = currentDeviceId === undefined;
     const shouldProceed = isDeviceStopped || shouldReplaceDevice;
 
-    const trackConstraints = this.constraints;
-
-    const exactConstraints = shouldProceed && prepareMediaTrackConstraints(newDeviceId, trackConstraints);
+    const exactConstraints = shouldProceed && prepareMediaTrackConstraints(newDeviceId, this.constraints);
     if (!exactConstraints) return;
 
     this.deviceState.mediaStatus = "Requesting";
@@ -247,9 +239,4 @@ export class DeviceManager
   public getDeviceType = () => {
     return this.deviceType;
   };
-
-  public setConfig(storage?: boolean | StorageConfig, constraints?: boolean | MediaTrackConstraints) {
-    this.storageConfig = this.createStorageConfig(this.deviceType, storage);
-    this.constraints = constraints ? toMediaTrackConstraints(constraints) : undefined;
-  }
 }

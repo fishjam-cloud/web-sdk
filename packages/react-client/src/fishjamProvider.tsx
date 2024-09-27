@@ -1,27 +1,45 @@
 import { useRef, useState, type PropsWithChildren } from "react";
 import { useTrackManager } from "./hooks/useTrackManager";
-import type { DeviceManagerConfig, PeerMetadata, ScreenShareState, TrackMetadata } from "./types";
+import type { DeviceManagerUserConfig, PeerMetadata, ScreenShareState, TrackMetadata } from "./types";
 import { FishjamClient, type ReconnectConfig } from "@fishjam-cloud/ts-client";
 import type { FishjamContextType } from "./hooks/useFishjamContext";
 import { FishjamContext } from "./hooks/useFishjamContext";
 import { DeviceManager } from "./DeviceManager";
 import { useParticipantStatus } from "./hooks/useParticipantStatus";
 import { useFishjamClientState } from "./hooks/useFishjamClientState";
+import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "./constraints";
 
 interface FishjamProviderProps extends PropsWithChildren {
   config?: { reconnect?: ReconnectConfig | boolean };
-  deviceManagerDefaultConfig?: DeviceManagerConfig;
+  deviceManagerConfig?: DeviceManagerUserConfig;
 }
 
 /**
  * @category Components
  */
-export function FishjamProvider({ children, config, deviceManagerDefaultConfig }: FishjamProviderProps) {
+export function FishjamProvider({ children, config, deviceManagerConfig }: FishjamProviderProps) {
   const fishjamClientRef = useRef(new FishjamClient<PeerMetadata, TrackMetadata>(config));
 
   const hasDevicesBeenInitializedRef = useRef(false);
-  const videoDeviceManagerRef = useRef(new DeviceManager("video", deviceManagerDefaultConfig));
-  const audioDeviceManagerRef = useRef(new DeviceManager("audio", deviceManagerDefaultConfig));
+  const storage = deviceManagerConfig?.storage;
+
+  const videoDeviceManagerRef = useRef(
+    new DeviceManager({
+      deviceType: "video",
+      defaultConstraints: VIDEO_TRACK_CONSTRAINTS,
+      userConstraints: deviceManagerConfig?.videoTrackConstraints,
+      storage,
+    }),
+  );
+
+  const audioDeviceManagerRef = useRef(
+    new DeviceManager({
+      deviceType: "audio",
+      defaultConstraints: AUDIO_TRACK_CONSTRAINTS,
+      userConstraints: deviceManagerConfig?.audioTrackConstraints,
+      storage,
+    }),
+  );
 
   const screenShareState = useState<ScreenShareState>({ stream: null, trackIds: null });
   const { peerStatus, getCurrentParticipantStatus } = useParticipantStatus(fishjamClientRef.current);

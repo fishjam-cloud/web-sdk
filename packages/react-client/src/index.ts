@@ -16,7 +16,7 @@ export { FishjamProvider } from "./fishjamProvider";
 export type { PeerState, Track, PeerId, TrackId, TrackWithOrigin, Origin, ParticipantStatus } from "./state.types";
 
 export type {
-  DeviceManagerConfig,
+  DeviceManagerUserConfig,
   Participiants,
   StorageConfig,
   Devices,

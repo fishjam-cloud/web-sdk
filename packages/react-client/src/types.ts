@@ -44,30 +44,15 @@ export type DeviceState = {
   error: DeviceError | null;
 };
 
-export type MediaState = {
-  video: DeviceState;
-  audio: DeviceState;
-};
-
-export type DeviceManagerInitConfig = {
+export type DeviceManagerUserConfig = {
   videoTrackConstraints?: boolean | MediaTrackConstraints;
   audioTrackConstraints?: boolean | MediaTrackConstraints;
-};
-
-export type DeviceManagerConfig = {
-  trackConstraints?: boolean | MediaTrackConstraints;
-  startOnMount?: boolean;
   storage?: boolean | StorageConfig;
 };
 
 export type StorageConfig = {
   getLastDevice: (() => MediaDeviceInfo | null) | null;
   saveLastDevice: (info: MediaDeviceInfo) => void;
-};
-
-export type DeviceManagerStartConfig = {
-  audioDeviceId?: string | boolean;
-  videoDeviceId?: string | boolean;
 };
 
 export type DeviceError =

@@ -6,6 +6,16 @@ import type {
 } from "@fishjam-cloud/ts-client";
 import type { DistinguishedTracks, PeerMetadata, PeerState, TrackId, TrackManager, TrackMetadata } from "./internal";
 
+export type Track = {
+  stream: MediaStream | null;
+  encoding: Encoding | null;
+  trackId: TrackId;
+  metadata?: TrackMetadata;
+  simulcastConfig: SimulcastConfig | null;
+  vadStatus: VadStatus;
+  track: MediaStreamTrack | null;
+};
+
 export type TrackMiddleware =
   | ((track: MediaStreamTrack | null) => { track: MediaStreamTrack | null; onClear?: () => void })
   | null;
@@ -51,14 +61,4 @@ export type DeviceManagerConfig = {
 export type StorageConfig = {
   getLastDevice: (() => MediaDeviceInfo | null) | null;
   saveLastDevice: (info: MediaDeviceInfo) => void;
-};
-
-export type Track = {
-  stream: MediaStream | null;
-  encoding: Encoding | null;
-  trackId: TrackId;
-  metadata?: TrackMetadata;
-  simulcastConfig: SimulcastConfig | null;
-  vadStatus: VadStatus;
-  track: MediaStreamTrack | null;
 };

@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useSyncExternalStore } from "react";
 import type { Component, Endpoint, MessageEvents, Peer, TrackContext, FishjamClient } from "@fishjam-cloud/ts-client";
 import type { PeerMetadata, PeerState, TrackId, TrackMetadata } from "../types/internal";
-import { Track } from "../types/public";
+import type { Track } from "../types/public";
 
 const eventNames = [
   "socketClose",

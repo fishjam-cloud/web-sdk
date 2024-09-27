@@ -81,7 +81,7 @@ export const useTrackManager = ({ mediaManager, tsClient, getCurrentPeerStatus }
       // see `getRemoteOrLocalTrackContext()` explanation
       setCurrentTrackId(media.track.id);
 
-      const displayName = tsClient.getLocalPeer()?.metadata?.displayName;
+      const displayName = tsClient.getLocalPeer()?.metadata?.peer?.displayName;
 
       const trackMetadata: TrackMetadata = { ...metadata, displayName, paused: false };
 

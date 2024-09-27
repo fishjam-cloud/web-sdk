@@ -32,7 +32,7 @@ export type PeerState = {
   id: PeerId;
   metadata: {
     peer?: PeerMetadata;
-    server: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    server: Record<string, unknown>
   };
   rawMetadata: Record<string, unknown>;
   metadataParsingError?: any; // eslint-disable-line @typescript-eslint/no-explicit-any

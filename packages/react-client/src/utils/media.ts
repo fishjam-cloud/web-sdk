@@ -1,5 +1,5 @@
 import type { CurrentDevices, DeviceError, DevicesStatus, DeviceState } from "../types/internal";
-import { StorageConfig } from "../types/public";
+import type { StorageConfig } from "../types/public";
 
 import { loadObject, saveObject } from "./localStorage";
 

@@ -13,7 +13,19 @@ export {
 } from "./hooks/public";
 export { FishjamProvider } from "./fishjamProvider";
 
-export * from "./types/public";
+export {
+  Track,
+  TrackMiddleware,
+  TracksMiddleware,
+  PeerStatus,
+  ToggleMode,
+  Device,
+  AudioDevice,
+  PeerWithTracks,
+  ConnectConfig,
+  DeviceManagerConfig,
+  StorageConfig,
+} from "./types/public";
 
 export { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS, SCREEN_SHARING_MEDIA_CONSTRAINTS } from "./constraints";
 

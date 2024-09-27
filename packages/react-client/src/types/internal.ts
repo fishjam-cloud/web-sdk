@@ -1,10 +1,17 @@
-import type {
-  ConnectConfig as TSClientConnectConfig,
-  SimulcastConfig,
-  TrackBandwidthLimit,
-  TrackKind,
-} from "@fishjam-cloud/ts-client";
-import type { PeerState, Track, TrackId } from "./state.types";
+import type { SimulcastConfig, TrackBandwidthLimit, TrackKind } from "@fishjam-cloud/ts-client";
+import type { ToggleMode, Track, TrackMiddleware, TracksMiddleware } from "./public";
+
+export type TrackId = string;
+export type PeerId = string;
+
+export type PeerState = {
+  id: PeerId;
+  metadata: {
+    peer?: PeerMetadata;
+    server: Record<string, unknown>;
+  };
+  tracks: Record<TrackId, Track>;
+};
 
 // todo change to Inner / Hidden metadata
 export type PeerMetadata = {
@@ -54,17 +61,6 @@ export type DeviceManagerInitConfig = {
   audioTrackConstraints?: boolean | MediaTrackConstraints;
 };
 
-export type DeviceManagerConfig = {
-  trackConstraints?: boolean | MediaTrackConstraints;
-  startOnMount?: boolean;
-  storage?: boolean | StorageConfig;
-};
-
-export type StorageConfig = {
-  getLastDevice: (() => MediaDeviceInfo | null) | null;
-  saveLastDevice: (info: MediaDeviceInfo) => void;
-};
-
 export type DeviceManagerStartConfig = {
   audioDeviceId?: string | boolean;
   videoDeviceId?: string | boolean;
@@ -78,78 +74,6 @@ export type DeviceError =
 
 export type CurrentDevices = { videoinput: MediaDeviceInfo | null; audioinput: MediaDeviceInfo | null };
 
-export type UseSetupMediaConfig = {
-  camera: {
-    /**
-     * Determines whether broadcasting should start when the user connects to the server with an active camera stream.
-     */
-    broadcastOnConnect?: boolean;
-    /**
-     * Determines whether broadcasting should start when the user initiates the camera and is connected to the server.
-     */
-    broadcastOnDeviceStart?: boolean;
-    /**
-     * Determines whether track should be replaced when the user requests a device.
-     * default: replace
-     */
-    onDeviceChange?: "replace" | "remove";
-    /**
-     * Determines whether currently broadcasted track should be removed or muted
-     * when the user stopped a device.
-     * default: replace
-     */
-    onDeviceStop?: "remove" | "mute";
-
-    trackConstraints: boolean | MediaTrackConstraints;
-    defaultSimulcastConfig?: SimulcastConfig;
-    defaultMaxBandwidth?: TrackBandwidthLimit;
-  };
-  microphone: {
-    /**
-     * Determines whether broadcasting should start when the user connects to the server with an active camera stream.
-     */
-    broadcastOnConnect?: boolean;
-    /**
-     * Determines whether broadcasting should start when the user initiates the camera and is connected to the server.
-     */
-    broadcastOnDeviceStart?: boolean;
-    /**
-     * Determines whether currently broadcasted track should be replaced or stopped
-     * when the user changed a device.
-     * default: replace
-     */
-    onDeviceChange?: "replace" | "remove";
-
-    /**
-     * Determines whether currently broadcasted track should be removed or muted
-     * when the user stopped a device.
-     * default: replace
-     */
-    onDeviceStop?: "remove" | "mute";
-
-    trackConstraints: boolean | MediaTrackConstraints;
-    defaultMaxBandwidth?: TrackBandwidthLimit;
-  };
-  screenShare: {
-    /**
-     * Determines whether broadcasting should start when the user connects to the server with an active camera stream.
-     */
-    broadcastOnConnect?: boolean;
-    /**
-     * Determines whether broadcasting should start when the user initiates the camera and is connected to the server.
-     */
-    broadcastOnDeviceStart?: boolean;
-
-    defaultMaxBandwidth?: TrackBandwidthLimit;
-  };
-  startOnMount?: boolean;
-  storage?: boolean | StorageConfig;
-};
-
-export type UseSetupMediaResult = {
-  init: () => void;
-};
-
 export interface MediaManager {
   start: (deviceId?: string) => Promise<void>;
   stop: () => Promise<void>;
@@ -160,10 +84,6 @@ export interface MediaManager {
   getDeviceType: () => "audio" | "video";
 }
 
-export type TrackMiddleware =
-  | ((track: MediaStreamTrack | null) => { track: MediaStreamTrack | null; onClear?: () => void })
-  | null;
-
 export type ScreenShareState = (
   | {
       stream: MediaStream;
@@ -171,19 +91,6 @@ export type ScreenShareState = (
     }
   | { stream: null; trackIds: null }
 ) & { tracksMiddleware?: TracksMiddleware | null };
-
-export type Device = {
-  isStreaming: boolean;
-  trackId: TrackId | null;
-  track: MediaStreamTrack | null;
-  stream: MediaStream | null;
-  devices: MediaDeviceInfo[];
-  activeDevice: MediaDeviceInfo | null;
-} & Omit<TrackManager, "currentTrack">;
-
-export type AudioDevice = Device & { isAudioPlaying: boolean };
-
-export type ToggleMode = "soft" | "hard";
 
 export interface TrackManager {
   initialize: (deviceId?: string) => Promise<void>;
@@ -249,22 +156,12 @@ export type Devices = {
   microphone: UserMediaAPI;
 };
 
-export type TracksMiddleware = (
-  videoTrack: MediaStreamTrack,
-  audioTrack: MediaStreamTrack | null,
-) => { videoTrack: MediaStreamTrack; audioTrack: MediaStreamTrack | null; onClear: () => void };
-
-export type ConnectConfig = Omit<TSClientConnectConfig<PeerMetadata>, "peerMetadata"> & { peerMetadata?: PeerMetadata };
-export type UseConnect = (config: ConnectConfig) => Promise<void>;
-
-type DistinguishedTracks = {
+export type DistinguishedTracks = {
   cameraTrack?: Track;
   microphoneTrack?: Track;
   screenShareVideoTrack?: Track;
   screenShareAudioTrack?: Track;
 };
-
-export type PeerStateWithTracks = PeerState & DistinguishedTracks;
 
 export type TrackType = TrackKind | "audiovideo";
 export type MediaDeviceType = "displayMedia" | "userMedia";

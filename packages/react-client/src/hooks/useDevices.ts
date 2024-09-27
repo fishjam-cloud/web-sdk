@@ -1,11 +1,11 @@
 import { useFishjamContext } from "./useFishjamContext";
-import type { AudioDevice, Device } from "../types";
 import { useVideoDeviceManager } from "./deviceManagers/useVideoDeviceManager";
 import { useAudioDeviceManager } from "./deviceManagers/useAudioDeviceManager";
 import { useCallback } from "react";
 import { getAvailableMedia, getCorrectedResult } from "../mediaInitializer";
 import { useProcessedPreviewStream } from "./useProcessedPreviewStream";
 import { prepareConstraints } from "../constraints";
+import type { AudioDevice, Device } from "../types/public";
 
 /**
  *

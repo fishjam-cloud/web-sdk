@@ -1,7 +1,7 @@
 import type { CurrentDevices, DeviceError, DevicesStatus, DeviceState } from "../types/internal";
 
 import { loadObject, saveObject } from "./localStorage";
-import { PersistLastDeviceHandlers } from "../types/public";
+import type { PersistLastDeviceHandlers } from "../types/public";
 
 export const removeSpecifiedDeviceFromConstraints = (
   trackConstraints?: boolean | MediaTrackConstraints,

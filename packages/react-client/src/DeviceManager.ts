@@ -6,7 +6,7 @@ import EventEmitter from "events";
 import type TypedEmitter from "typed-emitter";
 import { getDeviceInfo, getLocalStorageConfig, prepareDeviceState } from "./utils/media";
 import { parseUserMediaError } from "./utils/errors";
-import { PersistLastDeviceHandlers } from "./types/public";
+import type { PersistLastDeviceHandlers } from "./types/public";
 
 export type DeviceManagerEvents = {
   managerStarted: (

@@ -125,17 +125,6 @@ export interface TrackManager {
   toggle: (mode?: ToggleMode) => Promise<void>;
 }
 
-export type UserMediaAPI = {
-  status: DevicesStatus | null; // todo how to remove null
-  stream: MediaStream | null;
-  track: MediaStreamTrack | null;
-  enabled: boolean;
-  mediaStatus: MediaStatus | null;
-  deviceInfo: MediaDeviceInfo | null;
-  error: DeviceError | null;
-  devices: MediaDeviceInfo[] | null;
-};
-
 export type ScreenshareApi = {
   startStreaming: (props?: {
     audioConstraints?: boolean | MediaTrackConstraints;
@@ -151,17 +140,9 @@ export type ScreenshareApi = {
   currentTracksMiddleware: TracksMiddleware | null;
 };
 
-export type Devices = {
-  camera: UserMediaAPI;
-  microphone: UserMediaAPI;
-};
-
 export type DistinguishedTracks = {
   cameraTrack?: Track;
   microphoneTrack?: Track;
   screenShareVideoTrack?: Track;
   screenShareAudioTrack?: Track;
 };
-
-export type TrackType = TrackKind | "audiovideo";
-export type MediaDeviceType = "displayMedia" | "userMedia";

@@ -4,7 +4,15 @@ import type {
   ConnectConfig as TSClientConnectConfig,
   VadStatus,
 } from "@fishjam-cloud/ts-client";
-import type { DistinguishedTracks, PeerMetadata, PeerState, TrackId, TrackManager, TrackMetadata } from "./internal";
+import type {
+  DeviceManagerStatus,
+  DistinguishedTracks,
+  PeerMetadata,
+  PeerState,
+  TrackId,
+  TrackManager,
+  TrackMetadata,
+} from "./internal";
 
 export type Track = {
   stream: MediaStream | null;
@@ -39,6 +47,7 @@ export type ToggleMode = "soft" | "hard";
 
 export type Device = {
   isStreaming: boolean;
+  status: DeviceManagerStatus;
   trackId: TrackId | null;
   track: MediaStreamTrack | null;
   stream: MediaStream | null;

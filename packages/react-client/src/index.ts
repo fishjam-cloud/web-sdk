@@ -8,8 +8,6 @@ export {
   usePeers,
   useScreenShare,
   useStatus,
-  useAudioDeviceManager,
-  useVideoDeviceManager,
 } from "./hooks/public";
 export { FishjamProvider } from "./fishjamProvider";
 

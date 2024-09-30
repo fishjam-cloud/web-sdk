@@ -23,6 +23,7 @@ export {
   ConnectConfig,
   DeviceManagerConfig,
   StorageConfig,
+  ScreenshareApi,
 } from "./types/public";
 
 export { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS, SCREEN_SHARING_MEDIA_CONSTRAINTS } from "./constraints";

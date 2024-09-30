@@ -1,6 +1,6 @@
 import { useRef, useState, type PropsWithChildren } from "react";
 import { useTrackManager } from "./hooks/useTrackManager";
-import type { DeviceManagerUserConfig, PeerMetadata, ScreenShareState, TrackMetadata } from "./types";
+import { Constraints, PeerMetadata, ScreenShareState, PersistLastDevice, TrackMetadata } from "./types";
 import { FishjamClient, type ReconnectConfig } from "@fishjam-cloud/ts-client";
 import type { FishjamContextType } from "./hooks/useFishjamContext";
 import { FishjamContext } from "./hooks/useFishjamContext";
@@ -11,23 +11,24 @@ import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "./constraints"
 
 interface FishjamProviderProps extends PropsWithChildren {
   config?: { reconnect?: ReconnectConfig | boolean };
-  deviceManagerConfig?: DeviceManagerUserConfig;
+  constraints?: Constraints;
+  persistLastDevice?: boolean | PersistLastDevice;
 }
 
 /**
  * @category Components
  */
-export function FishjamProvider({ children, config, deviceManagerConfig }: FishjamProviderProps) {
+export function FishjamProvider({ children, config, constraints, persistLastDevice }: FishjamProviderProps) {
   const fishjamClientRef = useRef(new FishjamClient<PeerMetadata, TrackMetadata>(config));
 
   const hasDevicesBeenInitializedRef = useRef(false);
-  const storage = deviceManagerConfig?.storage;
+  const storage = persistLastDevice;
 
   const videoDeviceManagerRef = useRef(
     new DeviceManager({
       deviceType: "video",
       defaultConstraints: VIDEO_TRACK_CONSTRAINTS,
-      userConstraints: deviceManagerConfig?.videoTrackConstraints,
+      userConstraints: constraints?.videoTrackConstraints,
       storage,
     }),
   );
@@ -36,7 +37,7 @@ export function FishjamProvider({ children, config, deviceManagerConfig }: Fishj
     new DeviceManager({
       deviceType: "audio",
       defaultConstraints: AUDIO_TRACK_CONSTRAINTS,
-      userConstraints: deviceManagerConfig?.audioTrackConstraints,
+      userConstraints: constraints?.audioTrackConstraints,
       storage,
     }),
   );

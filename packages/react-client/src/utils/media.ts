@@ -1,4 +1,4 @@
-import type { CurrentDevices, DeviceError, DevicesStatus, DeviceState, StorageConfig } from "../types";
+import type { CurrentDevices, DeviceError, DevicesStatus, DeviceState, PersistLastDevice } from "../types";
 
 import { loadObject, saveObject } from "./localStorage";
 
@@ -89,7 +89,7 @@ export const prepareDeviceState = (
   };
 };
 
-export const getLocalStorageConfig = (deviceType: "audio" | "video"): StorageConfig => {
+export const getLocalStorageConfig = (deviceType: "audio" | "video"): PersistLastDevice => {
   const key = `last-selected-${deviceType}-device`;
   return {
     getLastDevice: () => loadObject<MediaDeviceInfo | null>(key, null),

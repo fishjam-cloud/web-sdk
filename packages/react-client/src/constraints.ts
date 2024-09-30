@@ -27,17 +27,6 @@ export const SCREEN_SHARING_MEDIA_CONSTRAINTS: MediaStreamConstraints = {
   },
 };
 
-export const toMediaTrackConstraints = (
-  defaultConstraints: MediaTrackConstraints,
-  userConstraints?: boolean | MediaTrackConstraints,
-): boolean | MediaTrackConstraints => {
-  if (userConstraints === false) return false;
-
-  if (!userConstraints) return defaultConstraints;
-
-  return userConstraints;
-};
-
 export const prepareMediaTrackConstraints = (
   deviceId: string | undefined,
   constraints: MediaTrackConstraints | undefined | boolean,
@@ -55,7 +44,8 @@ export const prepareConstraints = (
 ): MediaTrackConstraints | undefined | boolean => {
   if (!deviceIdToStart) return constraints;
 
-  // does not start this device
+  // The resulting stream will not contain a track of this type,
+  // which means that the device will not be activated.
   if (constraints === false) return false;
 
   const constraintsObj = constraints === true ? {} : constraints;

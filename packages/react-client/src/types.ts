@@ -44,13 +44,12 @@ export type DeviceState = {
   error: DeviceError | null;
 };
 
-export type DeviceManagerUserConfig = {
+export type Constraints = {
   videoTrackConstraints?: boolean | MediaTrackConstraints;
   audioTrackConstraints?: boolean | MediaTrackConstraints;
-  storage?: boolean | StorageConfig;
 };
 
-export type StorageConfig = {
+export type PersistLastDevice = {
   getLastDevice: (() => MediaDeviceInfo | null) | null;
   saveLastDevice: (info: MediaDeviceInfo) => void;
 };
@@ -128,7 +127,7 @@ export type UseSetupMediaConfig = {
     defaultMaxBandwidth?: TrackBandwidthLimit;
   };
   startOnMount?: boolean;
-  storage?: boolean | StorageConfig;
+  storage?: boolean | PersistLastDevice;
 };
 
 export type UseSetupMediaResult = {

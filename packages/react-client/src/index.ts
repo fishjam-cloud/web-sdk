@@ -16,9 +16,9 @@ export { FishjamProvider } from "./fishjamProvider";
 export type { PeerState, Track, PeerId, TrackId, TrackWithOrigin, Origin, ParticipantStatus } from "./state.types";
 
 export type {
-  DeviceManagerUserConfig,
+  Constraints,
   Participiants,
-  StorageConfig,
+  PersistLastDevice,
   Devices,
   Device,
   AudioDevice,

@@ -1,13 +1,13 @@
 import type { FishjamClient, SimulcastConfig, TrackBandwidthLimit } from "@fishjam-cloud/ts-client";
-import type { MediaManager, PeerMetadata, ToggleMode, TrackManager, TrackMetadata, TrackMiddleware } from "../types";
+import type { MediaManager, PeerMetadata, TrackManager, TrackMetadata } from "../types/internal";
 import { getRemoteOrLocalTrack } from "../utils/track";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ParticipantStatus } from "../state.types";
+import type { PeerStatus, ToggleMode, TrackMiddleware } from "../types/public";
 
 interface TrackManagerConfig {
   mediaManager: MediaManager;
   tsClient: FishjamClient<PeerMetadata, TrackMetadata>;
-  getCurrentParticipantStatus: () => ParticipantStatus;
+  getCurrentPeerStatus: () => PeerStatus;
 }
 
 const TRACK_TYPE_TO_DEVICE = {
@@ -15,11 +15,7 @@ const TRACK_TYPE_TO_DEVICE = {
   audio: "microphone",
 } as const;
 
-export const useTrackManager = ({
-  mediaManager,
-  tsClient,
-  getCurrentParticipantStatus,
-}: TrackManagerConfig): TrackManager => {
+export const useTrackManager = ({ mediaManager, tsClient, getCurrentPeerStatus }: TrackManagerConfig): TrackManager => {
   const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
   const [paused, setPaused] = useState<boolean>(false);
   const clearMiddlewareFnRef = useRef<(() => void) | null>(null);
@@ -152,7 +148,7 @@ export const useTrackManager = ({
   }
 
   const stream = async () => {
-    if (getCurrentParticipantStatus() !== "connected") return;
+    if (getCurrentPeerStatus() !== "connected") return;
 
     if (currentTrack?.trackId) {
       await resumeStreaming();

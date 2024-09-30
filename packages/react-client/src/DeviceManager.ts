@@ -1,4 +1,4 @@
-import type { DeviceError, DeviceManagerStatus, DeviceState, MediaManager, PersistLastDevice } from "./types";
+import type { DeviceState, MediaManager, DeviceError, DeviceManagerStatus } from "./types/internal";
 
 import { prepareMediaTrackConstraints } from "./constraints";
 
@@ -6,6 +6,7 @@ import EventEmitter from "events";
 import type TypedEmitter from "typed-emitter";
 import { getDeviceInfo, getLocalStorageConfig, prepareDeviceState } from "./utils/media";
 import { parseUserMediaError } from "./utils/errors";
+import { PersistLastDeviceHandlers } from "./types/public";
 
 export type DeviceManagerEvents = {
   managerStarted: (
@@ -32,7 +33,7 @@ export type DeviceManagerConfig = {
   deviceType: "audio" | "video";
   defaultConstraints: MediaTrackConstraints;
   userConstraints?: boolean | MediaTrackConstraints;
-  storage?: boolean | PersistLastDevice;
+  storage?: boolean | PersistLastDeviceHandlers;
 };
 
 export class DeviceManager
@@ -40,7 +41,7 @@ export class DeviceManager
   implements MediaManager
 {
   private readonly constraints: boolean | MediaTrackConstraints;
-  private readonly storageConfig: PersistLastDevice | null;
+  private readonly storageConfig: PersistLastDeviceHandlers | null;
 
   private status: DeviceManagerStatus = "uninitialized";
   private readonly deviceType: "audio" | "video";
@@ -62,8 +63,8 @@ export class DeviceManager
 
   private createStorageConfig(
     deviceType: "audio" | "video",
-    storage?: boolean | PersistLastDevice,
-  ): PersistLastDevice | null {
+    storage?: boolean | PersistLastDeviceHandlers,
+  ): PersistLastDeviceHandlers | null {
     if (storage === false) return null;
     if (storage === true || storage === undefined) return getLocalStorageConfig(deviceType);
     return storage;

@@ -1,8 +1,8 @@
-import type { PeerState } from "../state.types";
-import type { PeerStateWithTracks } from "../types";
+import type { PeerState } from "../types/internal";
+import type { PeerWithTracks } from "../types/public";
 import { useFishjamContext } from "./useFishjamContext";
 
-function getPeerWithDistinguishedTracks(peerState: PeerState): PeerStateWithTracks {
+function getPeerWithDistinguishedTracks(peerState: PeerState): PeerWithTracks {
   const peerTracks = Object.values(peerState.tracks ?? {});
 
   const cameraTrack = peerTracks.find(({ metadata }) => metadata?.type === "camera");
@@ -17,12 +17,11 @@ function getPeerWithDistinguishedTracks(peerState: PeerState): PeerStateWithTrac
  *
  * @category Connection
  */
-export function useParticipants() {
+export function usePeers() {
   const { clientState } = useFishjamContext();
-  const { localPeer, peers } = clientState;
 
-  const localParticipant = localPeer ? getPeerWithDistinguishedTracks(localPeer) : null;
-  const participants = Object.values(peers).map(getPeerWithDistinguishedTracks);
+  const localPeer = clientState.localPeer ? getPeerWithDistinguishedTracks(clientState.localPeer) : null;
+  const peers = Object.values(clientState.peers).map(getPeerWithDistinguishedTracks);
 
-  return { localParticipant, participants };
+  return { localPeer, peers };
 }

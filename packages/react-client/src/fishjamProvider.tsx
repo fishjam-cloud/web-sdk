@@ -1,18 +1,19 @@
 import { useRef, useState, type PropsWithChildren } from "react";
 import { useTrackManager } from "./hooks/useTrackManager";
-import { Constraints, PeerMetadata, ScreenShareState, PersistLastDevice, TrackMetadata } from "./types";
+import type { PeerMetadata, ScreenShareState, TrackMetadata } from "./types/internal";
 import { FishjamClient, type ReconnectConfig } from "@fishjam-cloud/ts-client";
 import type { FishjamContextType } from "./hooks/useFishjamContext";
 import { FishjamContext } from "./hooks/useFishjamContext";
 import { DeviceManager } from "./DeviceManager";
-import { useParticipantStatus } from "./hooks/useParticipantStatus";
+import { usePeerStatus } from "./hooks/usePeerStatus";
 import { useFishjamClientState } from "./hooks/useFishjamClientState";
 import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "./constraints";
+import type { PersistLastDeviceHandlers } from "./types/public";
 
 interface FishjamProviderProps extends PropsWithChildren {
   config?: { reconnect?: ReconnectConfig | boolean };
-  constraints?: Constraints;
-  persistLastDevice?: boolean | PersistLastDevice;
+  constraints?: Pick<MediaStreamConstraints, "audio" | "video">;
+  persistLastDevice?: boolean | PersistLastDeviceHandlers;
 }
 
 /**
@@ -28,7 +29,7 @@ export function FishjamProvider({ children, config, constraints, persistLastDevi
     new DeviceManager({
       deviceType: "video",
       defaultConstraints: VIDEO_TRACK_CONSTRAINTS,
-      userConstraints: constraints?.videoTrackConstraints,
+      userConstraints: constraints?.video,
       storage,
     }),
   );
@@ -37,24 +38,24 @@ export function FishjamProvider({ children, config, constraints, persistLastDevi
     new DeviceManager({
       deviceType: "audio",
       defaultConstraints: AUDIO_TRACK_CONSTRAINTS,
-      userConstraints: constraints?.audioTrackConstraints,
+      userConstraints: constraints?.audio,
       storage,
     }),
   );
 
   const screenShareState = useState<ScreenShareState>({ stream: null, trackIds: null });
-  const { peerStatus, getCurrentParticipantStatus } = useParticipantStatus(fishjamClientRef.current);
+  const { peerStatus, getCurrentPeerStatus } = usePeerStatus(fishjamClientRef.current);
 
   const videoTrackManager = useTrackManager({
     mediaManager: videoDeviceManagerRef.current,
     tsClient: fishjamClientRef.current,
-    getCurrentParticipantStatus,
+    getCurrentPeerStatus,
   });
 
   const audioTrackManager = useTrackManager({
     mediaManager: audioDeviceManagerRef.current,
     tsClient: fishjamClientRef.current,
-    getCurrentParticipantStatus,
+    getCurrentPeerStatus,
   });
 
   const clientState = useFishjamClientState(fishjamClientRef.current);

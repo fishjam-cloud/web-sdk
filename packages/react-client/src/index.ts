@@ -5,33 +5,25 @@ export {
   useCamera,
   useMicrophone,
   useInitializeDevices,
-  useParticipants,
+  usePeers,
   useScreenShare,
   useStatus,
-  useAudioDeviceManager,
-  useVideoDeviceManager,
 } from "./hooks/public";
 export { FishjamProvider } from "./fishjamProvider";
 
-export type { PeerState, Track, PeerId, TrackId, TrackWithOrigin, Origin, ParticipantStatus } from "./state.types";
-
-export type {
-  Constraints,
-  Participiants,
-  PersistLastDevice,
-  Devices,
+export {
+  Track,
+  TrackMiddleware,
+  TracksMiddleware,
+  PeerStatus,
+  ToggleMode,
   Device,
   AudioDevice,
-  UseSetupMediaResult,
-  UseSetupMediaConfig,
-  ScreenshareApi,
-  UseConnect,
+  PeerWithTracks,
   ConnectConfig,
-  TrackMiddleware,
-  PeerStateWithTracks,
-  TrackMetadata, // only for compatibility reasons, will be removed in: FCE-415
-  PeerMetadata, // only for compatibility reasons, will be removed in: FCE-415
-} from "./types";
+  PersistLastDeviceHandlers,
+  ScreenshareApi,
+} from "./types/public";
 
 export { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS, SCREEN_SHARING_MEDIA_CONSTRAINTS } from "./constraints";
 

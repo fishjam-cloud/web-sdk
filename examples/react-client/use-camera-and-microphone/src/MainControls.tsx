@@ -6,16 +6,14 @@ import { ThreeStateRadio } from "./ThreeStateRadio";
 import AudioVisualizer from "./AudioVisualizer";
 import type { Track } from "@fishjam-cloud/react-client";
 import {
-  useAudioDeviceManager,
   useCamera,
   useConnect,
   useDisconnect,
   useInitializeDevices,
   useMicrophone,
-  useParticipants,
+  usePeers,
   useScreenShare,
   useStatus,
-  useVideoDeviceManager,
 } from "@fishjam-cloud/react-client";
 import { Badge } from "./Badge";
 import { DeviceControls } from "./DeviceControls";
@@ -87,10 +85,10 @@ export const MainControls = () => {
   const connect = useConnect();
   const disconnect = useDisconnect();
 
-  const { localParticipant } = useParticipants();
+  const { localPeer } = usePeers();
   const localTracks = [
-    localParticipant?.cameraTrack,
-    localParticipant?.screenShareVideoTrack,
+    localPeer?.cameraTrack,
+    localPeer?.screenShareVideoTrack,
   ].filter((track): track is Track => Boolean(track));
 
   const [broadcastVideoOnConnect, setBroadcastVideoOnConnect] = useAtom(
@@ -130,8 +128,7 @@ export const MainControls = () => {
   const audio = useMicrophone();
   const screenShare = useScreenShare();
   const status = useStatus();
-  const { status: videoStatus } = useVideoDeviceManager();
-  const { status: audioStatus } = useAudioDeviceManager();
+
   const { initializeDevices } = useInitializeDevices();
 
   return (
@@ -162,7 +159,8 @@ export const MainControls = () => {
           <button
             className="btn btn-info btn-sm"
             disabled={
-              audioStatus !== "uninitialized" || videoStatus !== "uninitialized"
+              audio.status !== "uninitialized" ||
+              video.status !== "uninitialized"
             }
             onClick={() => {
               initializeDevices();

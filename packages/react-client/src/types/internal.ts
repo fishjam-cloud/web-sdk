@@ -1,4 +1,4 @@
-import type { SimulcastConfig, TrackBandwidthLimit, TrackKind } from "@fishjam-cloud/ts-client";
+import type { SimulcastConfig, TrackBandwidthLimit } from "@fishjam-cloud/ts-client";
 import type { ToggleMode, Track, TrackMiddleware, TracksMiddleware } from "./public";
 
 export type TrackId = string;

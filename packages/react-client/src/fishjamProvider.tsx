@@ -11,7 +11,7 @@ import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "./constraints"
 import type { PersistLastDeviceHandlers } from "./types/public";
 
 interface FishjamProviderProps extends PropsWithChildren {
-  config?: { reconnect?: ReconnectConfig | boolean };
+  reconnect?: ReconnectConfig | boolean;
   constraints?: Pick<MediaStreamConstraints, "audio" | "video">;
   persistLastDevice?: boolean | PersistLastDeviceHandlers;
 }
@@ -19,8 +19,8 @@ interface FishjamProviderProps extends PropsWithChildren {
 /**
  * @category Components
  */
-export function FishjamProvider({ children, config, constraints, persistLastDevice }: FishjamProviderProps) {
-  const fishjamClientRef = useRef(new FishjamClient<PeerMetadata, TrackMetadata>(config));
+export function FishjamProvider({ children, reconnect, constraints, persistLastDevice }: FishjamProviderProps) {
+  const fishjamClientRef = useRef(new FishjamClient<PeerMetadata, TrackMetadata>({ reconnect }));
 
   const hasDevicesBeenInitializedRef = useRef(false);
   const storage = persistLastDevice;

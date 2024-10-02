@@ -186,14 +186,14 @@ export const useTrackManager = ({ mediaManager, tsClient, getCurrentPeerStatus }
    * @see {@link TrackManager#toggleMute} for more details.
    */
   async function toggleMute() {
-    toggle("soft");
+    await toggle("soft");
   }
 
   /**
    * @see {@link TrackManager#toggleDevice} for more details.
    */
   async function toggleDevice() {
-    toggle("hard");
+    await toggle("hard");
   }
 
   useEffect(() => {

@@ -429,7 +429,7 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
       stream.addTrack(track);
 
       this.commandsQueue.pushCommand({
-        handler: () => {
+        handler: async () => {
           this.localTrackManager.addTrackHandler(trackId, track, stream, parsedMetadata, simulcastConfig, maxBandwidth);
         },
         parse: () => this.localTrackManager.parseAddTrack(track, simulcastConfig, maxBandwidth),
@@ -500,11 +500,9 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
     const resolutionNotifier = new Deferred<void>();
 
     this.commandsQueue.pushCommand({
-      handler: () => {
-        this.localTrackManager.replaceTrackHandler(this, trackId, newTrack);
-      },
+      handler: () => this.localTrackManager.replaceTrackHandler(this, trackId, newTrack),
       resolutionNotifier,
-      resolve: 'immediately',
+      resolve: 'on-handler-resolve',
     });
 
     return resolutionNotifier.promise.then(() => {
@@ -574,7 +572,7 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
     const resolutionNotifier = new Deferred<void>();
 
     this.commandsQueue.pushCommand({
-      handler: () => {
+      handler: async () => {
         this.localTrackManager.removeTrackHandler(trackId);
       },
       resolutionNotifier,

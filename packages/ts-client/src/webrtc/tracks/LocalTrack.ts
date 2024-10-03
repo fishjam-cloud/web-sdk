@@ -138,6 +138,8 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
   ): Promise<void> => {
     const trackId = this.id;
     const stream = this.trackContext.stream;
+    const oldTrack = this.trackContext.track;
+    const action = getActionType(this.trackContext.track, newTrack);
 
     if (!this.sender) throw Error('There is no RTCRtpSender for this track id!');
 
@@ -149,25 +151,27 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
       stream?.addTrack(newTrack);
     }
 
-    if (this.trackContext.track && !newTrack) {
-      const mediaEvent = generateMediaEvent('muteTrack', { trackId: trackId });
-      webrtc.sendMediaEvent(mediaEvent);
-      webrtc.emit('localTrackMuted', { trackId: trackId });
-    } else if (!this.trackContext.track && newTrack) {
-      const mediaEvent = generateMediaEvent('unmuteTrack', {
-        trackId: trackId,
-      });
-      webrtc.sendMediaEvent(mediaEvent);
-      webrtc.emit('localTrackUnmuted', { trackId: trackId });
-    }
-
+    this.trackContext.track = newTrack;
     this.mediaStreamTrackId = newTrack?.id ?? null;
+
+    if (action === 'mute') {
+      emitEvents('mute', webrtc, trackId);
+    } else if (action === 'unmute') {
+      emitEvents('unmute', webrtc, trackId);
+    }
 
     try {
       await this.sender.replaceTrack(newTrack);
-      this.trackContext.track = newTrack;
     } catch (_error) {
-      // ignore
+      // rollback: emit opposite events and revert internal state
+      if (action === 'mute') {
+        emitEvents('unmute', webrtc, trackId);
+      } else if (action === 'unmute') {
+        emitEvents('mute', webrtc, trackId);
+      }
+
+      this.trackContext.track = oldTrack;
+      this.mediaStreamTrackId = oldTrack?.id ?? null;
     }
   };
 
@@ -283,4 +287,31 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
       },
     });
   };
+}
+
+function emitEvents<EndpointMetadata, TrackMetadata>(
+  action: 'mute' | 'unmute',
+  webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
+  trackId: string,
+) {
+  const mediaEventType = action === 'mute' ? `muteTrack` : `unmuteTrack`;
+  const localEventType = action === 'mute' ? `localTrackMuted` : `localTrackUnmuted`;
+
+  const mediaEvent = generateMediaEvent(mediaEventType, { trackId: trackId });
+  webrtc.sendMediaEvent(mediaEvent);
+
+  webrtc.emit(localEventType, { trackId: trackId });
+}
+
+function getActionType(
+  currentTrack: MediaStreamTrack | null,
+  newTrack: MediaStreamTrack | null,
+): 'mute' | 'unmute' | 'replace' {
+  if (currentTrack && !newTrack) {
+    return 'mute';
+  } else if (!currentTrack && newTrack) {
+    return 'unmute';
+  } else {
+    return 'replace';
+  }
 }

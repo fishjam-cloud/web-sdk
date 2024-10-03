@@ -12,6 +12,7 @@ const eventNames = [
   "devicesReady",
   "managerInitialized",
   "error",
+  "middlewareSet",
 ] as const satisfies (keyof DeviceManagerEvents)[];
 
 export const useDeviceManager = (deviceManager: DeviceManager) => {
@@ -37,9 +38,9 @@ export const useDeviceManager = (deviceManager: DeviceManager) => {
   const getSnapshot: () => DeviceManagerState = useCallback(() => {
     if (mutationRef.current || lastSnapshotRef.current === null) {
       lastSnapshotRef.current = {
-        deviceState: deviceManager.deviceState,
+        deviceState: deviceManager.getState(),
         status: deviceManager.getStatus(),
-        tracks: deviceManager.getTracks(),
+        track: deviceManager.getMedia()?.track ?? null,
       };
       mutationRef.current = false;
     }

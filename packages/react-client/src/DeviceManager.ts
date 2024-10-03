@@ -1,12 +1,24 @@
-import type { DeviceState, MediaManager, DeviceError, DeviceManagerStatus } from "./types/internal";
+import type {
+  DeviceError,
+  DeviceManagerStatus,
+  DevicesStatus,
+  DeviceState,
+  Media,
+  MediaManager,
+  MediaStatus,
+} from "./types/internal";
 
 import { prepareMediaTrackConstraints } from "./constraints";
 
 import EventEmitter from "events";
 import type TypedEmitter from "typed-emitter";
-import { getDeviceInfo, getLocalStorageConfig, prepareDeviceState } from "./utils/media";
+import type { PersistLastDeviceHandlers, TrackMiddleware } from "./types/public";
+import { MiddlewareManager } from "./devices/MiddlewareManager";
+import { createStorageConfig } from "./utils/localStorage";
+import { setupOnEndedCallback } from "./utils/track";
 import { parseUserMediaError } from "./utils/errors";
-import type { PersistLastDeviceHandlers } from "./types/public";
+
+export type DeviceType = "audio" | "video";
 
 export type DeviceManagerEvents = {
   managerStarted: (
@@ -25,49 +37,62 @@ export type DeviceManagerEvents = {
   deviceStopped: (state: DeviceState) => void;
   deviceEnabled: (state: DeviceState) => void;
   deviceDisabled: (state: DeviceState) => void;
+  middlewareSet: (state: DeviceState) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error: (event: any, state: DeviceState) => void;
 };
 
 export type DeviceManagerConfig = {
-  deviceType: "audio" | "video";
+  deviceType: DeviceType;
   defaultConstraints: MediaTrackConstraints;
   userConstraints?: boolean | MediaTrackConstraints;
   storage?: boolean | PersistLastDeviceHandlers;
 };
+
+const NOOP = () => {};
 
 export class DeviceManager
   extends (EventEmitter as new () => TypedEmitter<DeviceManagerEvents>)
   implements MediaManager
 {
   private readonly constraints: boolean | MediaTrackConstraints;
-  private readonly storageConfig: PersistLastDeviceHandlers | null;
 
   private status: DeviceManagerStatus = "uninitialized";
-  private readonly deviceType: "audio" | "video";
+  private readonly deviceType: DeviceType;
+  private readonly middlewareManager = new MiddlewareManager();
 
-  public deviceState: DeviceState = {
-    media: null,
-    mediaStatus: "Not requested",
-    devices: null,
-    devicesStatus: "Not requested",
-    error: null,
-  };
+  public readonly getLastDevice: () => MediaDeviceInfo | null = () => null;
+  private readonly saveLastDevice: (info: MediaDeviceInfo) => void = NOOP;
+
+  private rawMedia: Media | null = null;
+  private mediaStatus: MediaStatus = "Not requested";
+  private devices: MediaDeviceInfo[] | null = null;
+  private devicesStatus: DevicesStatus = "Not requested";
+  private error: DeviceError | null = null;
+
+  public getState(): DeviceState {
+    const media = this.middlewareManager.getMedia();
+    const deviceInfo = this.rawMedia?.deviceInfo ?? null;
+
+    return {
+      mediaStatus: this.mediaStatus,
+      devices: this.devices,
+      devicesStatus: this.devicesStatus,
+      error: this.error,
+      media: media ? { ...media, deviceInfo } : null,
+    };
+  }
 
   constructor({ deviceType, storage, userConstraints, defaultConstraints }: DeviceManagerConfig) {
     super();
-    this.storageConfig = this.createStorageConfig(deviceType, storage);
+    const storageConfig = createStorageConfig(deviceType, storage);
+    if (storageConfig) {
+      this.getLastDevice = storageConfig.getLastDevice;
+      this.saveLastDevice = storageConfig.saveLastDevice;
+    }
+
     this.deviceType = deviceType;
     this.constraints = userConstraints ?? defaultConstraints;
-  }
-
-  private createStorageConfig(
-    deviceType: "audio" | "video",
-    storage?: boolean | PersistLastDeviceHandlers,
-  ): PersistLastDeviceHandlers | null {
-    if (storage === false) return null;
-    if (storage === true || storage === undefined) return getLocalStorageConfig(deviceType);
-    return storage;
   }
 
   public getStatus(): DeviceManagerStatus {
@@ -78,15 +103,11 @@ export class DeviceManager
     return this.constraints;
   }
 
-  public getMedia = () => this.deviceState.media;
-
-  public getTracks = () => {
-    const stream = this.deviceState.media?.stream;
-    if (this.deviceType === "audio") {
-      return stream?.getAudioTracks() ?? [];
-    }
-    return stream?.getVideoTracks() ?? [];
+  public getDeviceType = () => {
+    return this.deviceType;
   };
+
+  public getMedia = () => this.middlewareManager.getMedia();
 
   public initialize = (
     stream: MediaStream | null,
@@ -95,45 +116,36 @@ export class DeviceManager
     requestedMedia: boolean,
     error: DeviceError | null = null,
   ) => {
-    this.deviceState = prepareDeviceState(stream, track, devices, error, requestedMedia);
+    const deviceInfo = getDeviceInfo(track?.getSettings()?.deviceId || null, devices);
+    const [devicesStatus, newError] = prepareStatus(requestedMedia, track);
 
-    const deviceInfo = this.deviceState.media?.deviceInfo;
-    if (deviceInfo) this.saveLastDevice(deviceInfo);
+    this.devices = devices;
+    this.devicesStatus = devicesStatus;
+    this.mediaStatus = devicesStatus;
+    this.error = newError ?? error;
+
+    this.updateMedia({
+      stream: track ? stream : null,
+      track,
+      deviceInfo,
+      enabled: Boolean(track?.enabled),
+    });
+
+    if (deviceInfo) this.saveLastDevice?.(deviceInfo);
 
     this.status = "initialized";
-    this.setupOnEndedCallback();
+    setupOnEndedCallback(
+      track,
+      () => this?.rawMedia?.track?.id,
+      async () => this.stop(),
+    );
 
-    this.emit("managerInitialized", this.deviceState);
-
-    return this.deviceState;
+    this.emit("managerInitialized", this.getState());
   };
-
-  private setupOnEndedCallback() {
-    if (this.deviceState?.media?.track) {
-      this.deviceState.media.track.addEventListener(
-        "ended",
-        async (event) => await this.onTrackEnded((event.target as MediaStreamTrack).id),
-      );
-    }
-  }
-
-  private onTrackEnded = async (trackId: string) => {
-    if (trackId === this?.deviceState.media?.track?.id) {
-      await this.stop();
-    }
-  };
-
-  public getLastDevice(): MediaDeviceInfo | null {
-    return this.storageConfig?.getLastDevice?.() ?? null;
-  }
-
-  private saveLastDevice(info: MediaDeviceInfo) {
-    this.storageConfig?.saveLastDevice(info);
-  }
 
   public async start(deviceId?: string) {
-    const newDeviceId: string | undefined = deviceId ?? this.getLastDevice()?.deviceId;
-    const currentDeviceId = this.deviceState.media?.deviceInfo?.deviceId;
+    const newDeviceId: string | undefined = deviceId ?? this.getLastDevice?.()?.deviceId;
+    const currentDeviceId = this.rawMedia?.deviceInfo?.deviceId;
 
     const shouldReplaceDevice = Boolean(currentDeviceId && currentDeviceId !== newDeviceId);
     const isDeviceStopped = currentDeviceId === undefined;
@@ -142,27 +154,16 @@ export class DeviceManager
     const exactConstraints = shouldProceed && prepareMediaTrackConstraints(newDeviceId, this.constraints);
     if (!exactConstraints) return;
 
-    this.deviceState.mediaStatus = "Requesting";
+    this.mediaStatus = "Requesting";
 
-    this.emit(
-      "devicesStarted",
-      { ...this.deviceState, restarting: shouldReplaceDevice, constraints: exactConstraints },
-      this.deviceState,
-    );
+    this.emit("devicesStarted", { restarting: shouldReplaceDevice, constraints: exactConstraints }, this.getState());
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ [this.deviceType]: exactConstraints });
-
-      const getTrack = (): MediaStreamTrack | null => {
-        const tracks = this.deviceType === "audio" ? stream.getAudioTracks() : stream.getVideoTracks();
-
-        return tracks[0] ?? null;
-      };
-
-      const track = getTrack();
+      const track = getTrack(stream, this.deviceType);
 
       const currentDeviceId = track?.getSettings()?.deviceId;
-      const deviceInfo = currentDeviceId ? getDeviceInfo(currentDeviceId, this.deviceState.devices ?? []) : null;
+      const deviceInfo = currentDeviceId ? getDeviceInfo(currentDeviceId, this.devices ?? []) : null;
 
       if (deviceInfo) {
         this.saveLastDevice?.(deviceInfo);
@@ -181,21 +182,26 @@ export class DeviceManager
       // The ended event in Safari has already been emitted and will be handled in the future.
       // Therefore, in the `onTrackEnded` method, events for already stopped tracks are filtered out to prevent the state from being damaged.
       if (shouldReplaceDevice) {
-        this.deviceState?.media?.track?.stop();
+        this?.rawMedia?.track?.stop();
+        this.middlewareManager.stop();
       }
 
-      this.deviceState.media = {
+      this.updateMedia({
         stream,
         track,
         deviceInfo,
-        enabled: true,
-      };
+        enabled: Boolean(track?.enabled),
+      });
 
-      this.setupOnEndedCallback();
+      setupOnEndedCallback(
+        track,
+        () => this?.rawMedia?.track?.id,
+        async () => this.stop(),
+      );
 
-      this.deviceState.mediaStatus = "OK";
+      this.mediaStatus = "OK";
 
-      this.emit("devicesReady", { ...this.deviceState, restarted: shouldReplaceDevice }, this.deviceState);
+      this.emit("devicesReady", { ...this.getState(), restarted: shouldReplaceDevice }, this.getState());
     } catch (err) {
       const parsedError = parseUserMediaError(err);
       const event = {
@@ -204,43 +210,70 @@ export class DeviceManager
       };
 
       if (exactConstraints) {
-        this.deviceState.error = parsedError;
+        this.error = parsedError;
       }
 
-      this.emit("error", event, this.deviceState);
+      this.emit("error", event, this.getState());
     }
   }
 
-  public async stop() {
-    this.deviceState.media?.track?.stop();
-    this.deviceState.media = null;
+  public async setTrackMiddleware(middleware: TrackMiddleware | null): Promise<void> {
+    const track = getTrack(this.rawMedia?.stream, this.deviceType);
+    this.middlewareManager.setTrackMiddleware(middleware, track);
+    this.emit("middlewareSet", this.getState());
+  }
 
-    this.emit("deviceStopped", this.deviceState);
+  public getMiddleware(): TrackMiddleware | null {
+    return this.middlewareManager.getMiddleware();
+  }
+
+  public stop() {
+    this.middlewareManager.stop();
+    this.rawMedia?.track?.stop();
+
+    this.updateMedia(null);
+
+    this.emit("deviceStopped", this.getState());
   }
 
   public disable() {
-    if (!this.deviceState.media || !this.deviceState.media?.track) {
-      return;
-    }
+    if (!this.rawMedia || !this.rawMedia?.track) return;
 
-    this.deviceState.media!.track!.enabled = false;
-    this.deviceState.media!.enabled = false;
+    this.rawMedia!.track!.enabled = false;
+    this.rawMedia!.enabled = false;
 
-    this.emit("deviceDisabled", this.deviceState);
+    this.middlewareManager.disable();
+
+    this.emit("deviceDisabled", this.getState());
   }
 
   public enable() {
-    if (!this.deviceState.media || !this.deviceState.media?.track) {
-      return;
-    }
+    if (!this.rawMedia || !this.rawMedia?.track) return;
 
-    this.deviceState.media!.track!.enabled = true;
-    this.deviceState.media!.enabled = true;
+    this.rawMedia!.track!.enabled = true;
+    this.rawMedia!.enabled = true;
 
-    this.emit("deviceEnabled", this.deviceState);
+    this.middlewareManager.enable();
+
+    this.emit("deviceEnabled", this.getState());
   }
 
-  public getDeviceType = () => {
-    return this.deviceType;
-  };
+  private updateMedia(media: Media | null) {
+    this.rawMedia = !media ? null : { ...media };
+    this.middlewareManager.updateMedia(media);
+  }
+}
+
+function getDeviceInfo(trackDeviceId: string | null, devices: MediaDeviceInfo[]): MediaDeviceInfo | null {
+  return (trackDeviceId && devices.find(({ deviceId }) => trackDeviceId === deviceId)) || null;
+}
+
+function getTrack(stream: MediaStream | undefined | null, deviceType: DeviceType): MediaStreamTrack | null {
+  return (deviceType === "audio" ? stream?.getAudioTracks()?.[0] : stream?.getVideoTracks()?.[0]) ?? null;
+}
+
+function prepareStatus(requested: boolean, track: MediaStreamTrack | null): [DevicesStatus, DeviceError | null] {
+  if (!requested) return ["Not requested", null];
+  if (track) return ["OK", null];
+  return ["Error", null];
 }

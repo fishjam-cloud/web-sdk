@@ -51,6 +51,7 @@ export type Device = {
   stream: MediaStream | null;
   devices: MediaDeviceInfo[];
   activeDevice: MediaDeviceInfo | null;
+  currentTrackMiddleware: TrackMiddleware;
 } & Omit<TrackManager, "currentTrack">;
 
 export type AudioDevice = Device & { isAudioPlaying: boolean };
@@ -60,7 +61,7 @@ export type PeerWithTracks = PeerState & DistinguishedTracks;
 export type ConnectConfig = Omit<TSClientConnectConfig<PeerMetadata>, "peerMetadata"> & { peerMetadata?: PeerMetadata };
 
 export type PersistLastDeviceHandlers = {
-  getLastDevice: (() => MediaDeviceInfo | null) | null;
+  getLastDevice: () => MediaDeviceInfo | null;
   saveLastDevice: (info: MediaDeviceInfo) => void;
 };
 

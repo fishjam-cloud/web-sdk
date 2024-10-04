@@ -1,7 +1,7 @@
 import type { WebRTCEndpoint } from '../webRTCEndpoint';
 import { generateMediaEvent } from '../mediaEvent';
 
-export function emitEvents<EndpointMetadata, TrackMetadata>(
+export function emitMutableEvents<EndpointMetadata, TrackMetadata>(
   action: 'mute' | 'unmute',
   webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
   trackId: string,

@@ -16,7 +16,7 @@ import { defaultBitrates, defaultSimulcastBitrates, UNLIMITED_BANDWIDTH } from '
 import type { ConnectionManager } from '../ConnectionManager';
 import { getEncodingParameters } from './encodings';
 import { createTransceiverConfig } from './transceivers';
-import { emitEvents, getActionType } from './muteUnmuteTrackUtils';
+import { emitMutableEvents, getActionType } from './muteTrackUtils';
 
 /**
  * This is a wrapper over `TrackContext` that adds additional properties such as:
@@ -140,7 +140,6 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
     const trackId = this.id;
     const stream = this.trackContext.stream;
     const oldTrack = this.trackContext.track;
-    const action = getActionType(this.trackContext.track, newTrack);
 
     if (!this.sender) throw Error('There is no RTCRtpSender for this track id!');
 
@@ -155,8 +154,9 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
     this.trackContext.track = newTrack;
     this.mediaStreamTrackId = newTrack?.id ?? null;
 
+    const action = getActionType(this.trackContext.track, newTrack);
     if (action === 'mute' || action === 'unmute') {
-      emitEvents(action, webrtc, trackId);
+      emitMutableEvents(action, webrtc, trackId);
     }
 
     try {
@@ -164,9 +164,9 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
     } catch (_error) {
       // rollback: emit opposite events and revert internal state
       if (action === 'mute') {
-        emitEvents('unmute', webrtc, trackId);
+        emitMutableEvents('unmute', webrtc, trackId);
       } else if (action === 'unmute') {
-        emitEvents('mute', webrtc, trackId);
+        emitMutableEvents('mute', webrtc, trackId);
       }
 
       this.trackContext.track = oldTrack;

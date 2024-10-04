@@ -572,9 +572,7 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
     const resolutionNotifier = new Deferred<void>();
 
     this.commandsQueue.pushCommand({
-      handler: async () => {
-        this.localTrackManager.removeTrackHandler(trackId);
-      },
+      handler: async () => this.localTrackManager.removeTrackHandler(trackId),
       resolutionNotifier,
       resolve: 'after-renegotiation',
     });

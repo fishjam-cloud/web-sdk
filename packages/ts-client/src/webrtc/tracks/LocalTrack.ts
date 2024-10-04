@@ -9,13 +9,14 @@ import type {
   TrackKind,
 } from '../types';
 import type { TrackCommon, TrackEncodings, TrackId } from './TrackCommon';
-import { generateCustomEvent, generateMediaEvent } from '../mediaEvent';
+import { generateCustomEvent } from '../mediaEvent';
 import type { WebRTCEndpoint } from '../webRTCEndpoint';
 import type { Bitrate, Bitrates } from '../bitrate';
 import { defaultBitrates, defaultSimulcastBitrates, UNLIMITED_BANDWIDTH } from '../bitrate';
 import type { ConnectionManager } from '../ConnectionManager';
 import { getEncodingParameters } from './encodings';
 import { createTransceiverConfig } from './transceivers';
+import { emitEvents, getActionType } from './muteUnmuteTrackUtils';
 
 /**
  * This is a wrapper over `TrackContext` that adds additional properties such as:
@@ -154,7 +155,7 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
     this.trackContext.track = newTrack;
     this.mediaStreamTrackId = newTrack?.id ?? null;
 
-    if (action === 'mute' || action === 'unmute' ) {
+    if (action === 'mute' || action === 'unmute') {
       emitEvents(action, webrtc, trackId);
     }
 
@@ -285,31 +286,4 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
       },
     });
   };
-}
-
-function emitEvents<EndpointMetadata, TrackMetadata>(
-  action: 'mute' | 'unmute',
-  webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
-  trackId: string,
-) {
-  const mediaEventType = action === 'mute' ? `muteTrack` : `unmuteTrack`;
-  const localEventType = action === 'mute' ? `localTrackMuted` : `localTrackUnmuted`;
-
-  const mediaEvent = generateMediaEvent(mediaEventType, { trackId: trackId });
-  webrtc.sendMediaEvent(mediaEvent);
-
-  webrtc.emit(localEventType, { trackId: trackId });
-}
-
-function getActionType(
-  currentTrack: MediaStreamTrack | null,
-  newTrack: MediaStreamTrack | null,
-): 'mute' | 'unmute' | 'replace' {
-  if (currentTrack && !newTrack) {
-    return 'mute';
-  } else if (!currentTrack && newTrack) {
-    return 'unmute';
-  } else {
-    return 'replace';
-  }
 }

@@ -154,10 +154,8 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
     this.trackContext.track = newTrack;
     this.mediaStreamTrackId = newTrack?.id ?? null;
 
-    if (action === 'mute') {
-      emitEvents('mute', webrtc, trackId);
-    } else if (action === 'unmute') {
-      emitEvents('unmute', webrtc, trackId);
+    if (action === 'mute' || action === 'unmute' ) {
+      emitEvents(action, webrtc, trackId);
     }
 
     try {

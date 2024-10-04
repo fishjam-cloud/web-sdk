@@ -429,9 +429,8 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
       stream.addTrack(track);
 
       this.commandsQueue.pushCommand({
-        handler: async () => {
-          this.localTrackManager.addTrackHandler(trackId, track, stream, parsedMetadata, simulcastConfig, maxBandwidth);
-        },
+        handler: async () =>
+          this.localTrackManager.addTrackHandler(trackId, track, stream, parsedMetadata, simulcastConfig, maxBandwidth),
         parse: () => this.localTrackManager.parseAddTrack(track, simulcastConfig, maxBandwidth),
         resolve: 'after-renegotiation',
         resolutionNotifier,

@@ -15,6 +15,7 @@ type FormProps = {
 function persistValues({ roomManagerUrl, roomName, peerName }: FormProps) {
   localStorage.setItem("roomManagerUrl", roomManagerUrl);
   localStorage.setItem("roomName", roomName);
+  localStorage.setItem("peerName", peerName);
   sessionStorage.setItem("peerName", peerName);
 }
 
@@ -22,7 +23,7 @@ function getPersistedValues() {
   return {
     defaultRoomManagerUrl: localStorage.getItem("roomManagerUrl") ?? "",
     defaultRoomName: localStorage.getItem("roomName") ?? "",
-    defaultPeerName: sessionStorage.getItem("peerName") ?? "",
+    defaultPeerName: sessionStorage.getItem("peerName") ?? localStorage.getItem("peerName") ?? "",
   };
 }
 

@@ -23,7 +23,10 @@ function getPersistedValues() {
   return {
     defaultRoomManagerUrl: localStorage.getItem("roomManagerUrl") ?? "",
     defaultRoomName: localStorage.getItem("roomName") ?? "",
-    defaultPeerName: sessionStorage.getItem("peerName") ?? localStorage.getItem("peerName") ?? "",
+    defaultPeerName:
+      sessionStorage.getItem("peerName") ??
+      localStorage.getItem("peerName") ??
+      "",
   };
 }
 

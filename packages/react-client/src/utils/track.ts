@@ -46,11 +46,11 @@ export const getRemoteOrLocalTrack = (
 };
 
 export function setupOnEndedCallback(
-  track: MediaStreamTrack | null | undefined,
+  track: MediaStreamTrack,
   getCurrentTrackId: () => string | undefined,
   callback: () => Promise<void>,
 ) {
-  track?.addEventListener("ended", async (event: Event) => {
+  track.addEventListener("ended", async (event: Event) => {
     const trackId = (event.target as MediaStreamTrack).id;
     if (trackId === getCurrentTrackId()) {
       await callback();

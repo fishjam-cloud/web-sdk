@@ -1,4 +1,5 @@
 import type { TrackMiddleware } from "../types/public";
+import { setupOnEndedCallback } from "../utils/track";
 
 export type MiddlewareMedia = {
   stream: MediaStream;
@@ -39,6 +40,15 @@ export class MiddlewareManager {
     const { onClear, track } = middleware(rawTrack);
 
     if (onClear) this.clearMiddlewareFn = onClear;
+
+    setupOnEndedCallback(
+      track,
+      () => track.id,
+      async () => {
+        this.clearMiddleware();
+        track.stop();
+      },
+    );
 
     return {
       stream: new MediaStream([track]),

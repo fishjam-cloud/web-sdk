@@ -139,11 +139,14 @@ export class DeviceManager
     if (deviceInfo) this.saveLastDevice?.(deviceInfo);
 
     this.status = "initialized";
-    setupOnEndedCallback(
-      track,
-      () => this?.rawMedia?.track?.id,
-      async () => this.stop(),
-    );
+
+    if (track) {
+      setupOnEndedCallback(
+        track,
+        () => this?.rawMedia?.track?.id,
+        async () => this.stop(),
+      );
+    }
 
     this.emit("managerInitialized", this.getState());
   };
@@ -198,11 +201,13 @@ export class DeviceManager
         enabled: Boolean(track?.enabled),
       });
 
-      setupOnEndedCallback(
-        track,
-        () => this?.rawMedia?.track?.id,
-        async () => this.stop(),
-      );
+      if (track) {
+        setupOnEndedCallback(
+          track,
+          () => this?.rawMedia?.track?.id,
+          async () => this.stop(),
+        );
+      }
 
       this.mediaStatus = "OK";
 

@@ -49,7 +49,7 @@ export type Device = {
   stream: MediaStream | null;
   devices: MediaDeviceInfo[];
   activeDevice: MediaDeviceInfo | null;
-  currentTrackMiddleware: TrackMiddleware;
+  currentMiddleware: TrackMiddleware;
 } & Omit<TrackManager, "currentTrack">;
 
 export type AudioDevice = Device & { isAudioPlaying: boolean };

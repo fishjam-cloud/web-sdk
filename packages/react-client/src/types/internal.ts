@@ -49,6 +49,7 @@ export type DeviceState = {
   devices: MediaDeviceInfo[] | null;
   devicesStatus: DevicesStatus;
   error: DeviceError | null;
+  currentMiddleware: TrackMiddleware | null;
 };
 
 export type DeviceError =

@@ -13,7 +13,6 @@ import { prepareMediaTrackConstraints } from "./constraints";
 import EventEmitter from "events";
 import type TypedEmitter from "typed-emitter";
 import type { PersistLastDeviceHandlers, TrackMiddleware } from "./types/public";
-import type { MiddlewareMedia } from "./devices/MiddlewareManager";
 import { MiddlewareManager } from "./devices/MiddlewareManager";
 import { createStorageConfig } from "./utils/localStorage";
 import { setupOnEndedCallback } from "./utils/track";
@@ -66,7 +65,7 @@ export class DeviceManager
   private readonly saveLastDevice: (info: MediaDeviceInfo) => void = NOOP;
 
   private rawMedia: Media | null = null;
-  private middlewareMedia: MiddlewareMedia | null = null;
+  private processedMediaTrack: MediaStreamTrack | null = null;
 
   private mediaStatus: MediaStatus = "Not requested";
   private devices: MediaDeviceInfo[] | null = null;
@@ -92,6 +91,7 @@ export class DeviceManager
       devicesStatus: this.devicesStatus,
       error: this.error,
       media: this.getMedia(),
+      currentMiddleware: this.middlewareManager.getMiddleware(),
     };
   }
 
@@ -108,7 +108,14 @@ export class DeviceManager
   };
 
   public getMedia = (): Media | null => {
-    const media = this.middlewareMedia ?? this.rawMedia;
+    // todo refactor
+    const media = this.processedMediaTrack
+      ? {
+          track: this.processedMediaTrack,
+          stream: new MediaStream([this.processedMediaTrack]),
+        }
+      : this.rawMedia;
+
     const deviceInfo = this.rawMedia?.deviceInfo ?? null;
 
     return media ? { ...media, enabled: Boolean(media.track?.enabled), deviceInfo } : null;
@@ -191,7 +198,7 @@ export class DeviceManager
       // Therefore, in the `onTrackEnded` method, events for already stopped tracks are filtered out to prevent the state from being damaged.
       if (shouldReplaceDevice) {
         this.rawMedia?.track?.stop();
-        this.middlewareMedia?.track?.stop();
+        this.processedMediaTrack?.stop();
       }
 
       this.updateMedia({
@@ -228,8 +235,7 @@ export class DeviceManager
   }
 
   public async setTrackMiddleware(middleware: TrackMiddleware | null): Promise<void> {
-    const track = getTrack(this.rawMedia?.stream, this.deviceType);
-    this.middlewareMedia = this.middlewareManager.setTrackMiddleware(middleware, track);
+    this.processedMediaTrack = this.middlewareManager.processMiddleware(middleware);
 
     this.emit("middlewareSet", this.getState());
   }
@@ -240,7 +246,7 @@ export class DeviceManager
 
   public stop() {
     this.middlewareManager.clearMiddleware();
-    this.middlewareMedia?.track?.stop();
+    this.processedMediaTrack?.stop();
     this.rawMedia?.track?.stop();
 
     this.updateMedia(null);
@@ -249,27 +255,27 @@ export class DeviceManager
   }
 
   public disable() {
-    this.setEnable(this.rawMedia, false);
-    this.setEnable(this.middlewareMedia, false);
+    this.setEnable(this.rawMedia?.track ?? null, false);
+    this.setEnable(this.processedMediaTrack, false);
 
     this.emit("deviceDisabled", this.getState());
   }
 
   public enable() {
-    this.setEnable(this.rawMedia, true);
-    this.setEnable(this.middlewareMedia, true);
+    this.setEnable(this.rawMedia?.track ?? null, true);
+    this.setEnable(this.processedMediaTrack, true);
 
     this.emit("deviceEnabled", this.getState());
   }
 
-  private setEnable = (media: Pick<Media, "stream" | "track"> | null, value: boolean) => {
-    if (!media || !media?.track) return;
-    media.track!.enabled = value;
+  private setEnable = (track: MediaStreamTrack | null, value: boolean) => {
+    if (!track) return;
+    track!.enabled = value;
   };
 
   private updateMedia(media: Media | null) {
     this.rawMedia = !media ? null : { ...media };
-    this.middlewareMedia = this.middlewareManager.updateMedia(media?.track ?? null);
+    this.processedMediaTrack = this.middlewareManager.processTrack(media?.track ?? null);
   }
 }
 

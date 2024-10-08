@@ -1,25 +1,19 @@
 import type { TrackMiddleware } from "../types/public";
 import { setupOnEndedCallback } from "../utils/track";
 
-export type MiddlewareMedia = {
-  stream: MediaStream;
-  track: MediaStreamTrack;
-};
-
 export class MiddlewareManager {
   private middleware: TrackMiddleware | null = null;
+  private rawTrack: MediaStreamTrack | null = null;
   private clearMiddlewareFn: (() => void) | null = null;
 
-  public updateMedia(track: MediaStreamTrack | null): MiddlewareMedia | null {
+  public processTrack(track: MediaStreamTrack | null): MediaStreamTrack | null {
+    this.rawTrack = track;
     return this.applyMiddleware(track, this.middleware);
   }
 
-  public setTrackMiddleware(
-    middleware: TrackMiddleware | null,
-    rawTrack: MediaStreamTrack | null,
-  ): MiddlewareMedia | null {
+  public processMiddleware(middleware: TrackMiddleware | null): MediaStreamTrack | null {
     this.middleware = middleware;
-    return this.applyMiddleware(rawTrack, middleware);
+    return this.applyMiddleware(this.rawTrack, middleware);
   }
 
   public getMiddleware(): TrackMiddleware | null {
@@ -34,7 +28,7 @@ export class MiddlewareManager {
   private applyMiddleware(
     rawTrack: MediaStreamTrack | null,
     middleware: TrackMiddleware | null,
-  ): MiddlewareMedia | null {
+  ): MediaStreamTrack | null {
     this.clearMiddleware();
     if (!rawTrack || !middleware) return null;
     const { onClear, track } = middleware(rawTrack);
@@ -50,9 +44,6 @@ export class MiddlewareManager {
       },
     );
 
-    return {
-      stream: new MediaStream([track]),
-      track,
-    };
+    return track;
   }
 }

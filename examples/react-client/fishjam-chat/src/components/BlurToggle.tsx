@@ -19,7 +19,7 @@ export function BlurToggle() {
     [],
   );
 
-  const isMiddlewareSet = camera.currentTrackMiddleware === blurMiddleware;
+  const isMiddlewareSet = camera.currentMiddleware === blurMiddleware;
 
   const toggleBlurMiddleware = () =>
     camera.setTrackMiddleware(isMiddlewareSet ? null : blurMiddleware);

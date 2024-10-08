@@ -16,7 +16,7 @@ export function useCamera(): Device {
   const { currentTrack, ...trackManager } = videoTrackManager;
 
   const stream = deviceState.media?.stream ?? null;
-  const currentTrackMiddleware = videoDeviceManagerRef.current.getMiddleware();
+  const currentMiddleware = deviceState.currentMiddleware ?? null;
   const isStreaming = Boolean(currentTrack?.stream);
   const track = stream?.getAudioTracks()[0] ?? null;
   const trackId = currentTrack?.trackId ?? null;
@@ -25,7 +25,7 @@ export function useCamera(): Device {
 
   return {
     ...trackManager,
-    currentTrackMiddleware,
+    currentMiddleware,
     status,
     stream,
     track,
@@ -47,8 +47,7 @@ export function useMicrophone(): AudioDevice {
   const { currentTrack, ...trackManager } = audioTrackManager;
 
   const stream = deviceState.media?.stream ?? null;
-  const currentTrackMiddleware = audioDeviceManagerRef.current.getMiddleware();
-
+  const currentMiddleware = deviceState.currentMiddleware ?? null;
   const isStreaming = Boolean(currentTrack?.stream);
   const track = stream?.getAudioTracks()[0] ?? null;
   const trackId = currentTrack?.trackId ?? null;
@@ -58,9 +57,9 @@ export function useMicrophone(): AudioDevice {
 
   return {
     ...trackManager,
+    currentMiddleware,
     status,
     stream,
-    currentTrackMiddleware,
     track,
     isStreaming,
     trackId,

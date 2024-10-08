@@ -3,18 +3,7 @@ import { setupOnEndedCallback } from "../utils/track";
 
 export class MiddlewareManager {
   private middleware: TrackMiddleware | null = null;
-  private rawTrack: MediaStreamTrack | null = null;
   private clearMiddlewareFn: (() => void) | null = null;
-
-  public processTrack(track: MediaStreamTrack | null): MediaStreamTrack | null {
-    this.rawTrack = track;
-    return this.applyMiddleware(track, this.middleware);
-  }
-
-  public processMiddleware(middleware: TrackMiddleware | null): MediaStreamTrack | null {
-    this.middleware = middleware;
-    return this.applyMiddleware(this.rawTrack, middleware);
-  }
 
   public getMiddleware(): TrackMiddleware | null {
     return this.middleware;
@@ -25,9 +14,9 @@ export class MiddlewareManager {
     this.clearMiddlewareFn = null;
   }
 
-  private applyMiddleware(
+  public applyMiddleware(
     rawTrack: MediaStreamTrack | null,
-    middleware: TrackMiddleware | null,
+    middleware: TrackMiddleware | null = this.middleware,
   ): MediaStreamTrack | null {
     this.clearMiddleware();
     if (!rawTrack || !middleware) return null;

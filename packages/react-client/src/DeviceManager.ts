@@ -228,7 +228,10 @@ export class DeviceManager
   }
 
   public async setTrackMiddleware(middleware: TrackMiddleware | null): Promise<void> {
-    this.setCurrentMedia(this.rawMedia, this.middlewareManager.processMiddleware(middleware));
+    const rawTrack = this.rawMedia?.track ?? null;
+    const processedMedia = this.middlewareManager.applyMiddleware(rawTrack, middleware);
+
+    this.setCurrentMedia(this.rawMedia, processedMedia);
 
     this.emit("middlewareSet", this.getState());
   }
@@ -269,7 +272,8 @@ export class DeviceManager
   private updateMedia(media: Media | null) {
     this.rawMedia = !media ? null : { ...media };
 
-    this.setCurrentMedia(this.rawMedia, this.middlewareManager.processTrack(media?.track ?? null));
+    const processedMedia = this.middlewareManager.applyMiddleware(media?.track ?? null);
+    this.setCurrentMedia(this.rawMedia, processedMedia);
   }
 
   private setCurrentMedia(media: Media | null, processedTrack: MediaStreamTrack | null) {

@@ -1,6 +1,6 @@
 import type { FishjamClient } from "@fishjam-cloud/ts-client";
 import { createContext, type MutableRefObject, useContext } from "react";
-import type { PeerMetadata, TrackMetadata, ScreenShareState, TrackManager } from "../types/internal";
+import type { PeerMetadata, TrackMetadata, TrackManager } from "../types/internal";
 import type { DeviceManager } from "../DeviceManager";
 import type { FishjamClientState } from "./useFishjamClientState";
 import type { PeerStatus, ScreenshareApi } from "../types/public";

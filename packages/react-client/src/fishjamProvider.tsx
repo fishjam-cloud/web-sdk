@@ -1,6 +1,6 @@
-import { useRef, useState, type PropsWithChildren } from "react";
+import { useRef, type PropsWithChildren } from "react";
 import { useTrackManager } from "./hooks/useTrackManager";
-import type { PeerMetadata, ScreenShareState, TrackMetadata } from "./types/internal";
+import type { PeerMetadata, TrackMetadata } from "./types/internal";
 import { FishjamClient, type ReconnectConfig } from "@fishjam-cloud/ts-client";
 import type { FishjamContextType } from "./hooks/useFishjamContext";
 import { FishjamContext } from "./hooks/useFishjamContext";

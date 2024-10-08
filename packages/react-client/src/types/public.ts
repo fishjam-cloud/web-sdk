@@ -24,9 +24,7 @@ export type Track = {
   track: MediaStreamTrack | null;
 };
 
-export type TrackMiddleware =
-  | ((track: MediaStreamTrack | null) => { track: MediaStreamTrack | null; onClear?: () => void })
-  | null;
+export type TrackMiddleware = ((track: MediaStreamTrack) => { track: MediaStreamTrack; onClear?: () => void }) | null;
 
 export type TracksMiddleware = (
   videoTrack: MediaStreamTrack,

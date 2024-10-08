@@ -34,7 +34,6 @@ export type DeviceManagerStatus = "uninitialized" | "initializing" | "initialize
 export interface DeviceManagerState {
   deviceState: DeviceState;
   status: DeviceManagerStatus;
-  track: MediaStreamTrack | null;
 }
 
 export type Media = {

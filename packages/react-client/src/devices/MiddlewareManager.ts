@@ -1,77 +1,48 @@
-import type { Media } from "../types/internal";
-
 import type { TrackMiddleware } from "../types/public";
-import { setupOnEndedCallback } from "../utils/track";
 
-type StreamTrack = Pick<Media, "track" | "stream" | "enabled">;
+export type MiddlewareMedia = {
+  stream: MediaStream;
+  track: MediaStreamTrack;
+};
 
 export class MiddlewareManager {
-  private media: StreamTrack | null = null;
-
   private middleware: TrackMiddleware | null = null;
   private clearMiddlewareFn: (() => void) | null = null;
 
-  public getMedia = (): StreamTrack | null => this.media;
-
-  public updateMedia(media: StreamTrack | null) {
-    this.media = !media ? null : this.applyMiddleware(media.track, this.middleware);
+  public updateMedia(track: MediaStreamTrack | null): MiddlewareMedia | null {
+    return this.applyMiddleware(track, this.middleware);
   }
 
-  public setTrackMiddleware(middleware: TrackMiddleware | null, rawTrack: MediaStreamTrack | null) {
+  public setTrackMiddleware(
+    middleware: TrackMiddleware | null,
+    rawTrack: MediaStreamTrack | null,
+  ): MiddlewareMedia | null {
     this.middleware = middleware;
-    this.clearMiddleware();
-
-    if (!rawTrack) return;
-
-    this.media = this.applyMiddleware(rawTrack, middleware);
+    return this.applyMiddleware(rawTrack, middleware);
   }
 
   public getMiddleware(): TrackMiddleware | null {
     return this.middleware;
   }
 
-  public stop() {
-    this.clearMiddleware();
-    this.media?.track?.stop();
-  }
-
-  public disable() {
-    if (!this.media?.track) return;
-
-    this.media.track.enabled = false;
-    this.media.enabled = false;
-  }
-
-  public enable() {
-    if (!this.media?.track) return;
-
-    this.media!.track!.enabled = true;
-    this.media!.enabled = true;
-  }
-
-  private clearMiddleware() {
+  public clearMiddleware() {
     this.clearMiddlewareFn?.();
     this.clearMiddlewareFn = null;
   }
 
-  private applyMiddleware(rawTrack: MediaStreamTrack | null, middleware: TrackMiddleware | null): StreamTrack {
+  private applyMiddleware(
+    rawTrack: MediaStreamTrack | null,
+    middleware: TrackMiddleware | null,
+  ): MiddlewareMedia | null {
     this.clearMiddleware();
-    const { onClear, track } = middleware?.(rawTrack) ?? { track: rawTrack };
-
-    setupOnEndedCallback(
-      track,
-      () => track?.id,
-      async () => this.stop(),
-    );
+    if (!rawTrack || !middleware) return null;
+    const { onClear, track } = middleware(rawTrack);
 
     if (onClear) this.clearMiddlewareFn = onClear;
-    const finalTrack = track ?? rawTrack;
-    const stream = finalTrack ? new MediaStream([finalTrack]) : null;
 
     return {
-      stream,
-      track: finalTrack,
-      enabled: Boolean(finalTrack?.enabled),
+      stream: new MediaStream([track]),
+      track,
     };
   }
 }

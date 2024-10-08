@@ -13,6 +13,7 @@ import { prepareMediaTrackConstraints } from "./constraints";
 import EventEmitter from "events";
 import type TypedEmitter from "typed-emitter";
 import type { PersistLastDeviceHandlers, TrackMiddleware } from "./types/public";
+import type { MiddlewareMedia } from "./devices/MiddlewareManager";
 import { MiddlewareManager } from "./devices/MiddlewareManager";
 import { createStorageConfig } from "./utils/localStorage";
 import { setupOnEndedCallback } from "./utils/track";
@@ -65,23 +66,12 @@ export class DeviceManager
   private readonly saveLastDevice: (info: MediaDeviceInfo) => void = NOOP;
 
   private rawMedia: Media | null = null;
+  private middlewareMedia: MiddlewareMedia | null = null;
+
   private mediaStatus: MediaStatus = "Not requested";
   private devices: MediaDeviceInfo[] | null = null;
   private devicesStatus: DevicesStatus = "Not requested";
   private error: DeviceError | null = null;
-
-  public getState(): DeviceState {
-    const media = this.middlewareManager.getMedia();
-    const deviceInfo = this.rawMedia?.deviceInfo ?? null;
-
-    return {
-      mediaStatus: this.mediaStatus,
-      devices: this.devices,
-      devicesStatus: this.devicesStatus,
-      error: this.error,
-      media: media ? { ...media, deviceInfo } : null,
-    };
-  }
 
   constructor({ deviceType, storage, userConstraints, defaultConstraints }: DeviceManagerConfig) {
     super();
@@ -93,6 +83,16 @@ export class DeviceManager
 
     this.deviceType = deviceType;
     this.constraints = userConstraints ?? defaultConstraints;
+  }
+
+  public getState(): DeviceState {
+    return {
+      mediaStatus: this.mediaStatus,
+      devices: this.devices,
+      devicesStatus: this.devicesStatus,
+      error: this.error,
+      media: this.getMedia(),
+    };
   }
 
   public getStatus(): DeviceManagerStatus {
@@ -107,7 +107,12 @@ export class DeviceManager
     return this.deviceType;
   };
 
-  public getMedia = () => this.middlewareManager.getMedia();
+  public getMedia = (): Media | null => {
+    const media = this.middlewareMedia ?? this.rawMedia;
+    const deviceInfo = this.rawMedia?.deviceInfo ?? null;
+
+    return media ? { ...media, enabled: Boolean(media.track?.enabled), deviceInfo } : null;
+  };
 
   public initialize = (
     stream: MediaStream | null,
@@ -182,8 +187,8 @@ export class DeviceManager
       // The ended event in Safari has already been emitted and will be handled in the future.
       // Therefore, in the `onTrackEnded` method, events for already stopped tracks are filtered out to prevent the state from being damaged.
       if (shouldReplaceDevice) {
-        this?.rawMedia?.track?.stop();
-        this.middlewareManager.stop();
+        this.rawMedia?.track?.stop();
+        this.middlewareMedia?.track?.stop();
       }
 
       this.updateMedia({
@@ -219,7 +224,8 @@ export class DeviceManager
 
   public async setTrackMiddleware(middleware: TrackMiddleware | null): Promise<void> {
     const track = getTrack(this.rawMedia?.stream, this.deviceType);
-    this.middlewareManager.setTrackMiddleware(middleware, track);
+    this.middlewareMedia = this.middlewareManager.setTrackMiddleware(middleware, track);
+
     this.emit("middlewareSet", this.getState());
   }
 
@@ -228,7 +234,8 @@ export class DeviceManager
   }
 
   public stop() {
-    this.middlewareManager.stop();
+    this.middlewareManager.clearMiddleware();
+    this.middlewareMedia?.track?.stop();
     this.rawMedia?.track?.stop();
 
     this.updateMedia(null);
@@ -237,30 +244,27 @@ export class DeviceManager
   }
 
   public disable() {
-    if (!this.rawMedia || !this.rawMedia?.track) return;
-
-    this.rawMedia!.track!.enabled = false;
-    this.rawMedia!.enabled = false;
-
-    this.middlewareManager.disable();
+    this.setEnable(this.rawMedia, false);
+    this.setEnable(this.middlewareMedia, false);
 
     this.emit("deviceDisabled", this.getState());
   }
 
   public enable() {
-    if (!this.rawMedia || !this.rawMedia?.track) return;
-
-    this.rawMedia!.track!.enabled = true;
-    this.rawMedia!.enabled = true;
-
-    this.middlewareManager.enable();
+    this.setEnable(this.rawMedia, true);
+    this.setEnable(this.middlewareMedia, true);
 
     this.emit("deviceEnabled", this.getState());
   }
 
+  private setEnable = (media: Pick<Media, "stream" | "track"> | null, value: boolean) => {
+    if (!media || !media?.track) return;
+    media.track!.enabled = value;
+  };
+
   private updateMedia(media: Media | null) {
     this.rawMedia = !media ? null : { ...media };
-    this.middlewareManager.updateMedia(media);
+    this.middlewareMedia = this.middlewareManager.updateMedia(media?.track ?? null);
   }
 }
 

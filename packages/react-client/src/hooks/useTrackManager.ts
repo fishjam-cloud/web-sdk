@@ -19,6 +19,12 @@ const TRACK_TYPE_TO_DEVICE = {
 
 const getDeviceType = (mediaManager: MediaManager) => TRACK_TYPE_TO_DEVICE[mediaManager.getDeviceType()];
 
+const DEFAULT_SIMULCAST_CONFIG = {
+  enabled: true,
+  activeEncodings: ["l", "m", "h"],
+  disabledEncodings: [],
+} as const satisfies SimulcastConfig;
+
 export const useTrackManager = ({ mediaManager, tsClient, getCurrentPeerStatus }: TrackManagerConfig): TrackManager => {
   const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
   const [paused, setPaused] = useState<boolean>(false);
@@ -43,7 +49,7 @@ export const useTrackManager = ({ mediaManager, tsClient, getCurrentPeerStatus }
   const stop = useCallback(() => mediaManager.stop(), [mediaManager]);
 
   const startStreaming = useCallback(
-    async (simulcastConfig?: SimulcastConfig, maxBandwidth?: TrackBandwidthLimit) => {
+    async (simulcastConfig: SimulcastConfig = DEFAULT_SIMULCAST_CONFIG, maxBandwidth?: TrackBandwidthLimit) => {
       if (currentTrackId) throw Error("Track already added");
 
       const media = mediaManager.getMedia();

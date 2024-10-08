@@ -18,6 +18,7 @@ export class MiddlewareManager {
     rawTrack: MediaStreamTrack | null,
     middleware: TrackMiddleware | null = this.middleware,
   ): MediaStreamTrack | null {
+    this.middleware = middleware;
     this.clearMiddleware();
     if (!rawTrack || !middleware) return null;
     const { onClear, track } = middleware(rawTrack);

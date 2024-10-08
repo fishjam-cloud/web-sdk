@@ -65,7 +65,10 @@ export class DeviceManager
   private readonly saveLastDevice: (info: MediaDeviceInfo) => void = NOOP;
 
   private rawMedia: Media | null = null;
+
   private processedMediaTrack: MediaStreamTrack | null = null;
+
+  private media: Media | null = null;
 
   private mediaStatus: MediaStatus = "Not requested";
   private devices: MediaDeviceInfo[] | null = null;
@@ -90,7 +93,7 @@ export class DeviceManager
       devices: this.devices,
       devicesStatus: this.devicesStatus,
       error: this.error,
-      media: this.getMedia(),
+      media: this.media,
       currentMiddleware: this.middlewareManager.getMiddleware(),
     };
   }
@@ -108,17 +111,7 @@ export class DeviceManager
   };
 
   public getMedia = (): Media | null => {
-    // todo refactor
-    const media = this.processedMediaTrack
-      ? {
-          track: this.processedMediaTrack,
-          stream: new MediaStream([this.processedMediaTrack]),
-        }
-      : this.rawMedia;
-
-    const deviceInfo = this.rawMedia?.deviceInfo ?? null;
-
-    return media ? { ...media, enabled: Boolean(media.track?.enabled), deviceInfo } : null;
+    return this.media;
   };
 
   public initialize = (
@@ -235,7 +228,7 @@ export class DeviceManager
   }
 
   public async setTrackMiddleware(middleware: TrackMiddleware | null): Promise<void> {
-    this.processedMediaTrack = this.middlewareManager.processMiddleware(middleware);
+    this.setCurrentMedia(this.rawMedia, this.middlewareManager.processMiddleware(middleware));
 
     this.emit("middlewareSet", this.getState());
   }
@@ -275,7 +268,22 @@ export class DeviceManager
 
   private updateMedia(media: Media | null) {
     this.rawMedia = !media ? null : { ...media };
-    this.processedMediaTrack = this.middlewareManager.processTrack(media?.track ?? null);
+
+    this.setCurrentMedia(this.rawMedia, this.middlewareManager.processTrack(media?.track ?? null));
+  }
+
+  private setCurrentMedia(media: Media | null, processedTrack: MediaStreamTrack | null) {
+    this.processedMediaTrack = processedTrack;
+
+    const streamTrack = processedTrack ? { track: processedTrack, stream: new MediaStream([processedTrack]) } : media;
+
+    this.media = streamTrack
+      ? {
+          ...streamTrack,
+          enabled: Boolean(streamTrack.track?.enabled),
+          deviceInfo: this.rawMedia?.deviceInfo ?? null,
+        }
+      : null;
   }
 }
 

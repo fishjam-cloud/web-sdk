@@ -29,6 +29,8 @@ const createVideoTransceiverConfig = (
     let simulcastConfig: Map<Encoding, number>;
 
     if (typeof maxBandwidth === 'number') {
+      if (maxBandwidth !== 0) throw Error('Invalid bandwidth limit for simulcast track');
+
       simulcastConfig = new Map([
         ['l', 0],
         ['m', 0],

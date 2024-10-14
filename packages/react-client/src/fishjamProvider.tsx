@@ -69,10 +69,6 @@ export function FishjamProvider({
 
   const clientState = useFishjamClientState(fishjamClientRef.current);
 
-  if (Object.entries(simulcastBandwidthLimits).length !== 3) {
-    console.error('Invalid simulcastBandwidthLimits config. Must have exactly 3 keys: "l", "m" and "h".');
-  }
-
   const context: FishjamContextType = {
     fishjamClientRef,
     peerStatus,

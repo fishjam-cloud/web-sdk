@@ -1,19 +1,17 @@
 import type { Device } from "../../types/public";
-import { useVideoDeviceManager } from "../deviceManagers/useVideoDeviceManager";
+import { useDeviceManager } from "../deviceManagers/useDeviceManager";
 import { useFishjamContext } from "../useFishjamContext";
-import { useProcessedPreviewStream } from "../useProcessedPreviewStream";
 
 /**
  *
  * @category Devices
  */
 export function useCamera(): Device {
-  const { videoTrackManager } = useFishjamContext();
-  const { deviceState, status } = useVideoDeviceManager();
+  const { videoTrackManager, videoDeviceManagerRef } = useFishjamContext();
+  const { deviceState, status } = useDeviceManager(videoDeviceManagerRef.current);
   const { currentTrack, ...trackManager } = videoTrackManager;
-  const processedPreviewStream = useProcessedPreviewStream(videoTrackManager, deviceState.media?.track);
 
-  const stream = currentTrack?.stream ?? processedPreviewStream ?? deviceState.media?.stream ?? null;
+  const stream = currentTrack?.stream ?? deviceState.media?.stream ?? null;
   const isStreaming = Boolean(currentTrack?.stream);
   const track = stream?.getAudioTracks()[0] ?? null;
   const trackId = currentTrack?.trackId ?? null;
@@ -22,6 +20,7 @@ export function useCamera(): Device {
 
   return {
     ...trackManager,
+    currentMiddleware: deviceState.currentMiddleware,
     status,
     stream,
     devices,

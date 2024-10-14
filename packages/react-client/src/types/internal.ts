@@ -80,7 +80,7 @@ export type ScreenShareState = (
 
 export interface TrackManager {
   initialize: (deviceId?: string) => Promise<void>;
-  stop: () => Promise<void>;
+  stop: () => void;
   startStreaming: (startStreamingProps?: StartStreamingProps) => Promise<string>;
   stopStreaming: () => Promise<void>;
   pauseStreaming: () => Promise<void>;

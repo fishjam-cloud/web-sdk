@@ -1,6 +1,6 @@
 import type { Encoding, FishjamClient, TrackContext } from "@fishjam-cloud/ts-client";
 import type { PeerMetadata, TrackMetadata } from "../types/internal";
-import type { BandwidthLimits, SimulcastBandwidthLimits, StartStreamingProps, Track } from "../types/public";
+import type { BandwidthLimits, Track } from "../types/public";
 
 // In most cases, the track is identified by its remote track ID.
 // This ID comes from the ts-client `addTrack` method.

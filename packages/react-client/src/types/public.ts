@@ -1,7 +1,6 @@
 import type {
   Encoding,
   SimulcastConfig,
-  TrackBandwidthLimit,
   ConnectConfig as TSClientConnectConfig,
   VadStatus,
 } from "@fishjam-cloud/ts-client";

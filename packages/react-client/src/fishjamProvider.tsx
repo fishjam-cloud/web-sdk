@@ -8,14 +8,15 @@ import { DeviceManager } from "./DeviceManager";
 import { usePeerStatus } from "./hooks/usePeerStatus";
 import { useFishjamClientState } from "./hooks/useFishjamClientState";
 import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "./constraints";
-import type { PersistLastDeviceHandlers, SimulcastBandwidthLimits } from "./types/public";
+import type { BandwidthLimits, PersistLastDeviceHandlers } from "./types/public";
 import { useScreenShareManager } from "./hooks/useScreenShare";
+import { mergeWithDefaultBandwitdthLimits } from "./utils/bandwidth";
 
 interface FishjamProviderProps extends PropsWithChildren {
   reconnect?: ReconnectConfig | boolean;
   constraints?: Pick<MediaStreamConstraints, "audio" | "video">;
   persistLastDevice?: boolean | PersistLastDeviceHandlers;
-  simulcastBandwidthLimits?: SimulcastBandwidthLimits;
+  bandwidthLimits?: Partial<BandwidthLimits>;
 }
 
 /**
@@ -26,7 +27,7 @@ export function FishjamProvider({
   reconnect,
   constraints,
   persistLastDevice,
-  simulcastBandwidthLimits = { l: 0, m: 0, h: 0 },
+  bandwidthLimits,
 }: FishjamProviderProps) {
   const fishjamClientRef = useRef(new FishjamClient<PeerMetadata, TrackMetadata>({ reconnect }));
 
@@ -79,7 +80,7 @@ export function FishjamProvider({
     audioDeviceManagerRef,
     hasDevicesBeenInitializedRef,
     clientState,
-    simulcastBandwidthLimits,
+    bandwidthLimits: mergeWithDefaultBandwitdthLimits(bandwidthLimits),
   };
 
   return <FishjamContext.Provider value={context}>{children}</FishjamContext.Provider>;

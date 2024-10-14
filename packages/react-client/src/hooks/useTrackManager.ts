@@ -1,4 +1,4 @@
-import type { Encoding, FishjamClient } from "@fishjam-cloud/ts-client";
+import type { FishjamClient } from "@fishjam-cloud/ts-client";
 import type { MediaManager, PeerMetadata, TrackManager, TrackMetadata } from "../types/internal";
 import { getConfigAndBandwidthFromProps, getRemoteOrLocalTrack } from "../utils/track";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -25,7 +25,8 @@ export const useTrackManager = ({ mediaManager, tsClient, getCurrentPeerStatus }
   const [paused, setPaused] = useState<boolean>(false);
 
   const peerStatus = useMemo(() => getCurrentPeerStatus(), [getCurrentPeerStatus]);
-  const { simulcastBandwidthLimits } = useFishjamContext();
+
+  const { bandwidthLimits } = useFishjamContext();
 
   const currentTrack = useMemo(() => getRemoteOrLocalTrack(tsClient, currentTrackId), [tsClient, currentTrackId]);
 
@@ -64,7 +65,7 @@ export const useTrackManager = ({ mediaManager, tsClient, getCurrentPeerStatus }
       const deviceType = getDeviceType(mediaManager);
       const trackMetadata: TrackMetadata = { type: deviceType, displayName, paused: false };
 
-      const [maxBandwidth, simulcastConfig] = getConfigAndBandwidthFromProps(props, simulcastBandwidthLimits);
+      const [maxBandwidth, simulcastConfig] = getConfigAndBandwidthFromProps(props.simulcast, bandwidthLimits);
 
       const remoteTrackId = await tsClient.addTrack(media.track, trackMetadata, simulcastConfig, maxBandwidth);
 
@@ -73,7 +74,7 @@ export const useTrackManager = ({ mediaManager, tsClient, getCurrentPeerStatus }
 
       return remoteTrackId;
     },
-    [currentTrackId, mediaManager, tsClient, simulcastBandwidthLimits],
+    [currentTrackId, mediaManager, tsClient, bandwidthLimits],
   );
 
   const refreshStreamedTrack = useCallback(async () => {

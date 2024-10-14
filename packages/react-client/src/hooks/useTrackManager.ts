@@ -2,13 +2,13 @@ import type { FishjamClient } from "@fishjam-cloud/ts-client";
 import type { MediaManager, PeerMetadata, TrackManager, TrackMetadata } from "../types/internal";
 import { getConfigAndBandwidthFromProps, getRemoteOrLocalTrack } from "../utils/track";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { PeerStatus, StartStreamingProps, TrackMiddleware } from "../types/public";
-import { useFishjamContext } from "./useFishjamContext";
+import type { BandwidthLimits, PeerStatus, StartStreamingProps, TrackMiddleware } from "../types/public";
 
 interface TrackManagerConfig {
   mediaManager: MediaManager;
   tsClient: FishjamClient<PeerMetadata, TrackMetadata>;
   getCurrentPeerStatus: () => PeerStatus;
+  bandwidthLimits: BandwidthLimits;
 }
 
 type ToggleMode = "hard" | "soft";
@@ -20,13 +20,16 @@ const TRACK_TYPE_TO_DEVICE = {
 
 const getDeviceType = (mediaManager: MediaManager) => TRACK_TYPE_TO_DEVICE[mediaManager.getDeviceType()];
 
-export const useTrackManager = ({ mediaManager, tsClient, getCurrentPeerStatus }: TrackManagerConfig): TrackManager => {
+export const useTrackManager = ({
+  mediaManager,
+  tsClient,
+  getCurrentPeerStatus,
+  bandwidthLimits,
+}: TrackManagerConfig): TrackManager => {
   const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
   const [paused, setPaused] = useState<boolean>(false);
 
   const peerStatus = useMemo(() => getCurrentPeerStatus(), [getCurrentPeerStatus]);
-
-  const { bandwidthLimits } = useFishjamContext();
 
   const currentTrack = useMemo(() => getRemoteOrLocalTrack(tsClient, currentTrackId), [tsClient, currentTrackId]);
 

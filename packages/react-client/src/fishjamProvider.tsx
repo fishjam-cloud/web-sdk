@@ -54,16 +54,20 @@ export function FishjamProvider({
 
   const { peerStatus, getCurrentPeerStatus } = usePeerStatus(fishjamClientRef.current);
 
+  const mergedBandwidthLimits = mergeWithDefaultBandwitdthLimits(bandwidthLimits);
+
   const videoTrackManager = useTrackManager({
     mediaManager: videoDeviceManagerRef.current,
     tsClient: fishjamClientRef.current,
     getCurrentPeerStatus,
+    bandwidthLimits: mergedBandwidthLimits,
   });
 
   const audioTrackManager = useTrackManager({
     mediaManager: audioDeviceManagerRef.current,
     tsClient: fishjamClientRef.current,
     getCurrentPeerStatus,
+    bandwidthLimits: mergedBandwidthLimits,
   });
 
   const screenShareManager = useScreenShareManager({ fishjamClient: fishjamClientRef.current });
@@ -80,7 +84,7 @@ export function FishjamProvider({
     audioDeviceManagerRef,
     hasDevicesBeenInitializedRef,
     clientState,
-    bandwidthLimits: mergeWithDefaultBandwitdthLimits(bandwidthLimits),
+    bandwidthLimits: mergedBandwidthLimits,
   };
 
   return <FishjamContext.Provider value={context}>{children}</FishjamContext.Provider>;

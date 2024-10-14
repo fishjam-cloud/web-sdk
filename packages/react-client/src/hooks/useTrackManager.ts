@@ -72,8 +72,6 @@ export const useTrackManager = ({
 
       const [maxBandwidth, simulcastConfig] = getConfigAndBandwidthFromProps(props.simulcast, bandwidthLimits);
 
-      console.log(simulcastConfig, maxBandwidth);
-
       const remoteTrackId = await tsClient.addTrack(media.track, trackMetadata, simulcastConfig, maxBandwidth);
 
       setCurrentTrackId(remoteTrackId);

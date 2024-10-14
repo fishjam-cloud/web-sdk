@@ -44,7 +44,6 @@ const createVideoTransceiverConfig = (
   }
 
   if (typeof maxBandwidth === 'number') {
-    console.log(maxBandwidth, trackContext);
     return createNonSimulcastTransceiverConfig(trackContext, maxBandwidth);
   }
 

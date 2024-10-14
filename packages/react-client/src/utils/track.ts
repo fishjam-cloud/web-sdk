@@ -67,7 +67,7 @@ export const getConfigAndBandwidthFromProps = (
   encodings: Encoding[] | false | undefined,
   bandwidthLimits: BandwidthLimits,
 ) => {
-  if (!encodings) return [bandwidthLimits.singleResolution, undefined] as const;
+  if (!encodings) return [bandwidthLimits.singleStream, undefined] as const;
 
   const config = {
     enabled: true,

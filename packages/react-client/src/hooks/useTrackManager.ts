@@ -9,6 +9,7 @@ interface TrackManagerConfig {
   tsClient: FishjamClient<PeerMetadata, TrackMetadata>;
   getCurrentPeerStatus: () => PeerStatus;
   bandwidthLimits: BandwidthLimits;
+  autoStreamProps?: StartStreamingProps | false;
 }
 
 type ToggleMode = "hard" | "soft";
@@ -25,6 +26,7 @@ export const useTrackManager = ({
   tsClient,
   getCurrentPeerStatus,
   bandwidthLimits,
+  autoStreamProps,
 }: TrackManagerConfig): TrackManager => {
   const [currentTrackId, setCurrentTrackId] = useState<string | null>(null);
   const [paused, setPaused] = useState<boolean>(false);
@@ -69,6 +71,8 @@ export const useTrackManager = ({
       const trackMetadata: TrackMetadata = { type: deviceType, displayName, paused: false };
 
       const [maxBandwidth, simulcastConfig] = getConfigAndBandwidthFromProps(props.simulcast, bandwidthLimits);
+
+      console.log(simulcastConfig, maxBandwidth);
 
       const remoteTrackId = await tsClient.addTrack(media.track, trackMetadata, simulcastConfig, maxBandwidth);
 
@@ -177,9 +181,11 @@ export const useTrackManager = ({
   const toggleDevice = useCallback(() => toggle("hard"), [toggle]);
 
   useEffect(() => {
+    if (autoStreamProps === false) return;
+
     const joinedHandler = () => {
       if (mediaManager.getMedia()?.track) {
-        startStreaming();
+        startStreaming(autoStreamProps);
       }
     };
 
@@ -193,7 +199,7 @@ export const useTrackManager = ({
       tsClient.off("joined", joinedHandler);
       tsClient.off("disconnected", disconnectedHandler);
     };
-  }, [mediaManager, startStreaming, tsClient]);
+  }, [mediaManager, startStreaming, tsClient, autoStreamProps]);
 
   return {
     currentTrack,

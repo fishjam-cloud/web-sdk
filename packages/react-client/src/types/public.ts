@@ -80,6 +80,6 @@ export type ScreenshareApi = {
 
 export type SimulcastBandwidthLimits = Record<Encoding, number>;
 
-export type StartStreamingProps = { simulcast?: Encoding[] };
+export type StartStreamingProps = { simulcast?: Encoding[] | false };
 
 export type BandwidthLimits = { singleResolution: number; simulcast: SimulcastBandwidthLimits };

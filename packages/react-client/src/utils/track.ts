@@ -63,7 +63,10 @@ const getDisabledEncodings = (activeEncodings: Encoding[] = []) => {
   return allEncodings.filter((encoding) => !activeEncodings.includes(encoding));
 };
 
-export const getConfigAndBandwidthFromProps = (encodings: Encoding[] | undefined, bandwidthLimits: BandwidthLimits) => {
+export const getConfigAndBandwidthFromProps = (
+  encodings: Encoding[] | false | undefined,
+  bandwidthLimits: BandwidthLimits,
+) => {
   if (!encodings) return [bandwidthLimits.singleResolution, undefined] as const;
 
   const config = {

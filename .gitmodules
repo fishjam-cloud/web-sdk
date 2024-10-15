@@ -1,5 +1,4 @@
 [submodule "packages/ts-client/protos"]
 	path = packages/ts-client/protos
-	url = git@github.com:fishjam-cloud/protos.git
+	url = https://github.com/fishjam-cloud/protos.git
 	branch = master
-

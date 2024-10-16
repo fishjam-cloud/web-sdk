@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useRef, useSyncExternalStore } from "react";
-import type { Component, Endpoint, MessageEvents, Peer, TrackContext, FishjamClient } from "@fishjam-cloud/ts-client";
-import type { PeerMetadata, PeerState, TrackId, TrackMetadata } from "../types/internal";
-import type { Track } from "../types/public";
+import type { Component, Endpoint, MessageEvents, Peer, FishjamClient } from "@fishjam-cloud/ts-client";
+import type { PeerId, PeerMetadata, TrackMetadata } from "../types/internal";
 
 const eventNames = [
   "socketClose",
@@ -44,7 +43,7 @@ const eventNames = [
 ] as const satisfies (keyof MessageEvents<unknown, unknown>)[];
 
 export interface FishjamClientState {
-  peers: Record<string, Peer<PeerMetadata, TrackMetadata>>;
+  peers: Record<PeerId, Peer<PeerMetadata, TrackMetadata>>;
   components: Record<string, Component<PeerMetadata, TrackMetadata>>;
   localPeer: Endpoint<PeerMetadata, TrackMetadata> | null;
   isReconnecting: boolean;

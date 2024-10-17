@@ -24,7 +24,9 @@ export function Tile({ videoTrack, audioTrack, name, id }: Props) {
       )}
 
       <div className="absolute bottom-2 left-0 z-30 grid w-full place-content-center text-center text-xs">
-        <AudioVisualizer stream={audioTrack?.stream} />
+        {/* The MediaStream from the local peer may not contain an audio track */}
+        {/* if the user has paused their stream  */}
+        {audioTrack?.track && <AudioVisualizer stream={audioTrack?.stream} />}
 
         <div
           title={videoTrack?.trackId}

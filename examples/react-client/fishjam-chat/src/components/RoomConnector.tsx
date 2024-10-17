@@ -1,6 +1,7 @@
 import {
   useConnect,
   useDisconnect,
+  useScreenShare,
   useStatus,
 } from "@fishjam-cloud/react-client";
 import { Button } from "./Button";
@@ -35,6 +36,7 @@ export function RoomConnector() {
   const isUserConnected = useStatus() === "connected";
   const disconnect = useDisconnect();
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const screenShare = useScreenShare();
 
   const connectToRoom = async ({
     roomManagerUrl,
@@ -65,6 +67,14 @@ export function RoomConnector() {
       url: fishjamUrl,
       peerMetadata: { displayName: peerName },
     });
+  };
+
+  const disconnectFromRoom = async () => {
+    if (screenShare.stream) {
+      await screenShare.stopStreaming();
+    }
+
+    disconnect();
   };
 
   const { defaultRoomManagerUrl, defaultPeerName, defaultRoomName } =
@@ -120,7 +130,11 @@ export function RoomConnector() {
       </div>
 
       <div className="flex justify-end gap-4">
-        <Button onClick={disconnect} disabled={!isUserConnected}>
+        <Button
+          type="button"
+          onClick={disconnectFromRoom}
+          disabled={!isUserConnected}
+        >
           Disconnect
         </Button>
 

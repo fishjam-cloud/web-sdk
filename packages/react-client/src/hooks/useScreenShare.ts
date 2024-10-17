@@ -117,19 +117,6 @@ export const useScreenShareManager = ({ fishjamClient }: ScreenShareManagerProps
     };
   }, [state, stopStreaming]);
 
-  useEffect(() => {
-    const onDisconnected = () => {
-      if (stream) {
-        stopStreaming();
-      }
-    };
-    fishjamClient.on("disconnected", onDisconnected);
-
-    return () => {
-      fishjamClient.removeListener("disconnected", onDisconnected);
-    };
-  }, [stopStreaming, fishjamClient, stream]);
-
   const videoBroadcast = state.stream ? getRemoteOrLocalTrack(fishjamClient, state.trackIds.videoId) : null;
   const audioBroadcast = state.trackIds?.audioId ? getRemoteOrLocalTrack(fishjamClient, state.trackIds.audioId) : null;
 

@@ -140,7 +140,7 @@ export function DevicePicker() {
         {camera.stream && (
           <VideoPlayer className="w-64" stream={camera.stream} />
         )}
-        {microphone.stream && <AudioVisualizer stream={microphone.stream} />}
+        {microphone.track && <AudioVisualizer track={microphone.track} />}
       </div>
 
       <BlurToggle />

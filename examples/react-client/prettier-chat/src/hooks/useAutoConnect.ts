@@ -23,10 +23,17 @@ export const useAutoConnect = () => {
     const { url, peerToken } = await getRoomCredentials(
       roomManagerUrl,
       roomName,
-      peerName,
+      peerName
     );
     await connect({ url, token: peerToken });
-  }, [isPeerIdle, roomName, peerName, roomManagerUrl, initializeDevices]);
+  }, [
+    isPeerIdle,
+    roomName,
+    peerName,
+    roomManagerUrl,
+    initializeDevices,
+    connect,
+  ]);
 
   useEffect(() => {
     handleConnection();

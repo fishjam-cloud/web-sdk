@@ -23,7 +23,7 @@ export function Tile({ videoTrack, audioTrack, name, id }: Props) {
         "w-full h-full grid place-content-center rounded-md border-2 border-stone-300",
         {
           relative: !isVideoActive,
-        }
+        },
       )}
     >
       <div className={cn("w-fit h-fit", { relative: isVideoActive })}>

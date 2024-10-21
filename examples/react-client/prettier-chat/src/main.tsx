@@ -12,5 +12,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <App />
       </BlurProvider>
     </FishjamProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

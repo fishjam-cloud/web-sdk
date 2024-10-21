@@ -29,7 +29,7 @@ export const BlurProvider: FC<PropsWithChildren> = ({ children }) => {
         onClear: () => blurProcessor.destroy(),
       };
     },
-    []
+    [],
   );
 
   const isBlurEnabled = camera.currentMiddleware === blurMiddleware;

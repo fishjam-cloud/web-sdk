@@ -1,5 +1,5 @@
 import VideoPlayer from "./VideoPlayer";
-import { Track } from "@fishjam-cloud/react-client";
+import { Track, useVAD } from "@fishjam-cloud/react-client";
 import AudioVisualizer from "./AudioVisualizer";
 
 type Props = {
@@ -11,7 +11,8 @@ type Props = {
 
 export function Tile({ videoTrack, audioTrack, name, id }: Props) {
   const isMuted = !audioTrack || audioTrack.metadata?.paused;
-  const isSpeaking = audioTrack?.vadStatus === "speech";
+
+  const isSpeaking = useVAD([id])[id];
 
   return (
     <div className="relative grid aspect-video place-content-center overflow-hidden rounded-md bg-zinc-300">
@@ -24,7 +25,7 @@ export function Tile({ videoTrack, audioTrack, name, id }: Props) {
       )}
 
       <div className="absolute bottom-2 left-0 z-30 grid w-full place-content-center text-center text-xs">
-        <AudioVisualizer stream={audioTrack?.stream} />
+        <AudioVisualizer track={audioTrack?.track} />
 
         <div
           title={videoTrack?.trackId}

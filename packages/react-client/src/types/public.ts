@@ -5,6 +5,7 @@ import type {
   VadStatus,
 } from "@fishjam-cloud/ts-client";
 import type {
+  DeviceError,
   DeviceManagerStatus,
   DistinguishedTracks,
   PeerMetadata,
@@ -50,9 +51,10 @@ export type Device = {
   devices: MediaDeviceInfo[];
   activeDevice: MediaDeviceInfo | null;
   currentMiddleware: TrackMiddleware;
+  deviceError: DeviceError | null;
+  isMuted: boolean;
+  isDeviceEnabled: boolean;
 } & Omit<TrackManager, "currentTrack">;
-
-export type AudioDevice = Device & { isAudioPlaying: boolean };
 
 export type PeerWithTracks = PeerState & DistinguishedTracks;
 

@@ -1,9 +1,4 @@
-import {
-  useInitializeDevices,
-  useCamera,
-  useMicrophone,
-  useConnect,
-} from "@fishjam-cloud/react-client";
+import { useInitializeDevices, useConnect } from "@fishjam-cloud/react-client";
 
 import { Loader2 } from "lucide-react";
 

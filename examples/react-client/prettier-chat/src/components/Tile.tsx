@@ -1,11 +1,7 @@
 import VideoPlayer from "./VideoPlayer";
 import { Track } from "@fishjam-cloud/react-client";
-import AudioVisualizer from "./AudioVisualizer";
 import AudioPlayer from "./AudioPlayer";
 import { cn } from "@/lib/utils";
-import { relative } from "path";
-import { Label } from "./ui/label";
-import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 
 type Props = {

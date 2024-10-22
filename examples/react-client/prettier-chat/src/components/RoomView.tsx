@@ -76,7 +76,7 @@ export const RoomView = () => {
                   )}
                 </Fragment>
               );
-            }
+            },
           )}
         </div>
       </section>

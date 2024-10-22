@@ -653,6 +653,7 @@ __metadata:
     eslint: "npm:^8.57.1"
     lucide-react: "npm:^0.453.0"
     postcss: "npm:^8.4.47"
+    prettier: "npm:^3.3.3"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
     react-hook-form: "npm:^7.53.0"

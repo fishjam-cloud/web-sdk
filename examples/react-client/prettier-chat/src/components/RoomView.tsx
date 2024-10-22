@@ -19,7 +19,7 @@ export const RoomView = () => {
 
   return (
     <div className="flex flex-col justify-between w-full">
-      <section className="flex-1">
+      <section className="flex-1 overflow-y-auto">
         <div
           className="w-full h-full grid grid-flow-row gap-4 p-4"
           style={{

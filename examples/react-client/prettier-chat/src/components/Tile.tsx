@@ -15,18 +15,9 @@ export function Tile({ videoTrack, audioTrack, name, id }: Props) {
   const isMuted = !audioTrack || audioTrack.metadata?.paused;
   const isSpeaking = audioTrack?.vadStatus === "speech";
 
-  const isVideoActive = !videoTrack?.metadata?.paused;
-
   return (
-    <div
-      className={cn(
-        "w-full h-full grid place-content-center rounded-md border-2 border-stone-300",
-        {
-          relative: !isVideoActive,
-        },
-      )}
-    >
-      <div className={cn("w-fit h-fit", { relative: isVideoActive })}>
+    <div className="w-full h-full grid place-content-center rounded-md border-2 border-stone-300 overflow-hidden relative">
+      <div className="w-fit h-fit">
         {videoTrack && !videoTrack.metadata?.paused && (
           <VideoPlayer
             className="z-20 rounded-md border"

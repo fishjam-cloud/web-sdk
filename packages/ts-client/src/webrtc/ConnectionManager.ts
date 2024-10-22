@@ -15,8 +15,6 @@ export class ConnectionManager {
   constructor(turnServers: TurnServer[]) {
     this.isExWebRTC = turnServers.length === 0;
 
-    console.log({ isExWebRTC: this.isExWebRTC, turnServers });
-
     const iceServers = this.isExWebRTC
       ? [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun.l.google.com:5349' }]
       : this.getIceServers(turnServers);

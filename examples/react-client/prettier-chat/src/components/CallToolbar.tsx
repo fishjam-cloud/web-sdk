@@ -39,8 +39,10 @@ export const CallToolbar = () => {
   return (
     <footer className="h-24 flex justify-center items-center gap-8 border-t border-stone-200">
       <SettingsSheet>
-        <Button className="text-xs gap-2 mr-4" variant="default">
-          <Settings size={20} strokeWidth={"1.5px"} />
+        <Button className="text-xs gap-2 mr-4" variant="default" asChild>
+          <div>
+            <Settings size={20} strokeWidth={"1.5px"} />
+          </div>
         </Button>
       </SettingsSheet>
 

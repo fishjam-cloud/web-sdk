@@ -6,6 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { Label } from "./ui/label";
 
 type Props = {
   devices: MediaDeviceInfo[];
@@ -18,6 +19,11 @@ export const DeviceSelect: FC<Props> = ({
   onSelectDevice,
   defaultDevice,
 }) => {
+  const validDevices = devices.filter((device) => device.deviceId);
+
+  if (!validDevices.length)
+    return <Label>No devices found, check browser permissions.</Label>;
+
   return (
     <Select
       onValueChange={onSelectDevice}
@@ -27,7 +33,7 @@ export const DeviceSelect: FC<Props> = ({
         <SelectValue placeholder="Select device" />
       </SelectTrigger>
       <SelectContent>
-        {devices.map((device) => (
+        {validDevices.map((device) => (
           <SelectItem key={device.deviceId} value={device.deviceId}>
             {device.label}
           </SelectItem>

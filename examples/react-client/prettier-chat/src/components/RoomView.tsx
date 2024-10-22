@@ -15,7 +15,7 @@ export const RoomView = () => {
       return acc;
     }, 0);
 
-  const shape = trackAmount === 2 ? 2 : Math.ceil(Math.sqrt(trackAmount));
+  const tilesSqrt = trackAmount === 2 ? 2 : Math.ceil(Math.sqrt(trackAmount));
 
   return (
     <div className="flex flex-col justify-between w-full">
@@ -23,8 +23,8 @@ export const RoomView = () => {
         <div
           className="w-full h-full grid grid-flow-row gap-4 p-4"
           style={{
-            gridTemplateRows: `repeat(${shape}, minmax(0, 1fr))`,
-            gridTemplateColumns: `repeat(${shape}, minmax(0, 1fr))`,
+            gridTemplateRows: `repeat(${tilesSqrt}, minmax(0, 1fr))`,
+            gridTemplateColumns: `repeat(${tilesSqrt}, minmax(0, 1fr))`,
           }}
         >
           {localPeer && (
@@ -76,7 +76,7 @@ export const RoomView = () => {
                   )}
                 </Fragment>
               );
-            },
+            }
           )}
         </div>
       </section>

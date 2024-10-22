@@ -3,19 +3,22 @@ import { DeviceSelect } from "./DeviceSelect";
 import VideoPlayer from "./VideoPlayer";
 import AudioVisualizer from "./AudioVisualizer";
 import { BlurToggleButton } from "./BlurToggle";
+import { cn } from "@/lib/utils";
 
 export const CameraSettings = () => {
   const { stream, devices, initialize, activeDevice } = useCamera();
 
+  const hasValidDevices = devices.some((device) => device.deviceId);
+
   return (
-    <div className="space-y-4">
+    <div className="flex justify-center flex-col items-center gap-4">
       <DeviceSelect
         devices={devices}
         onSelectDevice={initialize}
         defaultDevice={activeDevice ?? devices[0]}
       />
 
-      <BlurToggleButton type="button" />
+      {hasValidDevices && <BlurToggleButton type="button" />}
 
       {stream && <VideoPlayer className="rounded-md" stream={stream} />}
     </div>

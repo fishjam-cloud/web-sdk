@@ -3,7 +3,6 @@ import { DeviceSelect } from "./DeviceSelect";
 import VideoPlayer from "./VideoPlayer";
 import AudioVisualizer from "./AudioVisualizer";
 import { BlurToggleButton } from "./BlurToggle";
-import { cn } from "@/lib/utils";
 
 export const CameraSettings = () => {
   const { stream, devices, initialize, activeDevice } = useCamera();

@@ -12,7 +12,7 @@ it(`Updating existing track emits events`, () =>
 
     webRTCEndpoint.on('trackUpdated', (context) => {
       // Then
-      expect(context.metadata).toEqual(metadata);
+      expect(context.metadata?.peer).toEqual(metadata);
       done('');
     });
 
@@ -41,7 +41,7 @@ it(`Updating existing track changes track metadata`, () => {
 
   // Then
   const track = webRTCEndpoint.getRemoteTracks()[trackId];
-  expect(track!.metadata).toEqual(metadata);
+  expect(track!.metadata?.peer).toEqual(metadata);
 });
 
 it('Correctly parses track metadata', () => {
@@ -67,7 +67,7 @@ it('Correctly parses track metadata', () => {
 
   // Then
   const track = webRTCEndpoint.getRemoteTracks()[trackId]!;
-  expect(track.metadata).toEqual({ goodStuff: 'ye' });
+  expect(track.metadata?.peer).toEqual({ goodStuff: 'ye' });
   expect(track.rawMetadata).toEqual({ goodStuff: 'ye', extraFluff: 'nah' });
   expect(track.metadataParsingError).toBeUndefined();
 });
@@ -138,5 +138,5 @@ it(`Updating track with invalid endpoint id throws error`, () => {
 
   expect(() => webRTCEndpoint.receiveMediaEvent(JSON.stringify(trackUpdated)))
     // Then
-    .toThrow(`Endpoint with id: ${notExistingEndpointId} doesn't exist`);
+    .rejects.toThrow(`Endpoint ${notExistingEndpointId} not found`);
 });

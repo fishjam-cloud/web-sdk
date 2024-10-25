@@ -179,7 +179,7 @@ export const createAddTrackMediaEvent = (
         [trackId]: createSimulcastTrack(metadata),
       },
       trackIdToMetadata: {
-        [trackId]: {},
+        [trackId]: metadata,
       },
     },
   });

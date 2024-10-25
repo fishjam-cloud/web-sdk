@@ -4,7 +4,8 @@ import { vi } from 'vitest';
 export const mockMediaStream = () => {
   (global as any).MediaStream = vi.fn().mockImplementation(() => {
     return {
-      addTrack: () => {},
+      addTrack: () => {
+      },
     };
   });
 };
@@ -33,8 +34,10 @@ export const mockRTCPeerConnection = (): {
           return { encodings: encodings } as RTCRtpSendParameters;
         };
 
-        if (typeof trackOrKind !== 'string') {
-          sender.track = trackOrKind;
+        if (init?.direction === "sendonly") {
+          sender.track = typeof trackOrKind !== 'string'
+            ? trackOrKind
+            : { id: "someTrackId" }// todo generate unique UUID
         }
 
         senders.push(sender);
@@ -43,11 +46,13 @@ export const mockRTCPeerConnection = (): {
         const transceiver: RTCRtpTransceiver = {
           currentDirection: null,
           direction: init?.direction ?? 'inactive',
-          mid: null,
+          mid: "someTransceiverMid",
           receiver: {} as RTCRtpReceiver,
           sender: sender,
-          setCodecPreferences: (_codecs) => {},
-          stop: () => {},
+          setCodecPreferences: (_codecs) => {
+          },
+          stop: () => {
+          },
         };
         transceivers.push(transceiver);
 
@@ -61,12 +66,19 @@ export const mockRTCPeerConnection = (): {
           resolve({ sdp: '', type: 'offer' });
         });
       },
-      setLocalDescription: async (_description?: RTCLocalSessionDescriptionInit): Promise<void> => {},
-      setRemoteDescription: async (_description: RTCSessionDescriptionInit): Promise<void> => {},
+      setLocalDescription: async (_description?: RTCLocalSessionDescriptionInit): Promise<void> => {
+      },
+      setRemoteDescription: async (_description: RTCSessionDescriptionInit): Promise<void> => {
+      },
       getSenders: (): RTCRtpSender[] => {
         return senders;
       },
-      close: () => {},
+      close: () => {
+      },
+      addEventListener: () => {
+      },
+      removeEventListener: () => {
+      }
     };
     return newVar;
   });
@@ -80,8 +92,10 @@ export const mockRTCPeerConnection = (): {
       receiver: undefined,
       // @ts-ignore
       sender: undefined,
-      setCodecPreferences(_codecs): void {},
-      stop(): void {},
+      setCodecPreferences(_codecs): void {
+      },
+      stop(): void {
+      },
     };
 
     return newVar;

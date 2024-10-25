@@ -14,7 +14,7 @@ export const useVAD = (peerIds: PeerId[]): Record<PeerId, boolean> => {
         .filter((peer) => peerIds.includes(peer.id))
         .map((peer) => ({
           peerId: peer.id,
-          microphoneTracks: Array.from(peer.tracks.values()).filter((track) => track.metadata?.type === "microphone"),
+          microphoneTracks: Array.from(peer.tracks.values()).filter((track) => track.metadata?.peer?.type === "microphone"),
         })),
     [peers, peerIds],
   );

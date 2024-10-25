@@ -272,7 +272,7 @@ export class Local<EndpointMetadata, TrackMetadata> {
 
         this.emit('localTrackMetadataChanged', {
           trackId,
-          metadata: trackContext.metadata!,
+          metadata: trackContext!.metadata!.peer!
         });
         break;
 
@@ -326,7 +326,7 @@ export class Local<EndpointMetadata, TrackMetadata> {
     return Object.values(this.localTracks).reduce(
       (previousValue, localTrack) => ({
         ...previousValue,
-        [localTrack.id]: localTrack.trackContext.metadata,
+        [localTrack.id]: localTrack.trackContext.metadata?.peer,
       }),
       {} as Record<TrackId, TrackMetadata | undefined>,
     );

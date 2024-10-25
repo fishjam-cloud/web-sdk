@@ -103,7 +103,10 @@ interface TrackContextFields<EndpointMetadata, TrackMetadata> {
   /**
    * Any info that was passed in {@link WebRTCEndpoint.addTrack}.
    */
-  readonly metadata?: TrackMetadata;
+  readonly metadata?: {
+    peer?: TrackMetadata,
+    server?: any,
+  };
   readonly rawMetadata: any;
   readonly metadataParsingError?: any;
 

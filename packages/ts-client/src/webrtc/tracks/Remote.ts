@@ -186,7 +186,9 @@ export class Remote<EndpointMetadata, TrackMetadata> {
     trackMetadata: unknown,
   ) => {
     try {
-      trackContext.metadata = this.trackMetadataParser(trackMetadata);
+      trackContext.metadata = {
+        peer: this.trackMetadataParser(trackMetadata)
+      };
       trackContext.metadataParsingError = undefined;
     } catch (error) {
       trackContext.metadataParsingError = error;

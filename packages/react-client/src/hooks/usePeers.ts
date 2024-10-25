@@ -16,7 +16,7 @@ function getPeerWithDistinguishedTracks(peerState: PeerState): PeerWithTracks {
 
 function trackContextToTrack(track: TrackContext<PeerMetadata, TrackMetadata>): Track {
   return {
-    metadata: track.metadata,
+    metadata: track.metadata?.peer,
     trackId: track.trackId,
     stream: track.stream,
     simulcastConfig: track.simulcastConfig ?? null,

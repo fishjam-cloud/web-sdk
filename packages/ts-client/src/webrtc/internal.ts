@@ -29,7 +29,10 @@ export class TrackContextImpl<EndpointMetadata, ParsedMetadata>
   track: MediaStreamTrack | null = null;
   trackKind: TrackKind | null = null;
   stream: MediaStream | null = null;
-  metadata?: ParsedMetadata;
+  metadata?: {
+    peer?: ParsedMetadata,
+    server?: any,
+  };
   rawMetadata: any;
   metadataParsingError?: any;
   simulcastConfig?: SimulcastConfig;
@@ -54,11 +57,17 @@ export class TrackContextImpl<EndpointMetadata, ParsedMetadata>
     this.endpoint = endpoint;
     this.trackId = trackId;
     try {
-      this.metadata = metadataParser(metadata);
+      this.metadata = {
+        peer: metadataParser(metadata?.peer),
+        server: metadata?.server,
+      }
     } catch (error) {
       this.metadataParsingError = error;
     }
-    this.rawMetadata = metadata;
+    this.rawMetadata = {
+      peer: metadata?.peer,
+      server: metadata?.server,
+    };
     this.simulcastConfig = simulcastConfig;
   }
 }

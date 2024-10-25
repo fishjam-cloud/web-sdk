@@ -27,7 +27,7 @@ const getRemoteOrLocalTrackContext = <PeerMetadata, TrackMetadata>(
 };
 
 const getTrackFromContext = (context: TrackContext<unknown, TrackMetadata>): Track => ({
-  metadata: context.metadata,
+  metadata: context.metadata?.peer,
   trackId: context.trackId,
   stream: context.stream,
   simulcastConfig: context.simulcastConfig || null,

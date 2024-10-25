@@ -204,7 +204,9 @@ export class LocalTrack<EndpointMetadata, TrackMetadata> implements TrackCommon 
     const trackContext = this.trackContext;
 
     try {
-      trackContext.metadata = this.metadataParser(metadata);
+      trackContext.metadata = {
+        peer: this.metadataParser(metadata)
+      };
       trackContext.rawMetadata = metadata;
       trackContext.metadataParsingError = undefined;
     } catch (error) {

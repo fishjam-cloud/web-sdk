@@ -59,6 +59,10 @@ export const setupRoomWithMocks = async (
   const rtcTrackEvent: RTCTrackEvent = {
     streams: [stream],
     transceiver: transciever,
+    // @ts-expect-error
+    track: {
+      kind: "video"
+    }
   };
   // @ts-ignore
   connection.getConnection().ontrack(rtcTrackEvent);

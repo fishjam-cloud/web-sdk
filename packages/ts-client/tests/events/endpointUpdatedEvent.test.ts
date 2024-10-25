@@ -85,9 +85,7 @@ it('Update endpoint that not exist', () => {
     webRTCEndpoint.receiveMediaEvent(
       JSON.stringify(createEndpointUpdatedPeerMetadata(notExistingEndpointId, metadata)),
     ),
-  )
-    // todo change this error in production code
-    .toThrow("Cannot set properties of undefined (setting 'metadata')");
+  ).rejects.toThrow(`Endpoint ${notExistingEndpointId} not found`);
 });
 
 it('Parse metadata on endpoint update', () => {
@@ -115,9 +113,9 @@ it('Parse metadata on endpoint update', () => {
   // Then
   const endpoints = webRTCEndpoint.getRemoteEndpoints();
   const addedEndpoint = Object.values(endpoints)[0]!;
-  expect(addedEndpoint.metadata).toEqual({ goodStuff: 'ye' });
+  expect(addedEndpoint.metadata.peer).toEqual({ goodStuff: 'ye' });
   expect(addedEndpoint.metadataParsingError).toBeUndefined();
-  expect(addedEndpoint.rawMetadata).toEqual({
+  expect(addedEndpoint.rawMetadata.peer).toEqual({
     goodStuff: 'ye',
     extraFluff: 'nah',
   });
@@ -148,7 +146,7 @@ it('Correctly handle incorrect metadata on endpoint update', () => {
   // Then
   const endpoints = webRTCEndpoint.getRemoteEndpoints();
   const addedEndpoint = Object.values(endpoints)[0]!;
-  expect(addedEndpoint.metadata).toBeUndefined();
+  expect(addedEndpoint.metadata?.peer).toBeUndefined();
   expect(addedEndpoint.metadataParsingError).toBe('Invalid');
-  expect(addedEndpoint.rawMetadata).toEqual({ trash: 'metadata' });
+  expect(addedEndpoint.rawMetadata?.peer).toEqual({ trash: 'metadata' });
 });

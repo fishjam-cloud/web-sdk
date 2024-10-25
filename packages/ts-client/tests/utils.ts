@@ -61,7 +61,7 @@ export const setupRoomWithMocks = async (
     transceiver: transciever,
   };
   // @ts-ignore
-  connection.ontrack(rtcTrackEvent);
+  connection.getConnection().ontrack(rtcTrackEvent);
 
   return new Promise((resolve) => resolve());
 };

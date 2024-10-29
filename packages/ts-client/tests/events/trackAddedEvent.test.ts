@@ -95,7 +95,7 @@ it('Correctly handles incorrect metadata', () =>
     webRTCEndpoint.on('trackAdded', (ctx) => {
       // Then
       expect(ctx.rawMetadata?.peer).toEqual({ validMetadata: false });
-      expect(ctx.metadata?.peer).toBeUndefined();
+      expect(ctx.metadata).toBeUndefined();
       expect(ctx.metadataParsingError).toBe('Invalid');
       done('');
     });

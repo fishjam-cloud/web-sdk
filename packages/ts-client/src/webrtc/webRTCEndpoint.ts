@@ -424,7 +424,6 @@ export class WebRTCEndpoint<EndpointMetadata = any, TrackMetadata = any> extends
     let metadata: any;
     try {
       const parsedMetadata = this.trackMetadataParser(trackMetadata);
-      console.log({parsedMetadata, trackMetadata})
       metadata = parsedMetadata;
 
       stream.addTrack(track);

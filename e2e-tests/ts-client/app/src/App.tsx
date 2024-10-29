@@ -320,7 +320,7 @@ export function App() {
               >
                 <div>Endpoint id: {endpoint.id}</div>
                 Metadata:{" "}
-                <code className="metadata">{JSON.stringify(metadata?.peer)}</code>
+                <code className="metadata">{JSON.stringify(metadata)}</code>
                 <br />
                 Raw:{" "}
                 <code className="raw-metadata">
@@ -364,12 +364,12 @@ export function App() {
                 <summary>{id}</summary>
                 metadata:{" "}
                 <code id={`metadata-${id}`}>
-                  {JSON.stringify(metadata.peer)}
+                  {JSON.stringify(metadata)}
                 </code>
                 <br />
                 raw metadata:{" "}
                 <code id={`raw-metadata-${id}`}>
-                  {JSON.stringify(rawMetadata.peer)}
+                  {JSON.stringify(rawMetadata)}
                 </code>
                 <br />
                 metadata parsing error:{" "}

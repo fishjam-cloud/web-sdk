@@ -272,7 +272,7 @@ export class Local<EndpointMetadata, TrackMetadata> {
 
         this.emit('localTrackMetadataChanged', {
           trackId,
-          metadata: trackContext.metadata!
+          metadata: trackContext.metadata!,
         });
         break;
 

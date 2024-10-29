@@ -15,14 +15,18 @@ export type PeerState = {
 
 // todo change to Inner / Hidden metadata
 export type PeerMetadata = {
-  displayName?: string;
+  peer: {
+    displayName?: string;
+  }
 };
 
 export type TrackMetadata = {
-  type: "camera" | "microphone" | "screenShareVideo" | "screenShareAudio";
-  paused: boolean;
-  // track label used in recordings
-  displayName?: string;
+  peer: {
+    type: "camera" | "microphone" | "screenShareVideo" | "screenShareAudio";
+    paused: boolean;
+    // track label used in recordings
+    displayName?: string;
+  }
 };
 
 export type DevicesStatus = "OK" | "Error" | "Not requested" | "Requesting";
@@ -73,11 +77,11 @@ export interface MediaManager {
 
 export type ScreenShareState = (
   | {
-      stream: MediaStream;
-      trackIds: { videoId: string; audioId?: string };
-    }
+  stream: MediaStream;
+  trackIds: { videoId: string; audioId?: string };
+}
   | { stream: null; trackIds: null }
-) & { tracksMiddleware?: TracksMiddleware | null };
+  ) & { tracksMiddleware?: TracksMiddleware | null };
 
 export interface TrackManager {
   initialize: (deviceId?: string) => Promise<void>;

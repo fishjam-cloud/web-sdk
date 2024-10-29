@@ -18,21 +18,17 @@ export const isTrackKind = (kind: string): kind is TrackKind => kind === 'audio'
 
 export class TrackContextImpl<EndpointMetadata, ParsedMetadata>
   extends (EventEmitter as {
-    new <EndpointMetadata, ParsedMetadata>(): TypedEmitter<
+    new<EndpointMetadata, ParsedMetadata>(): TypedEmitter<
       Required<TrackContextEvents<EndpointMetadata, ParsedMetadata>>
     >;
   })<EndpointMetadata, ParsedMetadata>
-  implements TrackContext<EndpointMetadata, ParsedMetadata>
-{
+  implements TrackContext<EndpointMetadata, ParsedMetadata> {
   endpoint: Endpoint<EndpointMetadata, ParsedMetadata>;
   trackId: string;
   track: MediaStreamTrack | null = null;
   trackKind: TrackKind | null = null;
   stream: MediaStream | null = null;
-  metadata?: {
-    peer?: ParsedMetadata,
-    server?: any,
-  };
+  metadata?: ParsedMetadata;
   rawMetadata: any;
   metadataParsingError?: any;
   simulcastConfig?: SimulcastConfig;
@@ -57,17 +53,13 @@ export class TrackContextImpl<EndpointMetadata, ParsedMetadata>
     this.endpoint = endpoint;
     this.trackId = trackId;
     try {
-      this.metadata = {
-        peer: metadataParser(metadata?.peer),
-        server: metadata?.server,
-      }
+      this.metadata = metadataParser(metadata)
     } catch (error) {
       this.metadataParsingError = error;
     }
-    this.rawMetadata = {
-      peer: metadata?.peer,
-      server: metadata?.server,
-    };
+    this.rawMetadata = metadata
+
+    console.log({ metadata: this.metadata, rawMetadata: this.rawMetadata })
     this.simulcastConfig = simulcastConfig;
   }
 }

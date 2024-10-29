@@ -41,11 +41,11 @@ it('Connect to room with one endpoint then addTrack produce event', () =>
 it('Correctly parses track metadata', () =>
   new Promise((done) => {
     // Given
-    type TrackMetadata = { goodStuff: string };
+    type TrackMetadata = { peer: { goodStuff: string } };
 
     function trackMetadataParser(data: any): TrackMetadata {
-      if (typeof data.goodStuff === "string") {
-        return { goodStuff: data.goodStuff }
+      if (typeof data?.peer?.goodStuff === "string") {
+        return { peer: { goodStuff: data.peer.goodStuff } }
       }
       throw Error("Incorrect metadata!")
     }
@@ -89,7 +89,7 @@ it('Correctly handles incorrect metadata', () =>
     const trackAddedEvent: TracksAddedMediaEvent = createAddTrackMediaEvent(
       createConnectedEventWithOneEndpoint().data.otherEndpoints[0]!.id,
       trackId,
-      {peer: { validMetadata: false }},
+      { peer: { validMetadata: false } },
     );
 
     webRTCEndpoint.on('trackAdded', (ctx) => {

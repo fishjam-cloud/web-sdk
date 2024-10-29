@@ -58,7 +58,8 @@ class RemoteStore {
 
   constructor(
     private webrtc: WebRTCEndpoint<EndpointMetadata, TrackMetadata>,
-  ) {}
+  ) {
+  }
 
   subscribe(callback: () => void) {
     const cb = () => {
@@ -75,6 +76,7 @@ class RemoteStore {
       EndpointMetadata,
       TrackMetadata
     >["trackAdded"] = (context) => {
+      console.log("Track added")
       context.on("encodingChanged", () => trackCb);
       context.on("voiceActivityChanged", () => trackCb);
 
@@ -91,9 +93,18 @@ class RemoteStore {
       callback();
     };
 
+    const trackUpdated: WebRTCEndpointEvents<
+      EndpointMetadata,
+      TrackMetadata
+    >["trackUpdated"] = () => {
+      console.log("Track added")
+
+      callback();
+    };
+
     this.webrtc.on("trackAdded", trackAddedCb);
     this.webrtc.on("trackReady", cb);
-    this.webrtc.on("trackUpdated", cb);
+    this.webrtc.on("trackUpdated", trackUpdated);
     this.webrtc.on("trackRemoved", removeCb);
     this.webrtc.on("endpointAdded", cb);
     this.webrtc.on("endpointRemoved", cb);
@@ -111,15 +122,20 @@ class RemoteStore {
   }
 
   snapshot() {
+    console.log("Snapshot")
+
     const newTracks = webrtc.getRemoteTracks();
     const newEndpoints = webrtc.getRemoteEndpoints();
     const ids =
       Object.keys(newTracks).sort().join(":") +
       Object.keys(newEndpoints).sort().join(":");
     if (!(ids in this.cache) || this.invalidateCache) {
+      console.log({ name: "Update cache", newEndpoints, newTracks })
       this.cache[ids] = [newEndpoints, newTracks];
       this.invalidateCache = false;
     }
+    console.log("Use cache")
+
     return this.cache[ids];
   }
 }
@@ -290,13 +306,13 @@ export function App() {
         <div style={{ width: "100%" }}>
           {Object.values(remoteTracks).map(
             ({
-              stream,
-              trackId,
-              endpoint,
-              metadata,
-              rawMetadata,
-              metadataParsingError,
-            }) => (
+               stream,
+               trackId,
+               endpoint,
+               metadata,
+               rawMetadata,
+               metadataParsingError,
+             }) => (
               <div
                 key={trackId}
                 data-endpoint-id={endpoint.id}
@@ -304,7 +320,7 @@ export function App() {
               >
                 <div>Endpoint id: {endpoint.id}</div>
                 Metadata:{" "}
-                <code className="metadata">{JSON.stringify(metadata)}</code>
+                <code className="metadata">{JSON.stringify(metadata?.peer)}</code>
                 <br />
                 Raw:{" "}
                 <code className="raw-metadata">

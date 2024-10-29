@@ -39,6 +39,8 @@ export const MockComponent = ({ webrtc }: Props) => {
     const stream = heartMock.stream;
     const track = stream.getVideoTracks()[0];
 
+    console.log({ trackMetadataInput })
+
     heartId.current = webrtc.addTrack(track, JSON.parse(trackMetadataInput));
   };
 

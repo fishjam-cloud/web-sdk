@@ -26,7 +26,7 @@ it('Update existing endpoint metadata', () => {
 
   // Then
   const endpoint = webRTCEndpoint.getRemoteEndpoints()[endpointId]!;
-  expect(endpoint.metadata.peer).toMatchObject(metadata);
+  expect(endpoint.metadata).toMatchObject(metadata);
 });
 
 it('Update existing endpoint produce event', () =>
@@ -44,7 +44,7 @@ it('Update existing endpoint produce event', () =>
 
     webRTCEndpoint.on('endpointUpdated', (endpoint) => {
       // Then
-      expect(endpoint.metadata.peer).toMatchObject(metadata);
+      expect(endpoint.metadata).toMatchObject(metadata);
       done('');
     });
 
@@ -66,7 +66,7 @@ it('Update existing endpoint with undefined metadata', () => {
 
   // Then
   const endpoint = webRTCEndpoint.getRemoteEndpoints()[endpointId]!;
-  expect(endpoint.metadata.peer).toBe(undefined);
+  expect(endpoint.metadata).toBe(undefined);
 });
 
 it('Update endpoint that not exist', () => {
@@ -113,9 +113,9 @@ it('Parse metadata on endpoint update', () => {
   // Then
   const endpoints = webRTCEndpoint.getRemoteEndpoints();
   const addedEndpoint = Object.values(endpoints)[0]!;
-  expect(addedEndpoint.metadata.peer).toEqual({ goodStuff: 'ye' });
+  expect(addedEndpoint.metadata).toEqual({ goodStuff: 'ye' });
   expect(addedEndpoint.metadataParsingError).toBeUndefined();
-  expect(addedEndpoint.rawMetadata.peer).toEqual({
+  expect(addedEndpoint.rawMetadata).toEqual({
     goodStuff: 'ye',
     extraFluff: 'nah',
   });
@@ -146,7 +146,7 @@ it('Correctly handle incorrect metadata on endpoint update', () => {
   // Then
   const endpoints = webRTCEndpoint.getRemoteEndpoints();
   const addedEndpoint = Object.values(endpoints)[0]!;
-  expect(addedEndpoint.metadata?.peer).toBeUndefined();
+  expect(addedEndpoint.metadata).toBeUndefined();
   expect(addedEndpoint.metadataParsingError).toBe('Invalid');
-  expect(addedEndpoint.rawMetadata?.peer).toEqual({ trash: 'metadata' });
+  expect(addedEndpoint.rawMetadata).toEqual({ trash: 'metadata' });
 });

@@ -296,7 +296,7 @@ export interface WebRTCEndpointEvents<EndpointMetadata, TrackMetadata> {
 
   localTrackEncodingDisabled: (event: { trackId: string; encoding: Encoding }) => void;
 
-  localEndpointMetadataChanged: (event: { metadata: { peer?: EndpointMetadata; server?: unknown } }) => void;
+  localEndpointMetadataChanged: (event: { metadata: EndpointMetadata }) => void;
 
   localTrackMetadataChanged: (event: { trackId: string; metadata: TrackMetadata }) => void;
 }
@@ -321,14 +321,8 @@ export interface Endpoint<EndpointMetadata, TrackMetadata> {
   /**
    * Any information that was provided in {@link WebRTCEndpoint.connect}.
    */
-  metadata: {
-    peer?: EndpointMetadata;
-    server: any;
-  };
-  rawMetadata: {
-    peer?: any;
-    server: any;
-  };
+  metadata?: EndpointMetadata
+  rawMetadata?: any
   metadataParsingError?: any;
   /**
    * List of tracks that are sent by the endpoint.

@@ -105,14 +105,14 @@ export class Remote<EndpointMetadata, TrackMetadata> {
     const newEndpoint: EndpointWithTrackContext<EndpointMetadata, TrackMetadata> = {
       id: endpoint.id,
       type: endpoint.type,
-      metadata: { peer: undefined, server: undefined },
-      rawMetadata: { peer: undefined, server: undefined },
+      metadata: undefined,
+      rawMetadata: undefined,
       metadataParsingError: undefined,
       tracks: new Map(),
     };
 
     // mutation in place
-    this.updateEndpointMetadata(newEndpoint, endpoint?.metadata?.peer);
+    this.updateEndpointMetadata(newEndpoint, endpoint?.metadata);
 
     this.addEndpoint(newEndpoint);
     this.addTracks(newEndpoint.id, endpoint.tracks, endpoint.trackIdToMetadata);
@@ -132,7 +132,7 @@ export class Remote<EndpointMetadata, TrackMetadata> {
     if (!endpoint) throw new Error(`Endpoint ${data.id} not found`);
 
     // mutation in place
-    this.updateEndpointMetadata(endpoint, data.metadata.peer);
+    this.updateEndpointMetadata(endpoint, data.metadata);
 
     this.emit('endpointUpdated', endpoint);
   };
@@ -142,13 +142,13 @@ export class Remote<EndpointMetadata, TrackMetadata> {
     metadata: unknown,
   ) => {
     try {
-      endpoint.metadata.peer = this.endpointMetadataParser(metadata);
+      endpoint.metadata = this.endpointMetadataParser(metadata);
       endpoint.metadataParsingError = undefined;
     } catch (error) {
-      endpoint.metadata.peer = undefined;
+      endpoint.metadata = undefined;
       endpoint.metadataParsingError = error;
     }
-    endpoint.rawMetadata.peer = metadata;
+    endpoint.rawMetadata = metadata;
   };
 
   public removeRemoteEndpoint = (endpointId: EndpointId) => {

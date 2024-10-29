@@ -75,17 +75,16 @@ it('Parses the metadata', () => {
   // When
   webRTCEndpoint.receiveMediaEvent(
     JSON.stringify(createEndpointAdded(endpointId, {
-      peer: { goodStuff: 'ye', extraFluff: 'nah' },
-      server: undefined
+      goodStuff: 'ye', extraFluff: 'nah'
     })),
   );
 
   // Then
   const endpoints: Record<string, any> = webRTCEndpoint.getRemoteEndpoints();
   const addedEndpoint = endpoints[endpointId];
-  expect(addedEndpoint.metadata?.peer).toEqual({ goodStuff: 'ye' });
+  expect(addedEndpoint.metadata).toEqual({ goodStuff: 'ye' });
   expect(addedEndpoint.metadataParsingError).toBeUndefined();
-  expect(addedEndpoint.rawMetadata?.peer).toEqual({
+  expect(addedEndpoint.rawMetadata).toEqual({
     goodStuff: 'ye',
     extraFluff: 'nah',
   });
@@ -106,12 +105,12 @@ it('Properly handles incorrect metadata', () => {
   webRTCEndpoint.receiveMediaEvent(JSON.stringify(createConnectedEvent()));
 
   // When
-  webRTCEndpoint.receiveMediaEvent(JSON.stringify(createEndpointAdded(endpointId, { peer: { trash: 'metadata' } })));
+  webRTCEndpoint.receiveMediaEvent(JSON.stringify(createEndpointAdded(endpointId, { trash: 'metadata' })));
 
   // Then
   const endpoints = webRTCEndpoint.getRemoteEndpoints();
   const addedEndpoint = Object.values(endpoints)[0]!;
-  expect(addedEndpoint.metadata?.peer).toBeUndefined();
+  expect(addedEndpoint.metadata).toBeUndefined();
   expect(addedEndpoint.metadataParsingError).toBe('Invalid');
-  expect(addedEndpoint.rawMetadata?.peer).toEqual({ trash: 'metadata' });
+  expect(addedEndpoint.rawMetadata).toEqual({ trash: 'metadata' });
 });

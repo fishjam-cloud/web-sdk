@@ -6,14 +6,15 @@ export type PeerId = string;
 
 export type PeerState = {
   id: PeerId;
-  metadata: {
-    peer?: PeerMetadata;
-    server: Record<string, unknown>;
-  };
+  metadata?: FishjamPeerMetadata;
   tracks: Record<TrackId, Track>;
 };
 
-// todo change to Inner / Hidden metadata
+export type FishjamPeerMetadata = {
+  peer: PeerMetadata;
+  server?: Record<string, unknown>;
+};
+
 export type PeerMetadata = {
   displayName?: string;
 };

@@ -20,7 +20,6 @@ export type {
   Encoding,
   VadStatus,
   EncodingReason,
-  MetadataParser,
 } from './webrtc';
 
 export * from './webrtc';

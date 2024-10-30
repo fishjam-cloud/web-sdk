@@ -157,37 +157,34 @@ client.on("trackAdded", (ctx) => {
   console.log({ name: "trackAdded", ctx });
 });
 
-client.on(
-  "joined",
-  (_peerId: string, peersInRoom: Peer<PeerMetadata, TrackMetadata>[]) => {
-    console.log("Join success!");
-    toastSuccess(`Joined room`);
-    const template = document.querySelector("#remote-peer-template-card")!;
-    const remotePeers = document.querySelector("#remote-peers")!;
+client.on("joined", (_peerId: string, peersInRoom: Peer[]) => {
+  console.log("Join success!");
+  toastSuccess(`Joined room`);
+  const template = document.querySelector("#remote-peer-template-card")!;
+  const remotePeers = document.querySelector("#remote-peers")!;
 
-    (peersInRoom || []).forEach((peer: Peer<PeerMetadata, TrackMetadata>) => {
-      // @ts-ignore
-      const clone = template.content.cloneNode(true);
-      const card = clone.firstElementChild;
-      card.dataset.peerId = peer.id;
+  (peersInRoom || []).forEach((peer: Peer) => {
+    // @ts-ignore
+    const clone = template.content.cloneNode(true);
+    const card = clone.firstElementChild;
+    card.dataset.peerId = peer.id;
 
-      const peerId = clone.querySelector(".remote-peer-template-id");
-      peerId.innerHTML = peer.id;
+    const peerId = clone.querySelector(".remote-peer-template-id");
+    peerId.innerHTML = peer.id;
 
-      clone.firstElementChild.dataset.peerId = peer.id;
+    clone.firstElementChild.dataset.peerId = peer.id;
 
-      document.querySelector(`div[data-peer-id="${peer.id}"`)?.remove();
-      remotePeers.appendChild(clone);
-    });
-  },
-);
+    document.querySelector(`div[data-peer-id="${peer.id}"`)?.remove();
+    remotePeers.appendChild(clone);
+  });
+});
 
 client.on("joinError", (metadata) => {
   console.log({ name: "joinError", metadata });
   toastAlert("Join error");
 });
 
-client.on("peerJoined", (peer: Peer<PeerMetadata, TrackMetadata>) => {
+client.on("peerJoined", (peer: Peer) => {
   console.log("Peer join success!");
 
   const template = document.querySelector("#remote-peer-template-card")!;
@@ -297,7 +294,7 @@ client.on("trackReady", (ctx) => {
 
   const rawMetadata = videoWrapper.querySelector(".remote-track-raw-metadata");
   if (!rawMetadata) throw new Error("Raw metadata component not found");
-  rawMetadata.innerHTML = JSON.stringify(ctx.rawMetadata, undefined, 2);
+  rawMetadata.innerHTML = JSON.stringify(ctx.metadata, undefined, 2);
 
   const parsedMetadata = videoWrapper.querySelector(
     ".remote-track-parsed-metadata",
@@ -321,7 +318,7 @@ client.on("trackUpdated", (ctx) => {
 
   const rawMetadata = videoWrapper.querySelector(".remote-track-raw-metadata");
   if (!rawMetadata) throw new Error("Raw metadata component not found");
-  rawMetadata.innerHTML = JSON.stringify(ctx.rawMetadata, undefined, 2);
+  rawMetadata.innerHTML = JSON.stringify(ctx.metadata, undefined, 2);
 
   const parsedMetadata = videoWrapper.querySelector(
     ".remote-track-parsed-metadata",

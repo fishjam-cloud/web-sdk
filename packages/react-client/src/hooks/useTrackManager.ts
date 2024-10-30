@@ -63,6 +63,7 @@ export const useTrackManager = ({
       // see `getRemoteOrLocalTrackContext()` explanation
       setCurrentTrackId(media.track.id);
 
+      // @ts-ignore
       const displayName = tsClient.getLocalPeer()?.metadata?.peer?.displayName;
 
       const deviceType = getDeviceType(mediaManager);

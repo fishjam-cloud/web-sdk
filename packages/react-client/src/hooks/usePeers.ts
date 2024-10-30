@@ -1,5 +1,5 @@
 import type { Component, Endpoint, Peer, TrackContext } from "@fishjam-cloud/ts-client";
-import type { PeerMetadata, PeerState, TrackId, TrackMetadata } from "../types/internal";
+import type { FishjamPeerMetadata, PeerState, TrackId, TrackMetadata } from "../types/internal";
 import type { PeerWithTracks, Track } from "../types/public";
 import { useFishjamContext } from "./useFishjamContext";
 
@@ -14,9 +14,9 @@ function getPeerWithDistinguishedTracks(peerState: PeerState): PeerWithTracks {
   return { ...peerState, cameraTrack, microphoneTrack, screenShareVideoTrack, screenShareAudioTrack };
 }
 
-function trackContextToTrack(track: TrackContext<PeerMetadata, TrackMetadata>): Track {
+function trackContextToTrack(track: TrackContext): Track {
   return {
-    metadata: track.metadata,
+    metadata: track.metadata as TrackMetadata,
     trackId: track.trackId,
     stream: track.stream,
     simulcastConfig: track.simulcastConfig ?? null,
@@ -26,18 +26,14 @@ function trackContextToTrack(track: TrackContext<PeerMetadata, TrackMetadata>): 
   };
 }
 
-function endpointToPeerState(
-  peer:
-    | Peer<PeerMetadata, TrackMetadata>
-    | Component<PeerMetadata, TrackMetadata>
-    | Endpoint<PeerMetadata, TrackMetadata>,
-): PeerState {
+function endpointToPeerState(peer: Peer | Component | Endpoint): PeerState {
   const tracks = [...peer.tracks].reduce(
     (acc, [, track]) => ({ ...acc, [track.trackId]: trackContextToTrack(track) }),
     {} as Record<TrackId, Track>,
   );
+
   return {
-    metadata: peer.metadata,
+    metadata: peer.metadata as FishjamPeerMetadata,
     id: peer.id,
     tracks,
   };

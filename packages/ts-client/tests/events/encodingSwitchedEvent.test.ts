@@ -40,8 +40,8 @@ it('Changing track encoding when endpoint exist but track does not exist', () =>
   const encodingUpdatedEvent = createEncodingSwitchedEvent(endpointId, notExistingTrackId, 'm');
 
   expect(() => webRTCEndpoint.receiveMediaEvent(JSON.stringify(encodingUpdatedEvent)))
-    // todo change this error in production code
-    .toThrow("Cannot set properties of undefined (setting 'encoding')");
+    .rejects // todo change this error in production code
+    .toThrow(`Track ${notExistingTrackId} not found`);
 });
 
 it('Changing track encoding when endpoint does not exist but track exist in other endpoint', () => {

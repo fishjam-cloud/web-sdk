@@ -43,9 +43,9 @@ const eventNames = [
 ] as const satisfies (keyof MessageEvents<unknown, unknown>)[];
 
 export interface FishjamClientState {
-  peers: Record<PeerId, Peer<PeerMetadata, TrackMetadata>>;
-  components: Record<string, Component<PeerMetadata, TrackMetadata>>;
-  localPeer: Endpoint<PeerMetadata, TrackMetadata> | null;
+  peers: Record<PeerId, Peer>;
+  components: Record<string, Component>;
+  localPeer: Endpoint | null;
   isReconnecting: boolean;
 }
 

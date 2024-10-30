@@ -50,7 +50,7 @@ export class ReconnectManager<PeerMetadata, TrackMetadata> {
   private reconnectAttempt: number = 0;
   private reconnectTimeoutId: NodeJS.Timeout | null = null;
   private status: ReconnectionStatus = 'idle';
-  private lastLocalEndpoint: Endpoint<PeerMetadata, TrackMetadata> | null = null;
+  private lastLocalEndpoint: Endpoint | null = null;
   private removeEventListeners: () => void = () => {};
 
   constructor(
@@ -80,7 +80,7 @@ export class ReconnectManager<PeerMetadata, TrackMetadata> {
     this.client.on('socketClose', onSocketClose);
 
     const onAuthSuccess: MessageEvents<PeerMetadata, TrackMetadata>['authSuccess'] = () => {
-      this.reset(this.initialMetadata!);
+      this.reset(this.initialMetadata! as PeerMetadata);
     };
     this.client.on('authSuccess', onAuthSuccess);
 
@@ -104,7 +104,7 @@ export class ReconnectManager<PeerMetadata, TrackMetadata> {
   }
 
   private getLastPeerMetadata(): PeerMetadata | undefined {
-    return this.lastLocalEndpoint?.metadata?.peer;
+    return this.lastLocalEndpoint?.metadata as PeerMetadata;
   }
 
   private reconnect() {
@@ -146,7 +146,12 @@ export class ReconnectManager<PeerMetadata, TrackMetadata> {
         const [_, track] = element;
         if (!track.track || track.track.readyState !== 'live') return;
 
-        await this.client.addTrack(track.track, track.rawMetadata, track.simulcastConfig, track.maxBandwidth);
+        await this.client.addTrack(
+          track.track,
+          track.metadata as TrackMetadata,
+          track.simulcastConfig,
+          track.maxBandwidth,
+        );
       }
     }
 

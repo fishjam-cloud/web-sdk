@@ -26,19 +26,15 @@ const getRemoteOrLocalTrackContext = <PeerMetadata, TrackMetadata>(
   return trackByLocalId ? trackByLocalId : null;
 };
 
-const getTrackFromContext = (context: TrackContext): Track => {
-  return {
-    // todo typescript client should parse this metadata
-    // @ts-ignore
-    metadata: context.metadata as TrackMetadata, // todo parse metadata
-    trackId: context.trackId,
-    stream: context.stream,
-    simulcastConfig: context.simulcastConfig || null,
-    encoding: context.encoding || null,
-    vadStatus: context.vadStatus,
-    track: context.track,
-  };
-};
+const getTrackFromContext = (context: TrackContext): Track => ({
+  metadata: context.metadata as TrackMetadata,
+  trackId: context.trackId,
+  stream: context.stream,
+  simulcastConfig: context.simulcastConfig || null,
+  encoding: context.encoding || null,
+  vadStatus: context.vadStatus,
+  track: context.track,
+});
 
 export const getRemoteOrLocalTrack = (
   tsClient: FishjamClient<PeerMetadata, TrackMetadata>,

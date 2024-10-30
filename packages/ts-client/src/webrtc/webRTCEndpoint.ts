@@ -24,9 +24,7 @@ import { ConnectionManager } from './ConnectionManager';
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
  */
-export class WebRTCEndpoint extends (EventEmitter as {
-  new (): TypedEmitter<Required<WebRTCEndpointEvents>>;
-}) {
+export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Required<WebRTCEndpointEvents>>) {
   private readonly localTrackManager: LocalTrackManager;
   private readonly remote: Remote;
   private readonly local: Local;

@@ -87,8 +87,7 @@ export class Remote {
       tracks: new Map(),
     };
 
-    // mutation in place
-    this.updateEndpointMetadata(newEndpoint, endpoint?.metadata);
+    newEndpoint.metadata = endpoint?.metadata;
 
     this.addEndpoint(newEndpoint);
     this.addTracks(newEndpoint.id, endpoint.tracks, endpoint.trackIdToMetadata);
@@ -106,15 +105,9 @@ export class Remote {
     const endpoint: EndpointWithTrackContext | undefined = this.remoteEndpoints[data.id];
     if (!endpoint) throw new Error(`Endpoint ${data.id} not found`);
 
-    // mutation in place
-    this.updateEndpointMetadata(endpoint, data.metadata);
+    endpoint.metadata = data.metadata;
 
     this.emit('endpointUpdated', endpoint);
-  };
-
-  // todo inline
-  private updateEndpointMetadata = (endpoint: EndpointWithTrackContext, metadata: unknown) => {
-    endpoint.metadata = metadata;
   };
 
   public removeRemoteEndpoint = (endpointId: EndpointId) => {
@@ -140,14 +133,9 @@ export class Remote {
     const remoteTrack = this.remoteTracks[trackId];
     if (!remoteTrack) throw new Error(`Track ${trackId} not found`);
 
-    this.updateTrackMetadata(remoteTrack.trackContext, data.metadata);
+    remoteTrack.trackContext.metadata = data.metadata;
 
     this.emit('trackUpdated', remoteTrack.trackContext);
-  };
-
-  // todo inline
-  private updateTrackMetadata = (trackContext: TrackContextImpl, trackMetadata: unknown) => {
-    trackContext.metadata = trackMetadata;
   };
 
   public disableRemoteTrackEncoding = (trackId: TrackId, encoding: Encoding) => {

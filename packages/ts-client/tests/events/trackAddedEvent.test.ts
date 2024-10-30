@@ -125,6 +125,6 @@ it('tracksAdded -> offerData with one track -> handle sdpAnswer data with one vi
   // Then
   const midToTrackId = webRTCEndpoint['local']['getMidToTrackId']();
 
-  // TODO this function should return 1 if a user wants to add local track
+  // midToTrackId?.size should be undefined because the local peer doesn't offer anything
   expect(midToTrackId?.size).toBe(undefined);
 });

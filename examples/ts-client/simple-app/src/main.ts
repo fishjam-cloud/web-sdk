@@ -83,8 +83,7 @@ inputArray.forEach((input) => {
   });
 });
 
-const TrackTypeValues = ["screensharing", "camera", "audio"] as const;
-export type TrackType = (typeof TrackTypeValues)[number];
+export type TrackType = "screensharing" | "camera" | "audio";
 
 export type PeerMetadata = {
   name: string;
@@ -94,40 +93,7 @@ export type TrackMetadata = {
   active: boolean;
 };
 
-const isPeerMetadata = (input: unknown): input is PeerMetadata => {
-  return (
-    typeof input === "object" &&
-    input !== null &&
-    "name" in input &&
-    typeof input["name"] === "string"
-  );
-};
-
-const isTrackType = (input: unknown): input is TrackType =>
-  TrackTypeValues.includes(input as TrackType);
-
-const isTrackMetadata = (input: unknown): input is TrackMetadata =>
-  typeof input === "object" &&
-  input !== null &&
-  "type" in input &&
-  isTrackType(input.type) &&
-  "active" in input &&
-  typeof input.active === "boolean";
-
-const trackMetadataParser = (input: unknown): TrackMetadata => {
-  if (isTrackMetadata(input)) return input;
-  throw Error("Invalid track metadata");
-};
-
-const peerMetadataParser = (input: unknown): PeerMetadata => {
-  if (isPeerMetadata(input)) return input;
-
-  throw Error("Invalid peer metadata");
-};
-
 const client: FishjamClient<PeerMetadata, TrackMetadata> = new FishjamClient({
-  peerMetadataParser,
-  trackMetadataParser,
   reconnect: true,
 });
 
@@ -157,34 +123,37 @@ client.on("trackAdded", (ctx) => {
   console.log({ name: "trackAdded", ctx });
 });
 
-client.on("joined", (_peerId: string, peersInRoom: Peer[]) => {
-  console.log("Join success!");
-  toastSuccess(`Joined room`);
-  const template = document.querySelector("#remote-peer-template-card")!;
-  const remotePeers = document.querySelector("#remote-peers")!;
+client.on(
+  "joined",
+  (_peerId: string, peersInRoom: Peer<PeerMetadata, TrackMetadata>[]) => {
+    console.log("Join success!");
+    toastSuccess(`Joined room`);
+    const template = document.querySelector("#remote-peer-template-card")!;
+    const remotePeers = document.querySelector("#remote-peers")!;
 
-  (peersInRoom || []).forEach((peer: Peer) => {
-    // @ts-ignore
-    const clone = template.content.cloneNode(true);
-    const card = clone.firstElementChild;
-    card.dataset.peerId = peer.id;
+    (peersInRoom || []).forEach((peer: Peer<PeerMetadata, TrackMetadata>) => {
+      // @ts-ignore
+      const clone = template.content.cloneNode(true);
+      const card = clone.firstElementChild;
+      card.dataset.peerId = peer.id;
 
-    const peerId = clone.querySelector(".remote-peer-template-id");
-    peerId.innerHTML = peer.id;
+      const peerId = clone.querySelector(".remote-peer-template-id");
+      peerId.innerHTML = peer.id;
 
-    clone.firstElementChild.dataset.peerId = peer.id;
+      clone.firstElementChild.dataset.peerId = peer.id;
 
-    document.querySelector(`div[data-peer-id="${peer.id}"`)?.remove();
-    remotePeers.appendChild(clone);
-  });
-});
+      document.querySelector(`div[data-peer-id="${peer.id}"`)?.remove();
+      remotePeers.appendChild(clone);
+    });
+  },
+);
 
 client.on("joinError", (metadata) => {
   console.log({ name: "joinError", metadata });
   toastAlert("Join error");
 });
 
-client.on("peerJoined", (peer: Peer) => {
+client.on("peerJoined", (peer: Peer<PeerMetadata, TrackMetadata>) => {
   console.log("Peer join success!");
 
   const template = document.querySelector("#remote-peer-template-card")!;

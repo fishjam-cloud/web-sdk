@@ -15,9 +15,8 @@ import type {
 
 export const isTrackKind = (kind: string): kind is TrackKind => kind === 'audio' || kind === 'video';
 
-// todo simplify type
 export class TrackContextImpl
-  extends (EventEmitter as { new (): TypedEmitter<Required<TrackContextEvents>> })
+  extends (EventEmitter as new () => TypedEmitter<Required<TrackContextEvents>>)
   implements TrackContext
 {
   endpoint: Endpoint;

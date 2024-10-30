@@ -34,7 +34,7 @@ export const mockRTCPeerConnection = (): {
         };
 
         if (init?.direction === 'sendonly') {
-          sender.track = typeof trackOrKind !== 'string' ? trackOrKind : { id: 'someTrackId' }; // todo generate unique UUID
+          sender.track = typeof trackOrKind !== 'string' ? trackOrKind : { id: 'someTrackId' };
         }
 
         senders.push(sender);

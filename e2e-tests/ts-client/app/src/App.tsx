@@ -75,20 +75,15 @@ class RemoteStore {
   }
 
   snapshot() {
-    console.log("Snapshot");
-
     const newTracks = webrtc.getRemoteTracks();
     const newEndpoints = webrtc.getRemoteEndpoints();
     const ids =
       Object.keys(newTracks).sort().join(":") +
       Object.keys(newEndpoints).sort().join(":");
     if (!(ids in this.cache) || this.invalidateCache) {
-      console.log({ name: "Update cache", newEndpoints, newTracks });
       this.cache[ids] = [newEndpoints, newTracks];
       this.invalidateCache = false;
     }
-    console.log("Use cache");
-
     return this.cache[ids];
   }
 }

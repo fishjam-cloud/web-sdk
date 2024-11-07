@@ -1,5 +1,5 @@
-import { Peer, Component } from './types';
-import { Endpoint } from './webrtc';
+import type { Peer, Component } from './types';
+import type { Endpoint } from './webrtc';
 
 export const isPeer = <PeerMetadata, TrackMetadata>(
   endpoint: Endpoint,

@@ -8,8 +8,8 @@ import type {
   Encoding,
   WebRTCEndpointEvents,
 } from './webrtc';
-import { AuthErrorReason } from './auth';
-import { ReconnectConfig } from './reconnection';
+import type { AuthErrorReason } from './auth';
+import type { ReconnectConfig } from './reconnection';
 
 export type PeerServerMetadata<PeerMetadata> = {
   peer: PeerMetadata;

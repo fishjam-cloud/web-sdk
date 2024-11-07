@@ -4,10 +4,6 @@ import { useFishjamContext } from "./useFishjamContext";
 import type { TrackContext, VadStatus } from "@fishjam-cloud/ts-client";
 import { useFishjamClientState } from "./useFishjamClientState";
 
-function isMicrophone(metadata: unknown) {
-  return typeof metadata === "object" && metadata !== null && "type" in metadata && metadata.type === "microphone";
-}
-
 export const useVAD = (peerIds: PeerId[]): Record<PeerId, boolean> => {
   const { fishjamClientRef } = useFishjamContext();
   const { peers } = useFishjamClientState(fishjamClientRef.current);
@@ -18,7 +14,7 @@ export const useVAD = (peerIds: PeerId[]): Record<PeerId, boolean> => {
         .filter((peer) => peerIds.includes(peer.id))
         .map((peer) => ({
           peerId: peer.id,
-          microphoneTracks: Array.from(peer.tracks.values()).filter(({ metadata }) => isMicrophone(metadata)),
+          microphoneTracks: Array.from(peer.tracks.values()).filter(({ metadata }) => metadata?.type === "microphone"),
         })),
     [peers, peerIds],
   );

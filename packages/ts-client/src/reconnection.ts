@@ -1,7 +1,7 @@
 import type { Endpoint } from '@fishjam-cloud/webrtc-client';
 import type { FishjamClient } from './FishjamClient';
 import { isAuthError } from './auth';
-import type { MessageEvents } from './types';
+import type { MessageEvents, TrackMetadata } from './types';
 
 export type ReconnectionStatus = 'reconnecting' | 'idle' | 'error';
 
@@ -41,11 +41,11 @@ const DEFAULT_RECONNECT_CONFIG: Required<ReconnectConfig> = {
   addTracksOnReconnect: true,
 };
 
-export class ReconnectManager<PeerMetadata, TrackMetadata> {
+export class ReconnectManager<PeerMetadata> {
   private readonly reconnectConfig: Required<ReconnectConfig>;
 
   private readonly connect: (metadata: PeerMetadata) => void;
-  private readonly client: FishjamClient<PeerMetadata, TrackMetadata>;
+  private readonly client: FishjamClient<PeerMetadata>;
   private initialMetadata: PeerMetadata | undefined | null = undefined;
 
   private reconnectAttempt: number = 0;

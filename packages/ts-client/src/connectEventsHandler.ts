@@ -1,6 +1,6 @@
 import type { FishjamClient } from './FishjamClient';
 
-export function connectEventsHandler<P, T>(fishjamClient: FishjamClient<P, T>) {
+export function connectEventsHandler<P>(fishjamClient: FishjamClient<P>) {
   return new Promise<void>((resolve, reject) => {
     const onSuccess = () => {
       clearCallbacks();

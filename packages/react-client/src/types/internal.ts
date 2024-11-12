@@ -5,10 +5,10 @@ import type { Peer } from "@fishjam-cloud/ts-client";
 export type TrackId = string;
 export type PeerId = string;
 
-export type PeerState = {
+export type PeerState<P, S> = {
   id: PeerId;
-  metadata?: Peer["metadata"];
-  tracks: Record<TrackId, Track>;
+  metadata?: Peer<P, S>["metadata"];
+  tracks: Track[];
 };
 
 export type PeerMetadata = {

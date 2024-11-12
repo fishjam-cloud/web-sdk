@@ -11,9 +11,16 @@ import type {
 import type { AuthErrorReason } from './auth';
 import type { ReconnectConfig } from './reconnection';
 
-export type PeerServerMetadata<PeerMetadata> = {
-  peer: PeerMetadata;
-  server?: Record<string, unknown>;
+export type TrackMetadata = {
+  type: 'camera' | 'microphone' | 'screenShareVideo' | 'screenShareAudio';
+  paused: boolean;
+  // track label used in recordings
+  displayName?: string;
+};
+
+export type Metadata<P, S> = {
+  peer: P;
+  server?: S;
 };
 
 type TrackContextEvents<Metadata> = {
@@ -34,10 +41,10 @@ export interface FishjamTrackContext<Metadata> extends TypedEmitter<TrackContext
   readonly encodingReason?: EncodingReason;
 }
 
-export type Peer<PeerMetadata, TrackMetadata> = {
+export type Peer<PeerMetadata = Record<string, unknown>, ServerMetadata = Record<string, unknown>> = {
   id: string;
   type: string;
-  metadata?: PeerServerMetadata<PeerMetadata>;
+  metadata?: Metadata<PeerMetadata, ServerMetadata>;
   tracks: Map<string, FishjamTrackContext<TrackMetadata>>;
 };
 
@@ -48,7 +55,7 @@ export type Component = Omit<Endpoint, 'type'> & {
 /**
  * Events emitted by the client with their arguments.
  */
-export type MessageEvents<PeerMetadata, TrackMetadata> = {
+export type MessageEvents<PeerMetadata> = {
   /**
    * Emitted when connect method invoked
    *
@@ -97,7 +104,7 @@ export type MessageEvents<PeerMetadata, TrackMetadata> = {
   /**
    * Called when peer was accepted.
    */
-  joined: (peerId: string, peers: Peer<PeerMetadata, TrackMetadata>[], components: Component[]) => void;
+  joined: (peerId: string, peers: Peer<PeerMetadata>[], components: Component[]) => void;
 
   /**
    * Called when peer was not accepted
@@ -134,17 +141,17 @@ export type MessageEvents<PeerMetadata, TrackMetadata> = {
   /**
    * Called each time new peer joins the room.
    */
-  peerJoined: (peer: Peer<PeerMetadata, TrackMetadata>) => void;
+  peerJoined: (peer: Peer<PeerMetadata>) => void;
 
   /**
    * Called each time peer leaves the room.
    */
-  peerLeft: (peer: Peer<PeerMetadata, TrackMetadata>) => void;
+  peerLeft: (peer: Peer<PeerMetadata>) => void;
 
   /**
    * Called each time peer has its metadata updated.
    */
-  peerUpdated: (peer: Peer<PeerMetadata, TrackMetadata>) => void;
+  peerUpdated: (peer: Peer<PeerMetadata>) => void;
 
   /**
    * Called each time new peer joins the room.

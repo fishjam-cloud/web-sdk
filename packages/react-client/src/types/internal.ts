@@ -7,18 +7,11 @@ export type PeerId = string;
 
 export type PeerState = {
   id: PeerId;
-  metadata?: Peer<PeerMetadata, TrackMetadata>["metadata"];
+  metadata?: Peer["metadata"];
   tracks: Record<TrackId, Track>;
 };
 
 export type PeerMetadata = {
-  displayName?: string;
-};
-
-export type TrackMetadata = {
-  type: "camera" | "microphone" | "screenShareVideo" | "screenShareAudio";
-  paused: boolean;
-  // track label used in recordings
   displayName?: string;
 };
 

@@ -55,7 +55,7 @@ export class ReconnectManager<PeerMetadata, TrackMetadata> {
   private removeEventListeners: () => void = () => {};
 
   constructor(
-    client: FishjamClient<PeerMetadata, TrackMetadata>,
+    client: FishjamClient<PeerMetadata>,
     connect: (metadata: PeerMetadata) => void,
     config?: ReconnectConfig | boolean,
   ) {
@@ -63,24 +63,24 @@ export class ReconnectManager<PeerMetadata, TrackMetadata> {
     this.connect = connect;
     this.reconnectConfig = createReconnectConfig(config);
 
-    const onSocketError: MessageEvents<PeerMetadata, TrackMetadata>['socketError'] = () => {
+    const onSocketError: MessageEvents<PeerMetadata>['socketError'] = () => {
       this.reconnect();
     };
     this.client.on('socketError', onSocketError);
 
-    const onConnectionError: MessageEvents<PeerMetadata, TrackMetadata>['connectionError'] = () => {
+    const onConnectionError: MessageEvents<PeerMetadata>['connectionError'] = () => {
       this.reconnect();
     };
     this.client.on('connectionError', onConnectionError);
 
-    const onSocketClose: MessageEvents<PeerMetadata, TrackMetadata>['socketClose'] = (event) => {
+    const onSocketClose: MessageEvents<PeerMetadata>['socketClose'] = (event) => {
       if (isAuthError(event.reason)) return;
 
       this.reconnect();
     };
     this.client.on('socketClose', onSocketClose);
 
-    const onAuthSuccess: MessageEvents<PeerMetadata, TrackMetadata>['authSuccess'] = () => {
+    const onAuthSuccess: MessageEvents<PeerMetadata>['authSuccess'] = () => {
       this.reset(this.initialMetadata! as PeerMetadata);
     };
     this.client.on('authSuccess', onAuthSuccess);

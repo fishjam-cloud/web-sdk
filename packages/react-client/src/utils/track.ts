@@ -10,7 +10,7 @@ import type { BandwidthLimits, Track } from "../types/public";
 // This event will refresh the internal state of this object.
 // However, in that event handler, we don't yet have the remote track ID.
 // Therefore, for that brief moment, we will use the local track ID from the MediaStreamTrack object to identify the track.
-const getRemoteOrLocalTrackContext = <PeerMetadata, TrackMetadata>(
+const getRemoteOrLocalTrackContext = <PeerMetadata>(
   tsClient: FishjamClient<PeerMetadata>,
   remoteOrLocalTrackId: string | null,
 ): TrackContext | null => {

@@ -15,8 +15,8 @@
   "packageManager": "yarn@4.4.0",
   "scripts": {
     "build": "yarn workspaces foreach -Apt run build",
-    "test:unit": "yarn workspace @fishjam-cloud/ts-client test",
-    "test:e2e": "yarn workspace @fishjam-e2e/ts-client-e2e e2e && yarn workspace @fishjam-e2e/react-client-e2e e2e",
+    "test:unit": "yarn workspace @fishjam-cloud/webrtc-client test",
+    "test:e2e": "yarn workspace @fishjam-e2e/webrtc-client-e2e e2e && yarn workspace @fishjam-e2e/react-client-e2e e2e",
     "tsc": "yarn workspaces foreach -Ap run tsc || echo '❌ Type errors! ❌' ",
     "format": "yarn workspaces foreach -A -p run format || echo '❌ Formatting issues! ❌'",
     "format:check": "yarn workspaces foreach -A -p run format:check",

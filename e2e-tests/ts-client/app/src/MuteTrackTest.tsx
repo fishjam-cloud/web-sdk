@@ -2,7 +2,7 @@ import type { WebRTCEndpoint } from "@fishjam-cloud/ts-client";
 import { brain2Mock, heart2Mock } from "./MockComponent";
 import { useEffect, useState } from "react";
 import { VideoPlayer } from "./VideoPlayer";
-import type { WebRTCEndpointEvents } from "@fishjam-cloud/ts-client/webrtc";
+import type { WebRTCEndpointEvents } from "@fishjam-cloud/webrtc-client";
 
 type Props = {
   webrtc: WebRTCEndpoint;
@@ -15,7 +15,7 @@ export const MuteTrackTest = ({ webrtc }: Props) => {
 
   useEffect(() => {
     const localTrackAdded: WebRTCEndpointEvents["localTrackAdded"] = (
-      event,
+      event
     ) => {
       setCurrentStream(event.stream);
       setCurrentTrack(event.track);
@@ -23,7 +23,7 @@ export const MuteTrackTest = ({ webrtc }: Props) => {
     };
 
     const localTrackReplaced: WebRTCEndpointEvents["localTrackReplaced"] = (
-      event,
+      event
     ) => {
       setCurrentTrack(event.track);
     };
@@ -49,14 +49,14 @@ export const MuteTrackTest = ({ webrtc }: Props) => {
         enabled: true,
         activeEncodings: ["l", "m", "h"],
         disabledEncodings: [],
-      },
+      }
     );
   };
 
   const replaceTrack = async (
     trackId: string | null,
     stream: MediaStream | null,
-    track: MediaStreamTrack | null,
+    track: MediaStreamTrack | null
   ) => {
     if (!trackId) throw Error("Track id is null");
 
@@ -95,7 +95,7 @@ export const MuteTrackTest = ({ webrtc }: Props) => {
             replaceTrack(
               trackId,
               heart2Mock.stream,
-              heart2Mock.stream.getVideoTracks()[0],
+              heart2Mock.stream.getVideoTracks()[0]
             )
           }
         >
@@ -106,7 +106,7 @@ export const MuteTrackTest = ({ webrtc }: Props) => {
             replaceTrack(
               trackId,
               brain2Mock.stream,
-              brain2Mock.stream.getVideoTracks()[0],
+              brain2Mock.stream.getVideoTracks()[0]
             )
           }
         >

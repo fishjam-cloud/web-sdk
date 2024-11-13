@@ -22,8 +22,7 @@ function trackContextToTrack(track: FishjamTrackContext | TrackContext): Track {
 }
 
 function getPeerWithDistinguishedTracks<P, S>(peer: Peer<P, S> | Component | Endpoint): PeerWithTracks<P, S> {
-  const trackList: (FishjamTrackContext | TrackContext)[] = Object.values(peer.tracks ?? {});
-  const tracks = trackList.map((track) => trackContextToTrack(track));
+  const tracks = [...peer.tracks.values()].map(trackContextToTrack);
 
   const cameraTrack = tracks.find(({ metadata }) => metadata?.type === "camera");
   const microphoneTrack = tracks.find(({ metadata }) => metadata?.type === "microphone");

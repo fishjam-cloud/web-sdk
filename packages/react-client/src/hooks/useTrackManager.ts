@@ -1,12 +1,12 @@
 import type { FishjamClient, TrackMetadata } from "@fishjam-cloud/ts-client";
-import type { MediaManager, PeerMetadata, TrackManager } from "../types/internal";
+import type { MediaManager, TrackManager } from "../types/internal";
 import { getConfigAndBandwidthFromProps, getRemoteOrLocalTrack } from "../utils/track";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { BandwidthLimits, PeerStatus, StartStreamingProps, TrackMiddleware } from "../types/public";
 
 interface TrackManagerConfig {
   mediaManager: MediaManager;
-  tsClient: FishjamClient<PeerMetadata>;
+  tsClient: FishjamClient;
   getCurrentPeerStatus: () => PeerStatus;
   bandwidthLimits: BandwidthLimits;
   autoStreamProps?: StartStreamingProps | false;
@@ -63,10 +63,14 @@ export const useTrackManager = ({
       // see `getRemoteOrLocalTrackContext()` explanation
       setCurrentTrackId(media.track.id);
 
+      const deviceType = getDeviceType(mediaManager);
+      const trackMetadata: TrackMetadata = { type: deviceType, paused: false };
+
       const displayName = tsClient.getLocalPeer()?.metadata?.peer?.displayName;
 
-      const deviceType = getDeviceType(mediaManager);
-      const trackMetadata: TrackMetadata = { type: deviceType, displayName, paused: false };
+      if (typeof displayName === "string") {
+        trackMetadata.displayName = displayName;
+      }
 
       const [maxBandwidth, simulcastConfig] = getConfigAndBandwidthFromProps(props.simulcast, bandwidthLimits);
 

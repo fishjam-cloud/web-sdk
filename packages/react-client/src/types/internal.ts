@@ -11,10 +11,6 @@ export type PeerState<P, S> = {
   tracks: Track[];
 };
 
-export type PeerMetadata = {
-  displayName?: string;
-};
-
 export type DevicesStatus = "OK" | "Error" | "Not requested" | "Requesting";
 export type MediaStatus = "OK" | "Error" | "Not requested" | "Requesting";
 

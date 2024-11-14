@@ -7,7 +7,7 @@ export type {
   FishjamTrackContext,
   TrackMetadata,
   Metadata,
-  MetadataDefault,
+  GenericMetadata,
 } from './types';
 
 export { FishjamClient } from './FishjamClient';

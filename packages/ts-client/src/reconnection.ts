@@ -41,11 +41,11 @@ const DEFAULT_RECONNECT_CONFIG: Required<ReconnectConfig> = {
   addTracksOnReconnect: true,
 };
 
-export class ReconnectManager<PeerMetadata> {
+export class ReconnectManager<PeerMetadata, ServerMetadata> {
   private readonly reconnectConfig: Required<ReconnectConfig>;
 
   private readonly connect: (metadata: PeerMetadata) => void;
-  private readonly client: FishjamClient<PeerMetadata>;
+  private readonly client: FishjamClient<PeerMetadata, ServerMetadata>;
   private initialMetadata: PeerMetadata | undefined | null = undefined;
 
   private reconnectAttempt: number = 0;
@@ -55,7 +55,7 @@ export class ReconnectManager<PeerMetadata> {
   private removeEventListeners: () => void = () => {};
 
   constructor(
-    client: FishjamClient<PeerMetadata>,
+    client: FishjamClient<PeerMetadata, ServerMetadata>,
     connect: (metadata: PeerMetadata) => void,
     config?: ReconnectConfig | boolean,
   ) {
@@ -63,25 +63,25 @@ export class ReconnectManager<PeerMetadata> {
     this.connect = connect;
     this.reconnectConfig = createReconnectConfig(config);
 
-    const onSocketError: MessageEvents<PeerMetadata>['socketError'] = () => {
+    const onSocketError: MessageEvents<PeerMetadata, ServerMetadata>['socketError'] = () => {
       this.reconnect();
     };
     this.client.on('socketError', onSocketError);
 
-    const onConnectionError: MessageEvents<PeerMetadata>['connectionError'] = () => {
+    const onConnectionError: MessageEvents<PeerMetadata, ServerMetadata>['connectionError'] = () => {
       this.reconnect();
     };
     this.client.on('connectionError', onConnectionError);
 
-    const onSocketClose: MessageEvents<PeerMetadata>['socketClose'] = (event) => {
+    const onSocketClose: MessageEvents<PeerMetadata, ServerMetadata>['socketClose'] = (event) => {
       if (isAuthError(event.reason)) return;
 
       this.reconnect();
     };
     this.client.on('socketClose', onSocketClose);
 
-    const onAuthSuccess: MessageEvents<PeerMetadata>['authSuccess'] = () => {
-      this.reset(this.initialMetadata! as PeerMetadata);
+    const onAuthSuccess: MessageEvents<PeerMetadata, ServerMetadata>['authSuccess'] = () => {
+      this.reset(this.initialMetadata!);
     };
     this.client.on('authSuccess', onAuthSuccess);
 

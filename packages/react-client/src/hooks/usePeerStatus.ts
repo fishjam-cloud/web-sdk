@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FishjamClient } from "@fishjam-cloud/ts-client";
-import type { PeerMetadata } from "../types/internal";
 import type { PeerStatus } from "../types/public";
 
-export const usePeerStatus = (client: FishjamClient<PeerMetadata>) => {
+export const usePeerStatus = (client: FishjamClient) => {
   const [peerStatus, setPeerStatusState] = useState<PeerStatus>("idle");
   const peerStatusRef = useRef<PeerStatus>("idle");
 

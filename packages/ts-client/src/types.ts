@@ -18,12 +18,12 @@ export type TrackMetadata = {
   displayName?: string;
 };
 
-export type Metadata<P, S> = {
-  peer: P;
+export type GenericMetadata = Record<string, unknown> | undefined;
+
+export type Metadata<P = GenericMetadata, S = GenericMetadata> = {
+  peer: P & { displayName?: string };
   server: S;
 };
-
-export type MetadataDefault = Record<string, unknown> | undefined;
 
 type TrackContextEvents = {
   encodingChanged: (context: FishjamTrackContext) => void;
@@ -43,7 +43,7 @@ export interface FishjamTrackContext extends TypedEmitter<TrackContextEvents> {
   readonly encodingReason?: EncodingReason;
 }
 
-export type Peer<PeerMetadata = MetadataDefault, ServerMetadata = MetadataDefault> = {
+export type Peer<PeerMetadata = GenericMetadata, ServerMetadata = GenericMetadata> = {
   id: string;
   type: string;
   metadata?: Metadata<PeerMetadata, ServerMetadata>;
@@ -57,7 +57,7 @@ export type Component = Omit<Endpoint, 'type'> & {
 /**
  * Events emitted by the client with their arguments.
  */
-export type MessageEvents<PeerMetadata> = {
+export type MessageEvents<P, S> = {
   /**
    * Emitted when connect method invoked
    *
@@ -106,7 +106,7 @@ export type MessageEvents<PeerMetadata> = {
   /**
    * Called when peer was accepted.
    */
-  joined: (peerId: string, peers: Peer<PeerMetadata>[], components: Component[]) => void;
+  joined: (peerId: string, peers: Peer<P, S>[], components: Component[]) => void;
 
   /**
    * Called when peer was not accepted
@@ -143,17 +143,17 @@ export type MessageEvents<PeerMetadata> = {
   /**
    * Called each time new peer joins the room.
    */
-  peerJoined: (peer: Peer<PeerMetadata>) => void;
+  peerJoined: (peer: Peer<P, S>) => void;
 
   /**
    * Called each time peer leaves the room.
    */
-  peerLeft: (peer: Peer<PeerMetadata>) => void;
+  peerLeft: (peer: Peer<P, S>) => void;
 
   /**
    * Called each time peer has its metadata updated.
    */
-  peerUpdated: (peer: Peer<PeerMetadata>) => void;
+  peerUpdated: (peer: Peer<P, S>) => void;
 
   /**
    * Called each time new peer joins the room.

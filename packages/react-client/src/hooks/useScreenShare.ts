@@ -2,11 +2,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { FishjamClient } from "@fishjam-cloud/ts-client";
 import { getRemoteOrLocalTrack } from "../utils/track";
 import type { TracksMiddleware, ScreenshareApi, PeerStatus } from "../types/public";
-import type { PeerMetadata, ScreenShareState } from "../types/internal";
+import type { ScreenShareState } from "../types/internal";
 import { useFishjamContext } from "./useFishjamContext";
 
 interface ScreenShareManagerProps {
-  fishjamClient: FishjamClient<PeerMetadata>;
+  fishjamClient: FishjamClient;
   getCurrentPeerStatus: () => PeerStatus;
 }
 

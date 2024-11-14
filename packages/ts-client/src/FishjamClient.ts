@@ -21,6 +21,7 @@ import type {
   CreateConfig,
   FishjamTrackContext,
   MessageEvents,
+  GenericMetadata,
   Peer,
   TrackMetadata,
 } from './types';
@@ -63,9 +64,9 @@ const WEBSOCKET_PATH = 'socket/peer/websocket';
  * });
  * ```
  */
-export class FishjamClient<PeerMetadata> extends (EventEmitter as {
-  new <PeerMetadata>(): TypedEmitter<MessageEvents<PeerMetadata>>;
-})<PeerMetadata> {
+export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = GenericMetadata> extends (EventEmitter as {
+  new <PeerMetadata, ServerMetadata>(): TypedEmitter<MessageEvents<PeerMetadata, ServerMetadata>>;
+})<PeerMetadata, ServerMetadata> {
   private websocket: WebSocket | null = null;
   private webrtc: WebRTCEndpoint | null = null;
   private removeEventListeners: (() => void) | null = null;
@@ -74,13 +75,13 @@ export class FishjamClient<PeerMetadata> extends (EventEmitter as {
 
   private connectConfig: ConnectConfig<PeerMetadata> | null = null;
 
-  private reconnectManager: ReconnectManager<PeerMetadata>;
+  private reconnectManager: ReconnectManager<PeerMetadata, ServerMetadata>;
 
   private sendStatisticsInterval: NodeJS.Timeout | undefined = undefined;
 
   constructor(config?: CreateConfig) {
     super();
-    this.reconnectManager = new ReconnectManager<PeerMetadata>(
+    this.reconnectManager = new ReconnectManager<PeerMetadata, ServerMetadata>(
       this,
       (peerMetadata) => this.initConnection(peerMetadata),
       config?.reconnect,
@@ -255,7 +256,9 @@ export class FishjamClient<PeerMetadata> extends (EventEmitter as {
     });
 
     this.webrtc?.on('connected', async (peerId: string, endpointsInRoom: Endpoint[]) => {
-      const peers = endpointsInRoom.filter((endpoint) => isPeer(endpoint)).map((peer) => peer as Peer<PeerMetadata>);
+      const peers = endpointsInRoom
+        .filter((endpoint) => isPeer(endpoint))
+        .map((peer) => peer as Peer<PeerMetadata, ServerMetadata>);
 
       const components = endpointsInRoom
         .filter((endpoint) => isComponent(endpoint))
@@ -275,7 +278,7 @@ export class FishjamClient<PeerMetadata> extends (EventEmitter as {
     });
     this.webrtc?.on('endpointAdded', (endpoint: Endpoint) => {
       if (isPeer(endpoint)) {
-        this.emit('peerJoined', endpoint as Peer<PeerMetadata>);
+        this.emit('peerJoined', endpoint as Peer<PeerMetadata, ServerMetadata>);
       }
       if (isComponent(endpoint)) {
         this.emit('componentAdded', endpoint);
@@ -283,7 +286,7 @@ export class FishjamClient<PeerMetadata> extends (EventEmitter as {
     });
     this.webrtc?.on('endpointRemoved', (endpoint: Endpoint) => {
       if (isPeer(endpoint)) {
-        this.emit('peerLeft', endpoint as Peer<PeerMetadata>);
+        this.emit('peerLeft', endpoint as Peer<PeerMetadata, ServerMetadata>);
       }
       if (isComponent(endpoint)) {
         this.emit('componentRemoved', endpoint);
@@ -291,7 +294,7 @@ export class FishjamClient<PeerMetadata> extends (EventEmitter as {
     });
     this.webrtc?.on('endpointUpdated', (endpoint: Endpoint) => {
       if (isPeer(endpoint)) {
-        this.emit('peerUpdated', endpoint as Peer<PeerMetadata>);
+        this.emit('peerUpdated', endpoint as Peer<PeerMetadata, ServerMetadata>);
       }
       if (isComponent(endpoint)) {
         this.emit('componentUpdated', endpoint);
@@ -406,7 +409,10 @@ export class FishjamClient<PeerMetadata> extends (EventEmitter as {
    * @param listener - Callback function to be called when the event is emitted
    * @returns This
    */
-  public on<E extends keyof MessageEvents<PeerMetadata>>(event: E, listener: MessageEvents<PeerMetadata>[E]): this {
+  public on<E extends keyof MessageEvents<PeerMetadata, ServerMetadata>>(
+    event: E,
+    listener: MessageEvents<PeerMetadata, ServerMetadata>[E],
+  ): this {
     return super.on(event, listener);
   }
 
@@ -426,7 +432,10 @@ export class FishjamClient<PeerMetadata> extends (EventEmitter as {
    * @param listener - Reference to function to be removed from called callbacks
    * @returns This
    */
-  public off<E extends keyof MessageEvents<PeerMetadata>>(event: E, listener: MessageEvents<PeerMetadata>[E]): this {
+  public off<E extends keyof MessageEvents<PeerMetadata, ServerMetadata>>(
+    event: E,
+    listener: MessageEvents<PeerMetadata, ServerMetadata>[E],
+  ): this {
     return super.off(event, listener);
   }
 

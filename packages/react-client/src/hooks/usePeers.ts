@@ -66,6 +66,9 @@ export type UsePeersResult<P, S> = {
 /**
  *
  * @category Connection
+ *
+ * @typeParam P Type of metadata set by peer while connecting to a room.
+ * @typeParam S Type of metadata set by the server while creating a peer.
  */
 export function usePeers<P = Record<string, unknown>, S = Record<string, unknown>>(): UsePeersResult<P, S> {
   const { clientState } = useFishjamContext();

@@ -6,6 +6,8 @@ export type {
   MessageEvents,
   FishjamTrackContext,
   TrackMetadata,
+  Metadata,
+  MetadataDefault,
 } from './types';
 
 export { FishjamClient } from './FishjamClient';

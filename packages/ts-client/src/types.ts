@@ -20,8 +20,10 @@ export type TrackMetadata = {
 
 export type Metadata<P, S> = {
   peer: P;
-  server?: S;
+  server: S;
 };
+
+export type MetadataDefault = Record<string, unknown> | undefined;
 
 type TrackContextEvents = {
   encodingChanged: (context: FishjamTrackContext) => void;
@@ -41,7 +43,7 @@ export interface FishjamTrackContext extends TypedEmitter<TrackContextEvents> {
   readonly encodingReason?: EncodingReason;
 }
 
-export type Peer<PeerMetadata = Record<string, unknown>, ServerMetadata = Record<string, unknown>> = {
+export type Peer<PeerMetadata = MetadataDefault, ServerMetadata = MetadataDefault> = {
   id: string;
   type: string;
   metadata?: Metadata<PeerMetadata, ServerMetadata>;

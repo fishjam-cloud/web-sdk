@@ -25,7 +25,10 @@ export const useScreenShareManager = ({
   const stream = state.stream ?? null;
   const [videoTrack, audioTrack] = stream ? getTracksFromStream(stream) : [null, null];
 
-  const getDisplayName = () => fishjamClient.getLocalPeer()?.metadata?.peer?.displayName;
+  const getDisplayName = () => {
+    const name = fishjamClient.getLocalPeer()?.metadata?.peer?.displayName;
+    if (typeof name === "string") return name;
+  };
 
   const startStreaming: ScreenshareApi["startStreaming"] = async (props) => {
     const stream = await navigator.mediaDevices.getDisplayMedia({

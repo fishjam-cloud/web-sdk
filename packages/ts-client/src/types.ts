@@ -21,7 +21,7 @@ export type TrackMetadata = {
 export type GenericMetadata = Record<string, unknown> | undefined;
 
 export type Metadata<P = GenericMetadata, S = GenericMetadata> = {
-  peer: P & { displayName?: string };
+  peer: P;
   server: S;
 };
 

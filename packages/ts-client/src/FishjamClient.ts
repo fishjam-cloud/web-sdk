@@ -223,7 +223,7 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
   /**
    * Returns a snapshot of currently received remote peers.
    */
-  public getRemotePeers(): Record<string, Peer<PeerMetadata>> {
+  public getRemotePeers(): Record<string, Peer<PeerMetadata, ServerMetadata>> {
     return Object.entries(this.webrtc?.getRemoteEndpoints() ?? {}).reduce(
       (acc, [id, peer]) => (isPeer(peer) ? { ...acc, [id]: peer } : acc),
       {},
@@ -237,8 +237,8 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
     );
   }
 
-  public getLocalPeer(): Peer<PeerMetadata> | null {
-    return (this.webrtc?.getLocalEndpoint() as Peer<PeerMetadata>) || null;
+  public getLocalPeer(): Peer<PeerMetadata, ServerMetadata> | null {
+    return (this.webrtc?.getLocalEndpoint() as Peer<PeerMetadata, ServerMetadata>) || null;
   }
 
   public getBandwidthEstimation(): bigint {

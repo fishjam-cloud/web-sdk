@@ -1,0 +1,12 @@
+{
+  "name": "@fishjam-cloud/protobufs",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "build": "./protobuf.sh"
+  },
+  "devDependencies": {
+    "ts-proto": "^2.2.7"
+  }
+}

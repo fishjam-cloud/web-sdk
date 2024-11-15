@@ -11,23 +11,13 @@
     "webrtc",
     "fishjam"
   ],
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
   "files": [
     "dist/**"
   ],
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    },
-    "./protos": {
-      "import": "./dist/protos/index.js",
-      "types": "./dist/protos/index.d.ts"
-    }
-  },
   "scripts": {
-    "build": "tsc",
+    "build": "tsup src/index.ts --dts --minify",
     "build:check": "tsc --noEmit",
     "format": "prettier --write . --ignore-path ./.eslintignore",
     "format:check": "prettier --check . --ignore-path ./.eslintignore",
@@ -52,7 +42,6 @@
     "fake-mediastreamtrack": "^1.2.0",
     "husky": "^9.1.6",
     "lint-staged": "^15.2.10",
-    "ts-proto": "^2.2.7",
     "typed-emitter": "^2.1.0",
     "typedoc": "^0.26.11",
     "typedoc-plugin-external-resolver": "^1.0.3",

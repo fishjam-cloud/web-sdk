@@ -11,16 +11,19 @@ git submodule sync --recursive >> /dev/null
 git submodule update --recursive --remote --init >> /dev/null
 printf "DONE\n"
 
-cd ./protos/
+
+cd protobufs/protos
 
 files=$(find fishjam -name "*.proto")
 
 for file in $files; do
     printf "Compiling file $file... "
-    protoc --plugin=../../../node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=../src/protos $file
+    protoc --plugin=../../../node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=../ $file
     printf "DONE\n"
   count=$(($count + 1))
 done
 
-
+cd ../..
+cp -r protobufs/fishjam/* ts-client/protos 
+cp -r protobufs/fishjam/* webrtc-client/protos
 

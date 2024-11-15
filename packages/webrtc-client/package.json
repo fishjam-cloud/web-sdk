@@ -37,6 +37,7 @@
     "uuid": "^11.0.2"
   },
   "devDependencies": {
+    "@fishjam-cloud/protobufs": "workspace:*",
     "@playwright/test": "^1.47.2",
     "@types/events": "^3.0.3",
     "@types/node": "^22.7.5",
@@ -45,6 +46,7 @@
     "fake-mediastreamtrack": "^1.2.0",
     "husky": "^9.1.6",
     "lint-staged": "^15.2.10",
+    "tsup": "^8.3.5",
     "typed-emitter": "^2.1.0",
     "typedoc": "^0.26.8",
     "typedoc-plugin-external-resolver": "^1.0.3",

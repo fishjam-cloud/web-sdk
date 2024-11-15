@@ -1,20 +1,25 @@
-export type SerializedMediaEvent = string;
+import { BinaryReader } from '@bufbuild/protobuf/wire';
+import { MediaEvent as ServerMediaEvent } from '../protos/media_events/server/server';
+
+export type SerializedMediaEvent = BinaryReader | Uint8Array;
 
 export interface MediaEvent {
-  type: string;
+  type: keyof ServerMediaEvent;
   key?: string;
   data?: any;
 }
 
 export function serializeMediaEvent(mediaEvent: MediaEvent): SerializedMediaEvent {
-  return JSON.stringify(mediaEvent);
+  const encodedEvent = ServerMediaEvent.encode({ [mediaEvent.type]: mediaEvent.data }).finish();
+  return encodedEvent;
 }
 
-export function deserializeMediaEvent(serializedMediaEvent: SerializedMediaEvent): MediaEvent {
-  return JSON.parse(serializedMediaEvent) as MediaEvent;
+export function deserializeMediaEvent(serializedMediaEvent: SerializedMediaEvent): ServerMediaEvent {
+  const decodedEvent = ServerMediaEvent.decode(serializedMediaEvent);
+  return decodedEvent;
 }
 
-export function generateMediaEvent(type: string, data?: any): MediaEvent {
+export function generateMediaEvent(type: keyof ServerMediaEvent, data?: any): MediaEvent {
   let event: MediaEvent = { type };
   if (data) {
     event = { ...event, data };

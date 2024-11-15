@@ -5,6 +5,8 @@ import { TrackContextImpl } from '../internal';
 import { isVadStatus } from '../voiceActivityDetection';
 import { generateCustomEvent, type MediaEvent } from '../mediaEvent';
 import type { EndpointId, TrackId } from './TrackCommon';
+import { MediaEvent_Track, MediaEvent_VadNotification_Status } from '../../protos/media_events/server/server';
+import { Metadata } from '../../protos/media_events/shared';
 
 type SDPTrack = {
   metadata: null;
@@ -38,18 +40,19 @@ export class Remote {
     return remoteTrack;
   };
 
-  public addTracks = (
-    endpointId: EndpointId,
-    tracks: Record<TrackId, SDPTrack>,
-    trackIdToMetadata: Record<TrackId, any>,
-  ) => {
+  public addTracks = (endpointId: EndpointId, tracks: MediaEvent_Track[]) => {
     const endpoint: EndpointWithTrackContext | undefined = this.remoteEndpoints[endpointId];
 
     if (!endpoint) throw new Error(`Endpoint ${endpointId} not found`);
 
-    Object.entries(tracks || {})
-      .map(([trackId, { simulcastConfig }]) => {
-        const trackContext = new TrackContextImpl(endpoint, trackId, trackIdToMetadata[trackId], simulcastConfig);
+    tracks
+      .map(({ trackId, metadata }) => {
+        // simulcastConfig is not available in the current implementation
+        const trackContext = new TrackContextImpl(endpoint, trackId, metadata, {
+          enabled: false,
+          activeEncodings: [],
+          disabledEncodings: [],
+        });
 
         return new RemoteTrack(trackId, trackContext);
       })
@@ -79,18 +82,16 @@ export class Remote {
     this.emit('trackRemoved', remoteTrack.trackContext);
   };
 
-  public addRemoteEndpoint = (endpoint: any, sendNotification: boolean = true) => {
-    const newEndpoint: EndpointWithTrackContext = {
-      id: endpoint.id,
-      type: endpoint.type,
-      metadata: undefined,
+  public addRemoteEndpoint = (endpointId: string, metadata?: Metadata, sendNotification: boolean = true) => {
+    const endpoint = {
+      id: endpointId,
+      type: 'exwebrtc',
+      metadata,
       tracks: new Map(),
-    };
+    } satisfies EndpointWithTrackContext;
 
-    newEndpoint.metadata = endpoint?.metadata;
-
-    this.addEndpoint(newEndpoint);
-    this.addTracks(newEndpoint.id, endpoint.tracks, endpoint.trackIdToMetadata);
+    this.addEndpoint(endpoint);
+    this.addTracks(endpoint.id, []);
 
     if (sendNotification) {
       this.emit('endpointAdded', endpoint);
@@ -101,11 +102,11 @@ export class Remote {
     this.remoteEndpoints[endpoint.id] = endpoint;
   };
 
-  public updateRemoteEndpoint = (data: any) => {
-    const endpoint: EndpointWithTrackContext | undefined = this.remoteEndpoints[data.id];
-    if (!endpoint) throw new Error(`Endpoint ${data.id} not found`);
+  public updateRemoteEndpoint = (endpointId: string, metadata?: Metadata) => {
+    const endpoint: EndpointWithTrackContext | undefined = this.remoteEndpoints[endpointId];
+    if (!endpoint) throw new Error(`Endpoint ${endpointId} not found`);
 
-    endpoint.metadata = data.metadata;
+    endpoint.metadata = metadata;
 
     this.emit('endpointUpdated', endpoint);
   };
@@ -123,17 +124,13 @@ export class Remote {
     this.emit('endpointRemoved', endpoint);
   };
 
-  public updateRemoteTrack = (data: any) => {
-    const endpointId = data.endpointId;
-    const endpoint: EndpointWithTrackContext | undefined = this.remoteEndpoints[endpointId];
-    if (!endpoint) throw new Error(`Endpoint ${endpointId} not found`);
-
-    const trackId = data.trackId;
+  public updateRemoteTrack = (endpointId: string, trackId: string, metadata?: Metadata) => {
+    if (!this.remoteEndpoints[endpointId]) throw new Error(`Endpoint ${endpointId} not found`);
 
     const remoteTrack = this.remoteTracks[trackId];
     if (!remoteTrack) throw new Error(`Track ${trackId} not found`);
 
-    remoteTrack.trackContext.metadata = data.metadata;
+    remoteTrack.trackContext.metadata = metadata;
 
     this.emit('trackUpdated', remoteTrack.trackContext);
   };
@@ -166,12 +163,19 @@ export class Remote {
     remoteTrack.trackContext.emit('encodingChanged', remoteTrack.trackContext);
   };
 
-  public setRemoteTrackVadStatus = (trackId: TrackId, vadStatus: string) => {
+  public setRemoteTrackVadStatus = (trackId: TrackId, vadStatus: MediaEvent_VadNotification_Status) => {
     const remoteTrack = this.remoteTracks[trackId];
     if (!remoteTrack) throw new Error(`Track ${trackId} not found`);
 
-    if (isVadStatus(vadStatus)) {
-      remoteTrack.trackContext.vadStatus = vadStatus;
+    let nextStatus = null;
+
+    if (vadStatus === MediaEvent_VadNotification_Status.STATUS_SILENCE) {
+      nextStatus = 'silence';
+    } else if (vadStatus === MediaEvent_VadNotification_Status.STATUS_SPEECH) {
+      nextStatus = 'speech';
+    }
+
+    if (nextStatus) {
       remoteTrack.trackContext.emit('voiceActivityChanged', remoteTrack.trackContext);
     } else {
       console.warn('Received unknown vad status: ', vadStatus);

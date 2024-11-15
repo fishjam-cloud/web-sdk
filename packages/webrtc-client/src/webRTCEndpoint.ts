@@ -97,14 +97,17 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
     switch (deserializedMediaEvent.type) {
       case 'connected': {
         this.local.setLocalEndpointId(deserializedMediaEvent.data.id);
+        this.local.setEndpointMetadata(deserializedMediaEvent.data.metadata);
 
         const endpoints = deserializedMediaEvent.data.otherEndpoints as EndpointWithTrackContext[];
 
         // todo implement track mapping (+ validate metadata)
         // todo implement endpoint metadata mapping
-        endpoints.forEach((endpoint) => {
-          this.remote.addRemoteEndpoint(endpoint);
-        });
+        endpoints
+          .filter((endpoint) => endpoint.id != this.local.getEndpoint().id)
+          .forEach((endpoint) => {
+            this.remote.addRemoteEndpoint(endpoint);
+          });
 
         const remoteEndpoints = Object.values(this.remote.getRemoteEndpoints());
 

@@ -1,5 +1,6 @@
 import { BinaryReader } from '@bufbuild/protobuf/wire';
 import { MediaEvent as ServerMediaEvent } from '../protos/media_events/server/server';
+import { MediaEvent as PeerMediaEvent } from '../protos/media_events/peer/peer';
 
 export type SerializedMediaEvent = BinaryReader | Uint8Array;
 
@@ -9,8 +10,8 @@ export interface MediaEvent {
   data?: any;
 }
 
-export function serializeMediaEvent(mediaEvent: MediaEvent): SerializedMediaEvent {
-  const encodedEvent = ServerMediaEvent.encode({ [mediaEvent.type]: mediaEvent.data }).finish();
+export function serializeMediaEvent(mediaEvent: PeerMediaEvent): SerializedMediaEvent {
+  const encodedEvent = PeerMediaEvent.encode(mediaEvent).finish();
   return encodedEvent;
 }
 

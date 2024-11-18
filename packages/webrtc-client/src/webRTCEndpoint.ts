@@ -1,5 +1,12 @@
-import type { MediaEvent, SerializedMediaEvent } from './mediaEvent';
-import { deserializeMediaEvent, generateCustomEvent, generateMediaEvent, serializeMediaEvent } from './mediaEvent';
+import type { SerializedMediaEvent } from './mediaEvent';
+import { deserializeMediaEvent, serializeMediaEvent } from './mediaEvent';
+import {
+  MediaEvent_Connect,
+  MediaEvent_Disconnect,
+  MediaEvent_RenegotiateTracks,
+  MediaEvent_UpdateTrackMetadata,
+  MediaEvent as PeerMediaEvent,
+} from '../protos/media_events/peer/peer';
 import { v4 as uuidv4 } from 'uuid';
 import EventEmitter from 'events';
 import type TypedEmitter from 'typed-emitter';
@@ -40,7 +47,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
   constructor() {
     super();
 
-    const sendEvent = (mediaEvent: MediaEvent) => this.sendMediaEvent(mediaEvent);
+    const sendEvent = (mediaEvent: PeerMediaEvent) => this.sendMediaEvent(mediaEvent);
 
     const emit: <E extends keyof Required<WebRTCEndpointEvents>>(
       event: E,
@@ -72,10 +79,8 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
    */
   public connect = (metadata: unknown): void => {
     this.local.setEndpointMetadata(metadata);
-    const mediaEvent = generateMediaEvent('connect', {
-      metadata: metadata,
-    });
-    this.sendMediaEvent(mediaEvent);
+    const connect = MediaEvent_Connect.create({ metadata: { json: JSON.stringify(metadata) } });
+    this.sendMediaEvent({ connect });
   };
 
   /**
@@ -105,7 +110,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
       // todo implement track mapping (+ validate metadata)
       // todo implement endpoint metadata mapping
       connectedEvent.endpoints.forEach((endpoint) => {
-        this.remote.addRemoteEndpoint(endpoint);
+        this.remote.addRemoteEndpoint(endpoint.endpointId, endpoint.metadata);
       });
 
       const remoteEndpoints = Object.values(this.remote.getRemoteEndpoints());
@@ -285,11 +290,11 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
         trackContext.negotiationStatus = 'done';
 
         if (trackContext.pendingMetadataUpdate) {
-          const mediaEvent = generateMediaEvent('updateTrackMetadata', {
+          const updateTrackMetadata = MediaEvent_UpdateTrackMetadata.create({
             trackId: localTrack.id,
-            trackMetadata: trackContext.metadata,
+            metadata: { json: JSON.stringify(trackContext.metadata) },
           });
-          this.sendMediaEvent(mediaEvent);
+          this.sendMediaEvent({ updateTrackMetadata });
         }
 
         trackContext.pendingMetadataUpdate = false;
@@ -603,7 +608,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
    * that endpoint was removed in {@link WebRTCEndpointEvents.endpointRemoved},
    */
   public disconnect = () => {
-    const mediaEvent = generateMediaEvent('disconnect');
+    const mediaEvent = MediaEvent_Disconnect.create();
     this.sendMediaEvent(mediaEvent);
     this.emit('disconnectRequested', {});
     this.cleanUp();
@@ -628,8 +633,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
     return `${this.getEndpointId()}:${uuid}`;
   }
 
-  // todo change to private
-  public sendMediaEvent = (mediaEvent: MediaEvent) => {
+  private sendMediaEvent = (mediaEvent: PeerMediaEvent) => {
     const serializedMediaEvent = serializeMediaEvent(mediaEvent);
     this.emit('sendMediaEvent', serializedMediaEvent);
   };
@@ -654,8 +658,8 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
         return;
       }
 
-      const mediaEvent = this.local.createSdpOfferEvent(offer);
-      this.sendMediaEvent(mediaEvent);
+      const sdpOffer = this.local.createSdpOfferEvent(offer);
+      this.sendMediaEvent({ sdpOffer });
 
       this.local.setLocalTrackStatusToOffered();
     } catch (error) {
@@ -720,18 +724,16 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
   };
 
   private onLocalCandidate = (event: RTCPeerConnectionIceEvent) => {
-    if (event.candidate) {
-      const mediaEvent = generateCustomEvent({
-        type: 'candidate',
-        data: {
-          candidate: event.candidate.candidate,
-          sdpMLineIndex: event.candidate.sdpMLineIndex,
-          sdpMid: event.candidate.sdpMid,
-          usernameFragment: event.candidate.usernameFragment,
-        },
-      });
-      this.sendMediaEvent(mediaEvent);
-    }
+    if (!event.candidate) return;
+
+    const candidate = Candidate.create({
+      candidate: event.candidate.candidate,
+      sdpMLineIndex: event.candidate.sdpMLineIndex ?? undefined,
+      sdpMid: event.candidate.sdpMid ?? undefined,
+      usernameFragment: event.candidate.usernameFragment ?? undefined,
+    });
+
+    this.sendMediaEvent({ candidate });
   };
 
   private onIceCandidateError = (event: RTCPeerConnectionIceErrorEvent) => {
@@ -755,7 +757,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
         console.warn('ICE connection: disconnected');
         // Requesting renegotiation on ICE connection state failed fixes RTCPeerConnection
         // when the user changes their WiFi network.
-        this.sendMediaEvent(generateCustomEvent({ type: 'renegotiateTracks' }));
+        this.sendMediaEvent({ renegotiateTracks: MediaEvent_RenegotiateTracks.create() });
         break;
       case 'failed':
         this.emit('connectionError', {

@@ -1,17 +1,11 @@
-import type { Encoding, EncodingReason, MLineId, SimulcastConfig, TrackContext, WebRTCEndpointEvents } from '../types';
+import type { Encoding, EncodingReason, MLineId, TrackContext, WebRTCEndpointEvents } from '../types';
 import { RemoteTrack } from './RemoteTrack';
 import type { EndpointWithTrackContext } from '../internal';
 import { TrackContextImpl } from '../internal';
-import { isVadStatus } from '../voiceActivityDetection';
-import { generateCustomEvent, type MediaEvent } from '../mediaEvent';
+import { MediaEvent as PeerMediaEvent } from '../../protos/media_events/peer/peer';
 import type { EndpointId, TrackId } from './TrackCommon';
 import { MediaEvent_Track, MediaEvent_VadNotification_Status } from '../../protos/media_events/server/server';
 import { Metadata } from '../../protos/media_events/shared';
-
-type SDPTrack = {
-  metadata: null;
-  simulcastConfig: SimulcastConfig;
-};
 
 export class Remote {
   private readonly remoteTracks: Record<TrackId, RemoteTrack> = {};
@@ -21,14 +15,14 @@ export class Remote {
     event: E,
     ...args: Parameters<Required<WebRTCEndpointEvents>[E]>
   ) => void;
-  private readonly sendMediaEvent: (mediaEvent: MediaEvent) => void;
+  private readonly sendMediaEvent: (mediaEvent: PeerMediaEvent) => void;
 
   constructor(
     emit: <E extends keyof Required<WebRTCEndpointEvents>>(
       event: E,
       ...args: Parameters<Required<WebRTCEndpointEvents>[E]>
     ) => void,
-    sendMediaEvent: (mediaEvent: MediaEvent) => void,
+    sendMediaEvent: (mediaEvent: PeerMediaEvent) => void,
   ) {
     this.emit = emit;
     this.sendMediaEvent = sendMediaEvent;
@@ -86,7 +80,7 @@ export class Remote {
     const endpoint = {
       id: endpointId,
       type: 'exwebrtc',
-      metadata,
+      metadata: metadata ? JSON.parse(metadata.json) : undefined,
       tracks: new Map(),
     } satisfies EndpointWithTrackContext;
 
@@ -200,25 +194,24 @@ export class Remote {
   };
 
   public setTargetRemoteTrackEncoding = (trackId: TrackId, variant: Encoding) => {
-    const remoteTrack = this.remoteTracks[trackId];
-    if (!remoteTrack) throw new Error(`Track ${trackId} not found`);
+    // const remoteTrack = this.remoteTracks[trackId];
+    // if (!remoteTrack) throw new Error(`Track ${trackId} not found`);
 
     try {
-      remoteTrack.setTargetTrackEncoding(variant);
-
-      const mediaEvent = generateCustomEvent({
-        type: 'setTargetTrackVariant',
-        data: {
-          trackId: trackId,
-          variant,
-        },
-      });
-
-      this.sendMediaEvent(mediaEvent);
-      this.emit('targetTrackEncodingRequested', {
-        trackId,
-        variant,
-      });
+      // remoteTrack.setTargetTrackEncoding(variant);
+      // TODO - Implement when simulcast is available
+      // const mediaEvent = generateCustomEvent({
+      //   type: 'setTargetTrackVariant',
+      //   data: {
+      //     trackId: trackId,
+      //     variant,
+      //   },
+      // });
+      // this.sendMediaEvent({ mediaEvent });
+      // this.emit('targetTrackEncodingRequested', {
+      //   trackId,
+      //   variant,
+      // });
     } catch (e) {
       console.warn(e);
     }

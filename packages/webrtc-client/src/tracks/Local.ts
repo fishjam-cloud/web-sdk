@@ -20,8 +20,9 @@ import {
   MediaEvent_RenegotiateTracks,
   MediaEvent_UpdateEndpointMetadata,
   MediaEvent_UpdateTrackMetadata,
-} from '../../protos/media_events/peer/peer';
-import { MidToTrackId } from '../../protos/media_events/shared';
+} from '@fishjam-cloud/protobufs/peer';
+
+import { MidToTrackId } from '@fishjam-cloud/protobufs/shared';
 
 /**
  * This class encapsulates methods related to handling the list of local tracks and local endpoint.

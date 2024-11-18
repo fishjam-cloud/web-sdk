@@ -2,10 +2,10 @@ import type { Encoding, EncodingReason, MLineId, TrackContext, WebRTCEndpointEve
 import { RemoteTrack } from './RemoteTrack';
 import type { EndpointWithTrackContext } from '../internal';
 import { TrackContextImpl } from '../internal';
-import { MediaEvent as PeerMediaEvent } from '../../protos/media_events/peer/peer';
+import { MediaEvent as PeerMediaEvent } from '@fishjam-cloud/protobufs/peer';
 import type { EndpointId, TrackId } from './TrackCommon';
-import { MediaEvent_Track, MediaEvent_VadNotification_Status } from '../../protos/media_events/server/server';
-import { Metadata } from '../../protos/media_events/shared';
+import { MediaEvent_Track, MediaEvent_VadNotification_Status } from '@fishjam-cloud/protobufs/server';
+import { Metadata } from '@fishjam-cloud/protobufs/shared';
 
 export class Remote {
   private readonly remoteTracks: Record<TrackId, RemoteTrack> = {};

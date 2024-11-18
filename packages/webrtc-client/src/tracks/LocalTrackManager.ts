@@ -2,7 +2,7 @@ import type { SimulcastConfig, TrackBandwidthLimit } from '../types';
 import type { ConnectionManager } from '../ConnectionManager';
 import type { Local } from './Local';
 import type { WebRTCEndpoint } from '../webRTCEndpoint';
-import { MediaEvent_RenegotiateTracks, type MediaEvent as PeerMediaEvent } from '../../protos/media_events/peer/peer';
+import { MediaEvent_RenegotiateTracks, type MediaEvent as PeerMediaEvent } from '@fishjam-cloud/protobufs/peer';
 
 /**
  * This class is responsible for handling asynchronous operations related to track management.

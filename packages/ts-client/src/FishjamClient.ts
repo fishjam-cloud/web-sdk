@@ -2,7 +2,6 @@ import type {
   BandwidthLimit,
   Encoding,
   Endpoint,
-  SerializedMediaEvent,
   SimulcastConfig,
   TrackBandwidthLimit,
   TrackContext,
@@ -10,7 +9,7 @@ import type {
 import { WebRTCEndpoint } from '@fishjam-cloud/webrtc-client';
 import type TypedEmitter from 'typed-emitter';
 import { EventEmitter } from 'events';
-import { PeerMessage } from './protos';
+import { PeerMessage } from '@fishjam-cloud/protobufs/fishjamPeer';
 import { ReconnectManager } from './reconnection';
 import { isAuthError } from './auth';
 import { connectEventsHandler } from './connectEventsHandler';

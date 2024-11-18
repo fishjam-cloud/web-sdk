@@ -1,10 +1,10 @@
-import { MediaEvent as ServerMediaEvent } from '../protos/media_events/server/server';
-import { MediaEvent as PeerMediaEvent } from '../protos/media_events/peer/peer';
+import { MediaEvent as ServerMediaEvent } from '@fishjam-cloud/protobufs/server';
+import { MediaEvent as PeerMediaEvent } from '@fishjam-cloud/protobufs/peer';
 
 export type SerializedMediaEvent = Uint8Array;
 
 export interface MediaEvent {
-  type: keyof ServerMediaEvent;
+  type: keyof PeerMediaEvent;
   key?: string;
   data?: any;
 }
@@ -19,12 +19,10 @@ export function deserializeMediaEvent(serializedMediaEvent: SerializedMediaEvent
   return decodedEvent;
 }
 
-export function generateMediaEvent(type: keyof ServerMediaEvent, data?: any): MediaEvent {
-  let event: MediaEvent = { type };
-  if (data) {
-    event = { ...event, data };
-  }
-  return event;
+export function generateMediaEvent<T extends keyof PeerMediaEvent>(type: T, data?: PeerMediaEvent[T]): MediaEvent {
+  const mediaEvent: MediaEvent = { type, data };
+
+  return mediaEvent;
 }
 
 // export function generateCustomEvent(data?: any): MediaEvent {

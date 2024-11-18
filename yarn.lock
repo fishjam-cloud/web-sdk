@@ -681,6 +681,7 @@ __metadata:
   resolution: "@fishjam-cloud/ts-client@workspace:packages/ts-client"
   dependencies:
     "@bufbuild/protobuf": "npm:^2.2.2"
+    "@fishjam-cloud/protobufs": "workspace:*"
     "@fishjam-cloud/webrtc-client": "workspace:*"
     "@playwright/test": "npm:^1.48.2"
     "@types/events": "npm:^3.0.3"

@@ -23,7 +23,8 @@
       "esm"
     ],
     "noExternal": [
-      "@fishjam-cloud/webrtc-client"
+      "@fishjam-cloud/webrtc-client",
+      "@fishjam-cloud/protobufs"
     ]
   },
   "scripts": {
@@ -43,6 +44,7 @@
     "uuid": "^11.0.2"
   },
   "devDependencies": {
+    "@fishjam-cloud/protobufs": "workspace:*",
     "@fishjam-cloud/webrtc-client": "workspace:*",
     "@playwright/test": "^1.48.2",
     "@types/events": "^3.0.3",

@@ -6,7 +6,7 @@ import {
   MediaEvent_RenegotiateTracks,
   MediaEvent_UpdateTrackMetadata,
   MediaEvent as PeerMediaEvent,
-} from '../protos/media_events/peer/peer';
+} from '@fishjam-cloud/protobufs/peer';
 import { v4 as uuidv4 } from 'uuid';
 import EventEmitter from 'events';
 import type TypedEmitter from 'typed-emitter';

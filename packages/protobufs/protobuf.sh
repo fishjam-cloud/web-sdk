@@ -23,7 +23,3 @@ for file in $files; do
   count=$(($count + 1))
 done
 
-cd ../..
-cp -r protobufs/fishjam/* ts-client/protos 
-cp -r protobufs/fishjam/* webrtc-client/protos
-

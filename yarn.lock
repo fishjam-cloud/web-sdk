@@ -652,6 +652,7 @@ __metadata:
   resolution: "@fishjam-cloud/protobufs@workspace:packages/protobufs"
   dependencies:
     ts-proto: "npm:^2.2.7"
+    tsup: "npm:^8.3.5"
   languageName: unknown
   linkType: soft
 
@@ -690,6 +691,7 @@ __metadata:
     fake-mediastreamtrack: "npm:^1.2.0"
     husky: "npm:^9.1.6"
     lint-staged: "npm:^15.2.10"
+    tsup: "npm:^8.3.5"
     typed-emitter: "npm:^2.1.0"
     typedoc: "npm:^0.26.11"
     typedoc-plugin-external-resolver: "npm:^1.0.3"

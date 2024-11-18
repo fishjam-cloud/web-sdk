@@ -9,8 +9,6 @@ import type {
 } from '../types';
 import type { EndpointWithTrackContext } from '../internal';
 import { isTrackKind, TrackContextImpl } from '../internal';
-import type { MediaEvent } from '../mediaEvent';
-import { generateCustomEvent, generateMediaEvent } from '../mediaEvent';
 import type { ConnectionManager } from '../ConnectionManager';
 import type { EndpointId, TrackId } from './TrackCommon';
 import type { WebRTCEndpoint } from '../webRTCEndpoint';

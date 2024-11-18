@@ -28,6 +28,6 @@ export function generateMediaEvent(type: keyof ServerMediaEvent, data?: any): Me
   return event;
 }
 
-export function generateCustomEvent(data?: any): MediaEvent {
-  return generateMediaEvent('custom', data);
-}
+// export function generateCustomEvent(data?: any): MediaEvent {
+//   return generateMediaEvent('custom', data);
+// }

@@ -1,7 +1,7 @@
 import type { TrackContextImpl } from '../internal';
 import type { BandwidthLimit, Encoding, LocalTrackId, MediaStreamTrackId, MLineId, TrackKind } from '../types';
 import type { TrackCommon, TrackEncodings, TrackId } from './TrackCommon';
-import { generateCustomEvent } from '../mediaEvent';
+// import { generateCustomEvent } from '../mediaEvent';
 import type { WebRTCEndpoint } from '../webRTCEndpoint';
 import type { Bitrate, Bitrates } from '../bitrate';
 import { defaultBitrates, defaultSimulcastBitrates, UNLIMITED_BANDWIDTH } from '../bitrate';
@@ -241,12 +241,13 @@ export class LocalTrack implements TrackCommon {
   };
 
   public createTrackVariantBitratesEvent = () => {
-    return generateCustomEvent({
-      type: 'trackVariantBitrates',
-      data: {
-        trackId: this.id,
-        variantBitrates: this.getTrackBitrates(),
-      },
-    });
+    // TODO implement this when simulcast is supported
+    // return generateCustomEvent({
+    //   type: 'trackVariantBitrates',
+    //   data: {
+    //     trackId: this.id,
+    //     variantBitrates: this.getTrackBitrates(),
+    //   },
+    // });
   };
 }

@@ -27,8 +27,8 @@ import { Remote } from './tracks/Remote';
 import { Local } from './tracks/Local';
 import type { TurnServer } from './ConnectionManager';
 import { ConnectionManager } from './ConnectionManager';
-import { MediaEvent_OfferData, MediaEvent as ServerMediaEvent } from '../protos/media_events/server/server';
-import { Candidate } from '../protos/media_events/shared';
+import { Candidate } from '@fishjam-cloud/protobufs/shared';
+import { MediaEvent_OfferData, MediaEvent as ServerMediaEvent } from '@fishjam-cloud/protobufs/server';
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.

@@ -11,13 +11,23 @@
     "webrtc",
     "fishjam"
   ],
-  "main": "./dist/src/index.js",
-  "types": "./dist/src/index.d.ts",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "files": [
-    "dist/src/**"
+    "dist/**"
   ],
+  "tsup": {
+    "dts": true,
+    "minify": true,
+    "format": [
+      "esm"
+    ],
+    "noExternal": [
+      "@fishjam-cloud/protobufs"
+    ]
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "tsup src/index.ts",
     "build:check": "tsc --noEmit",
     "format": "prettier --write . --ignore-path ./.eslintignore",
     "format:check": "prettier --check . --ignore-path ./.eslintignore",

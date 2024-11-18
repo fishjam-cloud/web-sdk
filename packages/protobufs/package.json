@@ -2,11 +2,18 @@
   "name": "@fishjam-cloud/protobufs",
   "version": "1.0.0",
   "private": true,
-  "main": "index.ts",
+  "exports": {
+    "./peer": "./fishjam/media_events/peer/peer.ts",
+    "./server": "./fishjam/media_events/server/server.ts",
+    "./shared": "./fishjam/media_events/shared.ts",
+    "./fishjamPeer": "./fishjam/peer_notifications.ts",
+    "./fishjamServer": "./fishjam/server_notifications.ts"
+  },
   "scripts": {
     "build": "./protobuf.sh"
   },
   "devDependencies": {
-    "ts-proto": "^2.2.7"
+    "ts-proto": "^2.2.7",
+    "tsup": "^8.3.5"
   }
 }

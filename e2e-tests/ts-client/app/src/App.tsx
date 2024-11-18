@@ -9,10 +9,11 @@ import type {
   SimulcastConfig,
 } from "@fishjam-cloud/ts-client";
 import { WebRTCEndpoint } from "@fishjam-cloud/ts-client";
-import { PeerMessage } from "@fishjam-cloud/ts-client/protos";
+import { PeerMessage } from "@fishjam-cloud/protobufs/fishjamPeer";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { MockComponent } from "./MockComponent";
 import { VideoPlayerWithDetector } from "./VideoPlayerWithDetector";
+import { MediaEvent } from "@fishjam-cloud/protobufs/server";
 
 /* eslint-disable no-console */
 
@@ -101,7 +102,9 @@ function connect(token: string, metadata: EndpointMetadata) {
   websocket.binaryType = "arraybuffer";
 
   function socketOpenHandler(_event: Event) {
-    const message = PeerMessage.encode({ authRequest: { token } }).finish();
+    const message = PeerMessage.encode({
+      authRequest: { token, sdkVersion: "" },
+    }).finish();
     websocket.send(message);
   }
 
@@ -109,10 +112,7 @@ function connect(token: string, metadata: EndpointMetadata) {
 
   webrtc.on("sendMediaEvent", (mediaEvent: SerializedMediaEvent) => {
     console.log(`%c(${clientId}) - Send: ${mediaEvent}`, "color:blue");
-    const message = PeerMessage.encode({
-      mediaEvent: { data: mediaEvent },
-    }).finish();
-    websocket.send(message);
+    websocket.send(mediaEvent);
   });
 
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -125,12 +125,12 @@ function connect(token: string, metadata: EndpointMetadata) {
         const mediaEvent = JSON.parse(data?.mediaEvent?.data);
         console.log(
           `%c(${clientId}) - Received: ${JSON.stringify(mediaEvent)}`,
-          "color:green",
+          "color:green"
         );
       } else {
         console.log(
           `%c(${clientId}) - Received: ${JSON.stringify(data)}`,
-          "color:green",
+          "color:green"
         );
       }
 
@@ -138,8 +138,10 @@ function connect(token: string, metadata: EndpointMetadata) {
         webrtc.connect(metadata);
       } else if (data.authRequest !== undefined) {
         console.warn("Received unexpected control message: authRequest");
-      } else if (data.mediaEvent !== undefined) {
-        webrtc.receiveMediaEvent(data.mediaEvent.data);
+      } else if (data.serverMediaEvent !== undefined) {
+        const serverEvent = MediaEvent.encode(data.serverMediaEvent).finish();
+
+        webrtc.receiveMediaEvent(serverEvent);
       }
     } catch (e) {
       console.warn(`Received invalid control message, error: ${e}`);
@@ -184,10 +186,10 @@ async function addScreenshareTrack(): Promise<string> {
 
 export function App() {
   const [tokenInput, setTokenInput] = useState(
-    localStorage.getItem("token") ?? "",
+    localStorage.getItem("token") ?? ""
   );
   const [endpointMetadataInput, setEndpointMetadataInput] = useState(
-    JSON.stringify({ goodStuff: "ye" }),
+    JSON.stringify({ goodStuff: "ye" })
   );
   const [connected, setConnected] = useState(false);
 
@@ -200,7 +202,7 @@ export function App() {
       tokenInput,
       endpointMetadataInput !== ""
         ? JSON.parse(endpointMetadataInput)
-        : undefined,
+        : undefined
     );
   const handleStartScreenshare = () => addScreenshareTrack();
   const handleUpdateEndpointMetadata = () =>
@@ -208,7 +210,7 @@ export function App() {
 
   const [remoteEndpoints, remoteTracks] = useSyncExternalStore(
     (callback) => remoteTracksStore.subscribe(callback),
-    () => remoteTracksStore.snapshot(),
+    () => remoteTracksStore.snapshot()
   );
 
   const setEncoding = (trackId: string, encoding: Encoding) => {
@@ -273,7 +275,7 @@ export function App() {
                   <button onClick={() => setEncoding(trackId, "h")}>h</button>
                 </div>
               </div>
-            ),
+            )
           )}
         </div>
       </div>

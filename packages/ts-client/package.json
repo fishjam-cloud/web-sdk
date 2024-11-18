@@ -11,23 +11,23 @@
     "webrtc",
     "fishjam"
   ],
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
   "files": [
     "dist/**"
   ],
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    },
-    "./protos": {
-      "import": "./dist/protos/index.js",
-      "types": "./dist/protos/index.d.ts"
-    }
+  "tsup": {
+    "dts": true,
+    "minify": true,
+    "format": [
+      "esm"
+    ],
+    "noExternal": [
+      "@fishjam-cloud/webrtc-client"
+    ]
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsup src/index.ts",
     "build:check": "tsc --noEmit",
     "format": "prettier --write . --ignore-path ./.eslintignore",
     "format:check": "prettier --check . --ignore-path ./.eslintignore",
@@ -38,12 +38,12 @@
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.2",
-    "@fishjam-cloud/webrtc-client": "workspace:*",
     "events": "^3.3.0",
     "typed-emitter": "^2.1.0",
     "uuid": "^11.0.2"
   },
   "devDependencies": {
+    "@fishjam-cloud/webrtc-client": "workspace:*",
     "@playwright/test": "^1.48.2",
     "@types/events": "^3.0.3",
     "@types/node": "^22.9.0",
@@ -52,6 +52,7 @@
     "fake-mediastreamtrack": "^1.2.0",
     "husky": "^9.1.6",
     "lint-staged": "^15.2.10",
+    "tsup": "^8.3.5",
     "typed-emitter": "^2.1.0",
     "typedoc": "^0.26.11",
     "typedoc-plugin-external-resolver": "^1.0.3",

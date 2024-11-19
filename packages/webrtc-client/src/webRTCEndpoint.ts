@@ -28,7 +28,11 @@ import { Local } from './tracks/Local';
 import type { TurnServer } from './ConnectionManager';
 import { ConnectionManager } from './ConnectionManager';
 import { Candidate } from '@fishjam-cloud/protobufs/shared';
-import { MediaEvent_OfferData, MediaEvent as ServerMediaEvent } from '@fishjam-cloud/protobufs/server';
+import {
+  MediaEvent_OfferData,
+  MediaEvent_SdpAnswer,
+  MediaEvent as ServerMediaEvent,
+} from '@fishjam-cloud/protobufs/server';
 
 /**
  * Main class that is responsible for connecting to the RTC Engine, sending and receiving media.
@@ -274,7 +278,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
     //
   };
 
-  private onSdpAnswer = async (data: any) => {
+  private onSdpAnswer = async (data: MediaEvent_SdpAnswer) => {
     this.remote.updateMLineIds(data.midToTrackId);
     this.local.updateMLineIds(data.midToTrackId);
 
@@ -288,7 +292,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
       .filter((localTrack) => localTrack !== null)
       .forEach((localTrack) => {
         const trackContext = localTrack.trackContext;
-
+        console.log('negotiation done', trackContext);
         trackContext.negotiationStatus = 'done';
 
         if (trackContext.pendingMetadataUpdate) {
@@ -310,7 +314,9 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
     });
 
     try {
-      await this.connectionManager.setRemoteDescription(data);
+      console.log('set description', data);
+      const sdp = JSON.parse(data.sdpAnswer);
+      await this.connectionManager.setRemoteDescription(sdp);
     } catch (err) {
       console.error(err);
     }

@@ -5,7 +5,7 @@ import { TrackContextImpl } from '../internal';
 import { MediaEvent as PeerMediaEvent } from '@fishjam-cloud/protobufs/peer';
 import type { EndpointId, TrackId } from './TrackCommon';
 import { MediaEvent_Track, MediaEvent_VadNotification_Status } from '@fishjam-cloud/protobufs/server';
-import { Metadata } from '@fishjam-cloud/protobufs/shared';
+import { Metadata, MidToTrackId } from '@fishjam-cloud/protobufs/shared';
 
 export class Remote {
   private readonly remoteTracks: Record<TrackId, RemoteTrack> = {};
@@ -217,12 +217,9 @@ export class Remote {
     }
   };
 
-  public updateMLineIds = (midToTrackId: Record<MLineId, TrackId>) => {
-    Object.entries(midToTrackId).forEach(([mLineId, trackId]) => {
-      const remoteTrack = this.remoteTracks[trackId];
-      if (remoteTrack) {
-        remoteTrack.setMLineId(mLineId);
-      }
+  public updateMLineIds = (midToTrackIds: MidToTrackId[]) => {
+    midToTrackIds.forEach(({ mid, trackId }) => {
+      this.remoteTracks[trackId]?.setMLineId(mid);
     });
   };
 }

@@ -65,12 +65,9 @@ export class Local {
     });
   };
 
-  public updateMLineIds = (midToTrackId: MidToTrackId) => {
-    Object.entries(midToTrackId).forEach(([mLineId, trackId]) => {
-      const localTrack = this.localTracks[trackId];
-      if (localTrack) {
-        localTrack.setMLineId(mLineId);
-      }
+  public updateMLineIds = (midToTrackIds: MidToTrackId[]) => {
+    midToTrackIds.forEach(({ mid, trackId }) => {
+      this.localTracks[trackId]?.setMLineId(mid);
     });
   };
 
@@ -295,23 +292,12 @@ export class Local {
 
   // TODO add bitrates
   private getTrackIdToTrackBitrates = (): MediaEvent_TrackIdToBitrates[] =>
-    Object.values(this.localTracks).flatMap((track) => {
-      const trackBitrates = track.getTrackBitrates();
-      const bitrateList = [];
-
-      if (typeof trackBitrates === 'number') {
-        bitrateList.push(trackBitrates);
-      } else if (trackBitrates) {
-        bitrateList.push(...Object.values(trackBitrates));
-      }
-
-      return bitrateList.map((bitrate) => ({
-        trackBitrate: {
-          trackId: track.id,
-          bitrate,
-        },
-      }));
-    });
+    Object.values(this.localTracks).map((track) => ({
+      trackBitrate: {
+        trackId: track.id,
+        bitrate: 500,
+      },
+    }));
 
   private getMidToTrackId = (): MidToTrackId[] => {
     if (!this.connection) return [];

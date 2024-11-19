@@ -10,6 +10,8 @@ import { WebRTCEndpoint } from '@fishjam-cloud/webrtc-client';
 import type TypedEmitter from 'typed-emitter';
 import { EventEmitter } from 'events';
 import { PeerMessage } from '@fishjam-cloud/protobufs/fishjamPeer';
+import { MediaEvent as PeerMediaEvent } from '@fishjam-cloud/protobufs/peer';
+import { MediaEvent as ServerMediaEvent } from '@fishjam-cloud/protobufs/server';
 import { ReconnectManager } from './reconnection';
 import { isAuthError } from './auth';
 import { connectEventsHandler } from './connectEventsHandler';
@@ -145,7 +147,9 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
 
     const socketOpenHandler = (event: Event) => {
       this.emit('socketOpen', event);
-      const message = PeerMessage.encode({ authRequest: { token, sdkVersion: '' } }).finish();
+      const message = PeerMessage.encode({ authRequest: { token, sdkVersion: 'web-0.10.0' } }).finish();
+
+      console.log({ authRequest: { token, sdkVersion: 'web-0.10.0' } });
       this.websocket?.send(message);
     };
 
@@ -170,14 +174,17 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
       const uint8Array = new Uint8Array(event.data);
       try {
         const data = PeerMessage.decode(uint8Array);
-        if (data.authenticated !== undefined) {
-          this.emit('authSuccess');
+        const serverMediaEvent = data.serverMediaEvent;
 
+        if (data.authenticated) {
+          this.emit('authSuccess');
+          console.log('Authenticated', data);
           this.webrtc?.connect(peerMetadata);
-        } else if (data.authRequest !== undefined) {
+        } else if (data.authRequest) {
           console.warn('Received unexpected control message: authRequest');
-        } else if (data.mediaEvent !== undefined) {
-          this.webrtc?.receiveMediaEvent(uint8Array);
+        } else if (serverMediaEvent) {
+          console.log(data);
+          this.webrtc?.receiveMediaEvent(ServerMediaEvent.encode(serverMediaEvent).finish());
         }
       } catch (e) {
         console.warn(`Received invalid control message, error: ${e}`);
@@ -248,7 +255,8 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
 
   private setupCallbacks() {
     this.webrtc?.on('sendMediaEvent', (mediaEvent) => {
-      this.websocket?.send(mediaEvent);
+      const peerMediaEvent = PeerMediaEvent.decode(mediaEvent);
+      this.websocket?.send(PeerMessage.encode({ peerMediaEvent }).finish());
     });
 
     this.webrtc?.on('connected', async (peerId: string, endpointsInRoom: Endpoint[]) => {

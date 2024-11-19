@@ -101,7 +101,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
    */
   public receiveMediaEvent = async (mediaEvent: SerializedMediaEvent) => {
     const deserializedMediaEvent = deserializeMediaEvent(mediaEvent);
-
+    console.log('receiveMediaEvent', deserializedMediaEvent);
     if (deserializedMediaEvent.connected) {
       const connectedEvent = deserializedMediaEvent.connected;
 
@@ -635,11 +635,14 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
 
   private sendMediaEvent = (mediaEvent: PeerMediaEvent) => {
     const serializedMediaEvent = serializeMediaEvent(mediaEvent);
+    console.log('sendMediaEvent', mediaEvent);
+
     this.emit('sendMediaEvent', serializedMediaEvent);
   };
 
   private async createAndSendOffer() {
     const connection = this.connectionManager;
+    console.log('connection', connection);
     if (!connection) return;
 
     try {
@@ -659,6 +662,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
       }
 
       const sdpOffer = this.local.createSdpOfferEvent(offer);
+      console.log('createAndSendOffer', sdpOffer);
       this.sendMediaEvent({ sdpOffer });
 
       this.local.setLocalTrackStatusToOffered();
@@ -673,7 +677,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
     if (offerData.tracksTypes) {
       connectionManager.addTransceiversIfNeeded(offerData.tracksTypes);
     }
-
+    console.log('onOfferData', offerData, connectionManager);
     await this.createAndSendOffer();
   };
 
@@ -707,6 +711,8 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
     this.commandsQueue.initConnection(connectionManager);
 
     this.local.addAllTracksToConnection();
+
+    this.connectionManager = connectionManager;
 
     return connectionManager;
   };

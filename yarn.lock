@@ -255,17 +255,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bufbuild/protobuf@npm:^2.0.0, @bufbuild/protobuf@npm:^2.2.2":
+  version: 2.2.2
+  resolution: "@bufbuild/protobuf@npm:2.2.2"
+  checksum: 10c0/17687c36c85b2e489c7ffd676479c54e12437270eb5a724775cb880b09948cad205b79e5822a4d10cefde0eef433b781350d73bb649d8de9e84d7745871ee719
+  languageName: node
+  linkType: hard
+
 "@bufbuild/protobuf@npm:^2.2.0":
   version: 2.2.0
   resolution: "@bufbuild/protobuf@npm:2.2.0"
   checksum: 10c0/00eac1a77d53b5700e0a91c83c9feb0c4014c230d503a1f9b2c4dcc30e7b806ed26e5bebcb4116f74d827373ed98e5f236358a08ee6b64d1b2780ad5a45e63c9
-  languageName: node
-  linkType: hard
-
-"@bufbuild/protobuf@npm:^2.2.2":
-  version: 2.2.2
-  resolution: "@bufbuild/protobuf@npm:2.2.2"
-  checksum: 10c0/17687c36c85b2e489c7ffd676479c54e12437270eb5a724775cb880b09948cad205b79e5822a4d10cefde0eef433b781350d73bb649d8de9e84d7745871ee719
   languageName: node
   linkType: hard
 
@@ -647,6 +647,14 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fishjam-cloud/protobufs@workspace:*, @fishjam-cloud/protobufs@workspace:packages/protobufs":
+  version: 0.0.0-use.local
+  resolution: "@fishjam-cloud/protobufs@workspace:packages/protobufs"
+  dependencies:
+    ts-proto: "npm:^2.2.7"
+  languageName: unknown
+  linkType: soft
+
 "@fishjam-cloud/react-client@workspace:*, @fishjam-cloud/react-client@workspace:packages/react-client":
   version: 0.0.0-use.local
   resolution: "@fishjam-cloud/react-client@workspace:packages/react-client"
@@ -736,6 +744,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@fishjam-e2e/ts-client-e2e@workspace:e2e-tests/ts-client/app"
   dependencies:
+    "@fishjam-cloud/protobufs": "workspace:*"
     "@fishjam-cloud/ts-client": "workspace:*"
     "@playwright/test": "npm:^1.48.2"
     "@types/node": "npm:^22.9.0"
@@ -3232,6 +3241,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"case-anything@npm:^2.1.13":
+  version: 2.1.13
+  resolution: "case-anything@npm:2.1.13"
+  checksum: 10c0/b02ffa51d7d58b9a32df7b40973836e16afad131eae7d343e64cb3ca7be57a936bf3d6c9d57a7aa242cf2f545d9a33990b755e93bcac2517761d77773a4a6a30
+  languageName: node
+  linkType: hard
+
 "ccount@npm:^2.0.0":
   version: 2.0.1
   resolution: "ccount@npm:2.0.1"
@@ -3660,6 +3676,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"detect-libc@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "detect-libc@npm:1.0.3"
+  bin:
+    detect-libc: ./bin/detect-libc.js
+  checksum: 10c0/4da0deae9f69e13bc37a0902d78bf7169480004b1fed3c19722d56cff578d16f0e11633b7fbf5fb6249181236c72e90024cbd68f0b9558ae06e281f47326d50d
+  languageName: node
+  linkType: hard
+
 "detect-node-es@npm:^1.1.0":
   version: 1.1.0
   resolution: "detect-node-es@npm:1.1.0"
@@ -3728,6 +3753,15 @@ __metadata:
   dependencies:
     esutils: "npm:^2.0.2"
   checksum: 10c0/c96bdccabe9d62ab6fea9399fdff04a66e6563c1d6fb3a3a063e8d53c3bb136ba63e84250bbf63d00086a769ad53aef92d2bd483f03f837fc97b71cbee6b2520
+  languageName: node
+  linkType: hard
+
+"dprint-node@npm:^1.0.8":
+  version: 1.0.8
+  resolution: "dprint-node@npm:1.0.8"
+  dependencies:
+    detect-libc: "npm:^1.0.3"
+  checksum: 10c0/39c1f8511833226cde773129afc5862dfd05babe062375e6b1f5824e221a5743a4d9c48626f32f7c2080113566270fe80521a50acb9029a20a2e80a3cd5e4106
   languageName: node
   linkType: hard
 
@@ -7431,6 +7465,38 @@ __metadata:
   version: 0.1.13
   resolution: "ts-interface-checker@npm:0.1.13"
   checksum: 10c0/232509f1b84192d07b81d1e9b9677088e590ac1303436da1e92b296e9be8e31ea042e3e1fd3d29b1742ad2c959e95afe30f63117b8f1bc3a3850070a5142fea7
+  languageName: node
+  linkType: hard
+
+"ts-poet@npm:^6.7.0":
+  version: 6.9.0
+  resolution: "ts-poet@npm:6.9.0"
+  dependencies:
+    dprint-node: "npm:^1.0.8"
+  checksum: 10c0/c1e3ee6048f075407c2076c8b884b405a3402ae6c013c0af9d0f6b8a6d939c71751a954882d2bd33a606c013d4a57519f5305e0bb1fd6aa0d23edda93e6007bf
+  languageName: node
+  linkType: hard
+
+"ts-proto-descriptors@npm:2.0.0":
+  version: 2.0.0
+  resolution: "ts-proto-descriptors@npm:2.0.0"
+  dependencies:
+    "@bufbuild/protobuf": "npm:^2.0.0"
+  checksum: 10c0/a4f47a6db7de6b328a5b22bb0bed2a0dac929c28002567613db7980e0a8392b9148530e432a602a8c6b2cfda9909be9568a2e5c545f5624bb5d5eba52031c059
+  languageName: node
+  linkType: hard
+
+"ts-proto@npm:^2.2.7":
+  version: 2.3.0
+  resolution: "ts-proto@npm:2.3.0"
+  dependencies:
+    "@bufbuild/protobuf": "npm:^2.0.0"
+    case-anything: "npm:^2.1.13"
+    ts-poet: "npm:^6.7.0"
+    ts-proto-descriptors: "npm:2.0.0"
+  bin:
+    protoc-gen-ts_proto: protoc-gen-ts_proto
+  checksum: 10c0/0571c93c277c44718e364a61b26c3d8db5c44210b150cb0966cecb27bf09996f683355c33c0eec2e4c9c960a9ea27f8197d841777a51e3b34144472449c8066e
   languageName: node
   linkType: hard
 

@@ -7,6 +7,7 @@
     "packages/ts-client",
     "packages/react-client",
     "packages/webrtc-client",
+    "packages/protobufs",
     "examples/ts-client/*",
     "examples/react-client/*",
     "e2e-tests/ts-client/app",

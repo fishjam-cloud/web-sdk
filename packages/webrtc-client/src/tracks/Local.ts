@@ -88,7 +88,7 @@ export class Local {
     const midToTrackId = this.getMidToTrackId();
 
     return MediaEvent_SdpOffer.create({
-      sdpOffer: sdpOffer.sdp,
+      sdpOffer: JSON.stringify({ sdp: sdpOffer.sdp, type: 'offer' }),
       midToTrackId,
       trackIdToBitrates,
       trackIdToMetadata,
@@ -294,13 +294,24 @@ export class Local {
     }));
 
   // TODO add bitrates
-  private getTrackIdToTrackBitrates = (): MediaEvent_TrackIdToBitrates[] => [];
-  // Object.values(this.localTracks).map((track) => ({
-  //   trackBitrate: {
-  //     trackId: track.id,
-  //     bitrate: track.getTrackBitrates(),
-  //   },
-  // }));
+  private getTrackIdToTrackBitrates = (): MediaEvent_TrackIdToBitrates[] =>
+    Object.values(this.localTracks).flatMap((track) => {
+      const trackBitrates = track.getTrackBitrates();
+      const bitrateList = [];
+
+      if (typeof trackBitrates === 'number') {
+        bitrateList.push(trackBitrates);
+      } else if (trackBitrates) {
+        bitrateList.push(...Object.values(trackBitrates));
+      }
+
+      return bitrateList.map((bitrate) => ({
+        trackBitrate: {
+          trackId: track.id,
+          bitrate,
+        },
+      }));
+    });
 
   private getMidToTrackId = (): MidToTrackId[] => {
     if (!this.connection) return [];
@@ -315,7 +326,7 @@ export class Local {
       .filter((track): track is LocalTrack & { mLineId: string } => !!track.mLineId)
       .map<MidToTrackId>((track) => ({ trackId: track.id, mid: track.mLineId }));
 
-    return { ...mappingFromTransceivers, ...mappingFromLocalNegotiatedTracks };
+    return [...mappingFromTransceivers, ...mappingFromLocalNegotiatedTracks];
   };
 
   private getTransceiverMapping = (): MidToTrackId[] => {

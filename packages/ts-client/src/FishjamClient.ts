@@ -149,7 +149,6 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
       this.emit('socketOpen', event);
       const message = PeerMessage.encode({ authRequest: { token, sdkVersion: 'web-0.10.0' } }).finish();
 
-      console.log({ authRequest: { token, sdkVersion: 'web-0.10.0' } });
       this.websocket?.send(message);
     };
 
@@ -178,12 +177,10 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
 
         if (data.authenticated) {
           this.emit('authSuccess');
-          console.log('Authenticated', data);
           this.webrtc?.connect(peerMetadata);
         } else if (data.authRequest) {
           console.warn('Received unexpected control message: authRequest');
         } else if (serverMediaEvent) {
-          console.log(data);
           this.webrtc?.receiveMediaEvent(ServerMediaEvent.encode(serverMediaEvent).finish());
         }
       } catch (e) {

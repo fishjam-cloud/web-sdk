@@ -127,12 +127,12 @@ function connect(token: string, metadata: EndpointMetadata) {
         const mediaEvent = JSON.parse(data?.mediaEvent?.data);
         console.log(
           `%c(${clientId}) - Received: ${JSON.stringify(mediaEvent)}`,
-          "color:green"
+          "color:green",
         );
       } else {
         console.log(
           `%c(${clientId}) - Received: ${JSON.stringify(data)}`,
-          "color:green"
+          "color:green",
         );
       }
 
@@ -186,10 +186,10 @@ async function addScreenshareTrack(): Promise<string> {
 
 export function App() {
   const [tokenInput, setTokenInput] = useState(
-    localStorage.getItem("token") ?? ""
+    localStorage.getItem("token") ?? "",
   );
   const [endpointMetadataInput, setEndpointMetadataInput] = useState(
-    JSON.stringify({ goodStuff: "ye" })
+    JSON.stringify({ goodStuff: "ye" }),
   );
   const [connected, setConnected] = useState(false);
 
@@ -202,7 +202,7 @@ export function App() {
       tokenInput,
       endpointMetadataInput !== ""
         ? JSON.parse(endpointMetadataInput)
-        : undefined
+        : undefined,
     );
   const handleStartScreenshare = () => addScreenshareTrack();
   const handleUpdateEndpointMetadata = () =>
@@ -210,7 +210,7 @@ export function App() {
 
   const [remoteEndpoints, remoteTracks] = useSyncExternalStore(
     (callback) => remoteTracksStore.subscribe(callback),
-    () => remoteTracksStore.snapshot()
+    () => remoteTracksStore.snapshot(),
   );
 
   const setEncoding = (trackId: string, encoding: Encoding) => {
@@ -275,7 +275,7 @@ export function App() {
                   <button onClick={() => setEncoding(trackId, "h")}>h</button>
                 </div>
               </div>
-            )
+            ),
           )}
         </div>
       </div>

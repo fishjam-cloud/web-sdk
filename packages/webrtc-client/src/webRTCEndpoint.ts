@@ -1,11 +1,11 @@
 import type { SerializedMediaEvent } from './mediaEvent';
 import { deserializeMediaEvent, serializeMediaEvent } from './mediaEvent';
+import type { MediaEvent as PeerMediaEvent } from '@fishjam-cloud/protobufs/peer';
 import {
   MediaEvent_Connect,
   MediaEvent_Disconnect,
   MediaEvent_RenegotiateTracks,
   MediaEvent_UpdateTrackMetadata,
-  MediaEvent as PeerMediaEvent,
 } from '@fishjam-cloud/protobufs/peer';
 import { v4 as uuidv4 } from 'uuid';
 import EventEmitter from 'events';
@@ -28,7 +28,7 @@ import { Local } from './tracks/Local';
 import type { TurnServer } from './ConnectionManager';
 import { ConnectionManager } from './ConnectionManager';
 import { Candidate } from '@fishjam-cloud/protobufs/shared';
-import {
+import type {
   MediaEvent_OfferData,
   MediaEvent_SdpAnswer,
   MediaEvent as ServerMediaEvent,
@@ -60,7 +60,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
       this.emit(events, ...args);
     };
 
-    this.remote = new Remote(emit, sendEvent);
+    this.remote = new Remote(emit);
     this.local = new Local(emit, sendEvent);
 
     this.localTrackManager = new LocalTrackManager(this.local, sendEvent);

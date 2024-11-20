@@ -12,17 +12,19 @@ import { isTrackKind, TrackContextImpl } from '../internal';
 import type { ConnectionManager } from '../ConnectionManager';
 import type { EndpointId, TrackId } from './TrackCommon';
 import type { WebRTCEndpoint } from '../webRTCEndpoint';
-import {
+import type {
   MediaEvent as PeerMediaEvent,
-  MediaEvent_SdpOffer,
   MediaEvent_TrackIdToBitrates,
   MediaEvent_TrackIdToMetadata,
+} from '@fishjam-cloud/protobufs/peer';
+import {
+  MediaEvent_SdpOffer,
   MediaEvent_RenegotiateTracks,
   MediaEvent_UpdateEndpointMetadata,
   MediaEvent_UpdateTrackMetadata,
 } from '@fishjam-cloud/protobufs/peer';
 
-import { MidToTrackId } from '@fishjam-cloud/protobufs/shared';
+import type { MidToTrackId } from '@fishjam-cloud/protobufs/shared';
 
 /**
  * This class encapsulates methods related to handling the list of local tracks and local endpoint.
@@ -158,7 +160,7 @@ export class Local {
     if (!trackManager) throw new Error(`Cannot find ${trackId}`);
 
     await trackManager.setTrackBandwidth(bandwidth);
-    const mediaEvent = trackManager.createTrackVariantBitratesEvent();
+    // const mediaEvent = trackManager.createTrackVariantBitratesEvent();
 
     // TODO add when simulcast is available
     // this.sendMediaEvent(mediaEvent);

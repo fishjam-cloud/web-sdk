@@ -2,10 +2,11 @@ import type { Encoding, EncodingReason, TrackContext, WebRTCEndpointEvents } fro
 import { RemoteTrack } from './RemoteTrack';
 import type { EndpointWithTrackContext } from '../internal';
 import { TrackContextImpl } from '../internal';
-import { MediaEvent as PeerMediaEvent } from '@fishjam-cloud/protobufs/peer';
+// import type { MediaEvent as PeerMediaEvent } from '@fishjam-cloud/protobufs/peer';
 import type { EndpointId, TrackId } from './TrackCommon';
-import { MediaEvent_Track, MediaEvent_VadNotification_Status } from '@fishjam-cloud/protobufs/server';
-import { Metadata, MidToTrackId } from '@fishjam-cloud/protobufs/shared';
+import type { MediaEvent_Track } from '@fishjam-cloud/protobufs/server';
+import { MediaEvent_VadNotification_Status } from '@fishjam-cloud/protobufs/server';
+import type { Metadata, MidToTrackId } from '@fishjam-cloud/protobufs/shared';
 
 export class Remote {
   private readonly remoteTracks: Record<TrackId, RemoteTrack> = {};
@@ -15,17 +16,17 @@ export class Remote {
     event: E,
     ...args: Parameters<Required<WebRTCEndpointEvents>[E]>
   ) => void;
-  private readonly sendMediaEvent: (mediaEvent: PeerMediaEvent) => void;
+  // private readonly sendMediaEvent: (mediaEvent: PeerMediaEvent) => void;
 
   constructor(
     emit: <E extends keyof Required<WebRTCEndpointEvents>>(
       event: E,
       ...args: Parameters<Required<WebRTCEndpointEvents>[E]>
     ) => void,
-    sendMediaEvent: (mediaEvent: PeerMediaEvent) => void,
+    // sendMediaEvent: (mediaEvent: PeerMediaEvent) => void,
   ) {
     this.emit = emit;
-    this.sendMediaEvent = sendMediaEvent;
+    // this.sendMediaEvent = sendMediaEvent;
   }
 
   public getTrackByMid = (mid: string): RemoteTrack => {

@@ -1,4 +1,4 @@
-import type { Encoding, EncodingReason, MLineId, TrackContext, WebRTCEndpointEvents } from '../types';
+import type { Encoding, EncodingReason, TrackContext, WebRTCEndpointEvents } from '../types';
 import { RemoteTrack } from './RemoteTrack';
 import type { EndpointWithTrackContext } from '../internal';
 import { TrackContextImpl } from '../internal';

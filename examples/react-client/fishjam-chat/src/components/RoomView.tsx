@@ -16,7 +16,7 @@ export const RoomView = () => {
     }, 0);
 
   const tilesSqrt = trackAmount === 2 ? 2 : Math.ceil(Math.sqrt(trackAmount));
-
+  console.log(remotePeers);
   return (
     <div className="flex flex-col justify-between w-full">
       <section className="flex-1 overflow-y-auto">
@@ -71,7 +71,7 @@ export const RoomView = () => {
                   )}
                 </Fragment>
               );
-            },
+            }
           )}
         </div>
       </section>

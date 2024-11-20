@@ -1,4 +1,9 @@
-import { useInitializeDevices, useConnect } from "@fishjam-cloud/react-client";
+import {
+  useInitializeDevices,
+  useConnect,
+  useCamera,
+  useMicrophone,
+} from "@fishjam-cloud/react-client";
 
 import { Loader2 } from "lucide-react";
 
@@ -22,7 +27,6 @@ import {
 } from "./ui/accordion";
 
 import { useForm } from "react-hook-form";
-import { getRoomCredentials } from "@/lib/roomManager";
 import { RoomForm } from "@/types";
 import { getPersistedFormValues, persistFormValues } from "@/lib/utils";
 import { useAutoConnect } from "@/hooks/useAutoConnect";
@@ -32,6 +36,9 @@ type Props = React.HTMLAttributes<HTMLDivElement>;
 
 export const JoinRoomCard: FC<Props> = (props) => {
   const { initializeDevices } = useInitializeDevices();
+
+  const camera = useCamera();
+  const mic = useMicrophone();
 
   const connect = useConnect();
 
@@ -52,20 +59,25 @@ export const JoinRoomCard: FC<Props> = (props) => {
 
   const onJoinRoom = async ({
     roomManagerUrl,
-    roomName,
+    // roomName,
     peerName,
   }: RoomForm) => {
-    const { url, peerToken } = await getRoomCredentials(
-      roomManagerUrl,
-      roomName,
-      peerName,
-    );
-    persistFormValues({ roomManagerUrl, roomName, peerName });
+    // const { url, peerToken } = await getRoomCredentials(
+    //   roomManagerUrl,
+    //   roomName,
+    //   peerName
+    // );
+    persistFormValues({ roomManagerUrl, roomName: "", peerName });
     await connect({
-      url,
-      token: peerToken,
+      url: "http://localhost:5002",
+      token: roomManagerUrl,
       peerMetadata: { displayName: peerName },
     });
+
+    await Promise.all([
+      camera.startStreaming({ simulcast: false }),
+      mic.startStreaming({ simulcast: false }),
+    ]);
   };
 
   return (

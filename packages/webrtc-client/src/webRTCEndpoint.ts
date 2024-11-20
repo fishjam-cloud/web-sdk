@@ -113,11 +113,22 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
 
       this.local.setLocalEndpointId(connectedEvent.endpointId);
 
+      const connectedEndpoint = connectedEvent.endpoints.find(
+        ({ endpointId }) => endpointId === connectedEvent.endpointId,
+      );
+
+      if (connectedEndpoint?.metadata?.json) {
+        const parsedMetadata = JSON.parse(connectedEndpoint?.metadata?.json);
+        this.local.setEndpointMetadata(parsedMetadata);
+      }
+
       // todo implement track mapping (+ validate metadata)
       // todo implement endpoint metadata mapping
-      connectedEvent.endpoints.forEach((endpoint) => {
-        this.remote.addRemoteEndpoint(endpoint.endpointId, endpoint.metadata);
-      });
+      connectedEvent.endpoints
+        .filter(({ endpointId }) => endpointId !== this.local.getEndpoint().id)
+        .forEach((endpoint) => {
+          this.remote.addRemoteEndpoint(endpoint.endpointId, endpoint.metadata);
+        });
 
       const remoteEndpoints = Object.values(this.remote.getRemoteEndpoints());
 
@@ -126,7 +137,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
       return;
     }
 
-    if (this.getEndpointId() != null) await this.handleMediaEvent(deserializedMediaEvent);
+    if (this.getEndpointId()) await this.handleMediaEvent(deserializedMediaEvent);
   };
 
   private getEndpointId = () => this.local.getEndpoint().id;
@@ -310,6 +321,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
 
     // probably there is no need to reassign it on every onAnswer
     this.connectionManager.setOnTrackReady((event) => {
+      console.log('onTrackReady', event.type, event.track);
       this.onTrackReady(event);
     });
 

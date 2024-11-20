@@ -41,8 +41,9 @@ export class Remote {
 
     tracks
       .map(({ trackId, metadata }) => {
+        const parsedMetadata = metadata ? JSON.parse(metadata.json) : undefined;
         // simulcastConfig is not available in the current implementation
-        const trackContext = new TrackContextImpl(endpoint, trackId, metadata, {
+        const trackContext = new TrackContextImpl(endpoint, trackId, parsedMetadata, {
           enabled: false,
           activeEncodings: [],
           disabledEncodings: [],
@@ -124,7 +125,7 @@ export class Remote {
     const remoteTrack = this.remoteTracks[trackId];
     if (!remoteTrack) throw new Error(`Track ${trackId} not found`);
 
-    remoteTrack.trackContext.metadata = metadata;
+    remoteTrack.trackContext.metadata = metadata ? JSON.parse(metadata.json) : undefined;
 
     this.emit('trackUpdated', remoteTrack.trackContext);
   };

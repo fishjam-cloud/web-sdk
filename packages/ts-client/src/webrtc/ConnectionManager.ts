@@ -15,10 +15,10 @@ export class ConnectionManager {
   constructor(turnServers: TurnServer[]) {
     this.isExWebRTC = turnServers.length === 0;
 
-    const iceServers = this.isExWebRTC
-      ? [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun.l.google.com:5349' }]
-      : this.getIceServers(turnServers);
+    const iceServers = this.isExWebRTC ? [] : this.getIceServers(turnServers);
     const iceTransportPolicy = this.isExWebRTC ? 'all' : 'relay';
+
+    console.log('iceServers', iceServers);
 
     this.connection = new RTCPeerConnection({
       bundlePolicy: 'max-bundle',

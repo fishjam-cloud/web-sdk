@@ -2,7 +2,7 @@ import { useInitializeDevices, useConnect } from "@fishjam-cloud/react-client";
 
 import { Loader2 } from "lucide-react";
 
-import { FC, useEffect } from "react";
+import { FC, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -50,22 +50,30 @@ export const JoinRoomCard: FC<Props> = (props) => {
 
   useAutoConnect();
 
+  const [error, setError] = useState<string>();
+
   const onJoinRoom = async ({
     roomManagerUrl,
     roomName,
     peerName,
   }: RoomForm) => {
-    const { url, peerToken } = await getRoomCredentials(
-      roomManagerUrl,
-      roomName,
-      peerName,
-    );
-    persistFormValues({ roomManagerUrl, roomName, peerName });
-    await connect({
-      url,
-      token: peerToken,
-      peerMetadata: { displayName: peerName },
-    });
+    try {
+      const { url, peerToken } = await getRoomCredentials(
+        roomManagerUrl,
+        roomName,
+        peerName,
+      );
+      persistFormValues({ roomManagerUrl, roomName, peerName });
+
+      await connect({
+        url,
+        token: peerToken,
+        peerMetadata: { displayName: peerName },
+      });
+      setError(undefined);
+    } catch (e) {
+      setError((e as { message?: string })?.message);
+    }
   };
 
   return (
@@ -74,6 +82,7 @@ export const JoinRoomCard: FC<Props> = (props) => {
         <CardHeader>
           <CardTitle>Fishjam Chat</CardTitle>
           <CardDescription>Fill out the form to join the call.</CardDescription>
+          {error && <CardFooter className="text-red-500">{error}</CardFooter>}
         </CardHeader>
 
         <CardContent>
@@ -130,7 +139,7 @@ export const JoinRoomCard: FC<Props> = (props) => {
             {form.formState.isSubmitting ? (
               <Loader2 className="animate-spin" />
             ) : (
-              <span>Join room</span>
+              <span>Join rooqm</span>
             )}
           </Button>
         </CardFooter>

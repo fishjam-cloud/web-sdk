@@ -5,6 +5,7 @@ export type LocalTrackId = string;
 export type MLineId = string;
 export type MediaStreamTrackId = string;
 export type RemoteTrackId = string;
+export type MetadataJson = string;
 
 export type TrackKind = 'audio' | 'video';
 

@@ -83,7 +83,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
    */
   public connect = (metadata: unknown): void => {
     this.local.setEndpointMetadata(metadata);
-    const connect = MediaEvent_Connect.create({ metadata: { json: JSON.stringify(metadata) } });
+    const connect = MediaEvent_Connect.create({ metadataJson: JSON.stringify(metadata) });
     this.sendMediaEvent({ connect });
   };
 
@@ -113,21 +113,17 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
 
       this.local.setLocalEndpointId(connectedEvent.endpointId);
 
-      const connectedEndpoint = connectedEvent.endpoints.find(
-        ({ endpointId }) => endpointId === connectedEvent.endpointId,
-      );
+      const connectedEndpoint = connectedEvent.endpointsIdToEndpoint[connectedEvent.endpointId];
 
-      if (connectedEndpoint?.metadata?.json) {
-        const parsedMetadata = JSON.parse(connectedEndpoint?.metadata?.json);
+      if (connectedEndpoint?.metadataJson) {
+        const parsedMetadata = JSON.parse(connectedEndpoint?.metadataJson);
         this.local.setEndpointMetadata(parsedMetadata);
       }
 
-      // todo implement track mapping (+ validate metadata)
-      // todo implement endpoint metadata mapping
-      connectedEvent.endpoints
-        .filter(({ endpointId }) => endpointId !== this.local.getEndpoint().id)
-        .forEach((endpoint) => {
-          this.remote.addRemoteEndpoint(endpoint.endpointId, endpoint.metadata);
+      Object.entries(connectedEvent.endpointsIdToEndpoint)
+        .filter(([endpointId]) => endpointId !== this.local.getEndpoint().id)
+        .forEach(([endpointId, endpoint]) => {
+          this.remote.addRemoteEndpoint(endpointId, endpoint.metadataJson);
         });
 
       const remoteEndpoints = Object.values(this.remote.getRemoteEndpoints());
@@ -201,10 +197,10 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
     } else if (event.tracksAdded) {
       this.localTrackManager.ongoingRenegotiation = true;
 
-      const { tracks, endpointId } = event.tracksAdded;
+      const { trackIdToMetadataJson, endpointId } = event.tracksAdded;
       if (this.getEndpointId() === endpointId) return;
 
-      this.remote.addTracks(endpointId, tracks);
+      this.remote.addTracks(endpointId, trackIdToMetadataJson);
     } else if (event.tracksRemoved) {
       this.localTrackManager.ongoingRenegotiation = true;
 
@@ -220,10 +216,10 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
     } else if (event.candidate) {
       await this.onRemoteCandidate(event.candidate);
     } else if (event.endpointAdded) {
-      const { endpointId, metadata } = event.endpointAdded;
+      const { endpointId, metadataJson } = event.endpointAdded;
       if (endpointId === this.getEndpointId()) return;
 
-      this.remote.addRemoteEndpoint(endpointId, metadata);
+      this.remote.addRemoteEndpoint(endpointId, metadataJson);
     } else if (event.endpointRemoved) {
       const { endpointId } = event.endpointRemoved;
 
@@ -237,15 +233,15 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
 
       this.remote.removeRemoteEndpoint(endpointId);
     } else if (event.endpointUpdated) {
-      const { endpointId, metadata } = event.endpointUpdated;
+      const { endpointId, metadataJson } = event.endpointUpdated;
       if (this.getEndpointId() === endpointId) return;
 
-      this.remote.updateRemoteEndpoint(endpointId, metadata);
+      this.remote.updateRemoteEndpoint(endpointId, metadataJson);
     } else if (event.trackUpdated) {
-      const { endpointId, trackId, metadata } = event.trackUpdated;
+      const { endpointId, trackId, metadataJson } = event.trackUpdated;
       if (this.getEndpointId() === endpointId) return;
 
-      this.remote.updateRemoteTrack(endpointId, trackId, metadata);
+      this.remote.updateRemoteTrack(endpointId, trackId, metadataJson);
     } else if (event.vadNotification) {
       const { trackId, status } = event.vadNotification;
       this.remote.setRemoteTrackVadStatus(trackId, status);
@@ -309,7 +305,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
         if (trackContext.pendingMetadataUpdate) {
           const updateTrackMetadata = MediaEvent_UpdateTrackMetadata.create({
             trackId: localTrack.id,
-            metadata: { json: JSON.stringify(trackContext.metadata) },
+            metadataJson: JSON.stringify(trackContext.metadata),
           });
           this.sendMediaEvent({ updateTrackMetadata });
         }

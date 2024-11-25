@@ -1,12 +1,10 @@
-import type { Encoding, EncodingReason, TrackContext, WebRTCEndpointEvents } from '../types';
+import type { Encoding, EncodingReason, MetadataJson, TrackContext, WebRTCEndpointEvents } from '../types';
 import { RemoteTrack } from './RemoteTrack';
 import type { EndpointWithTrackContext } from '../internal';
 import { TrackContextImpl } from '../internal';
 // import type { MediaEvent as PeerMediaEvent } from '@fishjam-cloud/protobufs/peer';
 import type { EndpointId, TrackId } from './TrackCommon';
-import type { MediaEvent_Track } from '@fishjam-cloud/protobufs/server';
 import { MediaEvent_VadNotification_Status } from '@fishjam-cloud/protobufs/server';
-import type { Metadata, MidToTrackId } from '@fishjam-cloud/protobufs/shared';
 
 export class Remote {
   private readonly remoteTracks: Record<TrackId, RemoteTrack> = {};
@@ -35,14 +33,14 @@ export class Remote {
     return remoteTrack;
   };
 
-  public addTracks = (endpointId: EndpointId, tracks: MediaEvent_Track[]) => {
+  public addTracks = (endpointId: EndpointId, tracks: Record<TrackId, MetadataJson>) => {
     const endpoint: EndpointWithTrackContext | undefined = this.remoteEndpoints[endpointId];
 
     if (!endpoint) throw new Error(`Endpoint ${endpointId} not found`);
 
-    tracks
-      .map(({ trackId, metadata }) => {
-        const parsedMetadata = metadata ? JSON.parse(metadata.json) : undefined;
+    Object.entries(tracks)
+      .map(([trackId, metadataJson]) => {
+        const parsedMetadata = metadataJson ? JSON.parse(metadataJson) : undefined;
         // simulcastConfig is not available in the current implementation
         const trackContext = new TrackContextImpl(endpoint, trackId, parsedMetadata, {
           enabled: false,
@@ -78,16 +76,16 @@ export class Remote {
     this.emit('trackRemoved', remoteTrack.trackContext);
   };
 
-  public addRemoteEndpoint = (endpointId: string, metadata?: Metadata, sendNotification: boolean = true) => {
+  public addRemoteEndpoint = (endpointId: string, metadataJson?: MetadataJson, sendNotification: boolean = true) => {
     const endpoint = {
       id: endpointId,
       type: 'exwebrtc',
-      metadata: metadata ? JSON.parse(metadata.json) : undefined,
+      metadata: metadataJson ? JSON.parse(metadataJson) : undefined,
       tracks: new Map(),
     } satisfies EndpointWithTrackContext;
 
     this.addEndpoint(endpoint);
-    this.addTracks(endpoint.id, []);
+    this.addTracks(endpoint.id, {});
 
     if (sendNotification) {
       this.emit('endpointAdded', endpoint);
@@ -98,11 +96,11 @@ export class Remote {
     this.remoteEndpoints[endpoint.id] = endpoint;
   };
 
-  public updateRemoteEndpoint = (endpointId: string, metadata?: Metadata) => {
+  public updateRemoteEndpoint = (endpointId: string, metadataJson?: MetadataJson) => {
     const endpoint: EndpointWithTrackContext | undefined = this.remoteEndpoints[endpointId];
     if (!endpoint) throw new Error(`Endpoint ${endpointId} not found`);
 
-    endpoint.metadata = metadata;
+    endpoint.metadata = metadataJson;
 
     this.emit('endpointUpdated', endpoint);
   };
@@ -120,13 +118,13 @@ export class Remote {
     this.emit('endpointRemoved', endpoint);
   };
 
-  public updateRemoteTrack = (endpointId: string, trackId: string, metadata?: Metadata) => {
+  public updateRemoteTrack = (endpointId: string, trackId: string, metadataJson?: MetadataJson) => {
     if (!this.remoteEndpoints[endpointId]) throw new Error(`Endpoint ${endpointId} not found`);
 
     const remoteTrack = this.remoteTracks[trackId];
     if (!remoteTrack) throw new Error(`Track ${trackId} not found`);
 
-    remoteTrack.trackContext.metadata = metadata ? JSON.parse(metadata.json) : undefined;
+    remoteTrack.trackContext.metadata = metadataJson ? JSON.parse(metadataJson) : undefined;
 
     this.emit('trackUpdated', remoteTrack.trackContext);
   };
@@ -219,8 +217,8 @@ export class Remote {
     }
   };
 
-  public updateMLineIds = (midToTrackIds: MidToTrackId[]) => {
-    midToTrackIds.forEach(({ mid, trackId }) => {
+  public updateMLineIds = (midToTrackIds: Record<string, string>) => {
+    Object.entries(midToTrackIds).forEach(([mid, trackId]) => {
       this.remoteTracks[trackId]?.setMLineId(mid);
     });
   };

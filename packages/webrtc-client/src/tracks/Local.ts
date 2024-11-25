@@ -2,6 +2,9 @@ import { LocalTrack } from './LocalTrack';
 import type {
   BandwidthLimit,
   Encoding,
+  LocalTrackId,
+  MetadataJson,
+  MLineId,
   RemoteTrackId,
   SimulcastConfig,
   TrackBandwidthLimit,
@@ -12,19 +15,14 @@ import { isTrackKind, TrackContextImpl } from '../internal';
 import type { ConnectionManager } from '../ConnectionManager';
 import type { EndpointId, TrackId } from './TrackCommon';
 import type { WebRTCEndpoint } from '../webRTCEndpoint';
-import type {
-  MediaEvent as PeerMediaEvent,
-  MediaEvent_TrackIdToBitrates,
-  MediaEvent_TrackIdToMetadata,
-} from '@fishjam-cloud/protobufs/peer';
+import type { MediaEvent as PeerMediaEvent } from '@fishjam-cloud/protobufs/peer';
 import {
   MediaEvent_SdpOffer,
   MediaEvent_RenegotiateTracks,
   MediaEvent_UpdateEndpointMetadata,
   MediaEvent_UpdateTrackMetadata,
 } from '@fishjam-cloud/protobufs/peer';
-
-import type { MidToTrackId } from '@fishjam-cloud/protobufs/shared';
+import { Bitrate } from '../bitrate';
 
 /**
  * This class encapsulates methods related to handling the list of local tracks and local endpoint.
@@ -67,8 +65,8 @@ export class Local {
     });
   };
 
-  public updateMLineIds = (midToTrackIds: MidToTrackId[]) => {
-    midToTrackIds.forEach(({ mid, trackId }) => {
+  public updateMLineIds = (midToTrackIds: Record<string, string>) => {
+    Object.entries(midToTrackIds).forEach(([mid, trackId]) => {
       this.localTracks[trackId]?.setMLineId(mid);
     });
   };
@@ -82,7 +80,7 @@ export class Local {
   };
 
   public createSdpOfferEvent = (sdpOffer: RTCSessionDescriptionInit): MediaEvent_SdpOffer => {
-    const trackIdToMetadata = this.getTrackIdToMetadata();
+    const trackIdToMetadataJson = this.getTrackIdToMetadataJson();
     const trackIdToBitrates = this.getTrackIdToTrackBitrates();
     const midToTrackId = this.getMidToTrackId();
 
@@ -90,7 +88,7 @@ export class Local {
       sdpOffer: JSON.stringify({ sdp: sdpOffer.sdp, type: 'offer' }),
       midToTrackId,
       trackIdToBitrates,
-      trackIdToMetadata,
+      trackIdToMetadataJson,
     });
   };
 
@@ -208,7 +206,7 @@ export class Local {
     this.localEndpoint.metadata = metadata;
 
     const updateEndpointMetadata = MediaEvent_UpdateEndpointMetadata.create({
-      metadata: { json: JSON.stringify(this.localEndpoint.metadata) },
+      metadataJson: JSON.stringify(this.localEndpoint.metadata),
     });
 
     this.sendMediaEvent({ updateEndpointMetadata });
@@ -226,7 +224,7 @@ export class Local {
     const trackContext = trackManager.trackContext;
     const updateTrackMetadata = MediaEvent_UpdateTrackMetadata.create({
       trackId,
-      metadata: metadata ? { json: JSON.stringify(metadata) } : undefined,
+      metadataJson: metadata ? JSON.stringify(metadata) : undefined,
     });
 
     switch (trackContext.negotiationStatus) {
@@ -286,23 +284,18 @@ export class Local {
     });
   };
 
-  private getTrackIdToMetadata = (): MediaEvent_TrackIdToMetadata[] =>
-    Object.values(this.localTracks).map((track) => ({
-      trackId: track.id,
-      metadata: { json: JSON.stringify(track.trackContext.metadata) },
-    }));
+  private getTrackIdToMetadataJson = (): Record<LocalTrackId, MetadataJson> =>
+    Object.values(this.localTracks).reduce(
+      (acc, { id, trackContext }) => ({ ...acc, [id]: JSON.stringify(trackContext.metadata) }),
+      {},
+    );
 
   // TODO add bitrates
-  private getTrackIdToTrackBitrates = (): MediaEvent_TrackIdToBitrates[] =>
-    Object.values(this.localTracks).map((track) => ({
-      trackBitrate: {
-        trackId: track.id,
-        bitrate: 500,
-      },
-    }));
+  private getTrackIdToTrackBitrates = (): Record<LocalTrackId, { bitrate: number }> =>
+    Object.values(this.localTracks).reduce((acc, { id }) => ({ ...acc, [id]: { bitrate: 500 } }), {});
 
-  private getMidToTrackId = (): MidToTrackId[] => {
-    if (!this.connection) return [];
+  private getMidToTrackId = (): Record<MLineId, LocalTrackId> => {
+    if (!this.connection) return {};
 
     // - negotiated unmuted tracks: tracks added in previous negotiation, data is being transmitted
     // - not yet negotiated tracks: tracks added in this negotiation, data will be transmitted after successful negotiation
@@ -312,26 +305,26 @@ export class Local {
     // - negotiated muted tracks: tracks added in previous negotiation, data is not being transmitted but can be transmitted in the future
     const mappingFromLocalNegotiatedTracks = Object.values(this.localTracks)
       .filter((track): track is LocalTrack & { mLineId: string } => !!track.mLineId)
-      .map<MidToTrackId>((track) => ({ trackId: track.id, mid: track.mLineId }));
+      .reduce((acc, { id, mLineId }) => ({ ...acc, [mLineId]: id }), {});
 
-    return [...mappingFromTransceivers, ...mappingFromLocalNegotiatedTracks];
+    return { ...mappingFromTransceivers, ...mappingFromLocalNegotiatedTracks };
   };
 
-  private getTransceiverMapping = (): MidToTrackId[] => {
-    if (!this.connection) return [];
+  private getTransceiverMapping = (): Record<MLineId, LocalTrackId> => {
+    if (!this.connection) return {};
 
     return this.connection
       .getConnection()
       .getTransceivers()
       .filter((transceiver) => Boolean(transceiver.sender.track?.id && transceiver.mid))
-      .map(({ sender, mid }) => {
+      .reduce((acc, { sender, mid }) => {
         const localTrack = Object.values(this.localTracks).find(
           (track) => track.mediaStreamTrackId === sender.track!.id,
         );
         if (!localTrack) throw new Error('Local track not found');
 
-        return { trackId: localTrack.id, mid: mid! };
-      });
+        return { ...acc, [mid!]: localTrack.id };
+      }, {});
   };
 
   public setLocalTrackStatusToOffered = () => {

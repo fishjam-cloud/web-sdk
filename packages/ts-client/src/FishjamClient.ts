@@ -1,6 +1,6 @@
 import type {
   BandwidthLimit,
-  Encoding,
+  Variant,
   Endpoint,
   SimulcastConfig,
   TrackBandwidthLimit,
@@ -492,8 +492,8 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
     trackMetadata?: TrackMetadata,
     simulcastConfig: SimulcastConfig = {
       enabled: false,
-      activeEncodings: [],
-      disabledEncodings: [],
+      enabledVariants: [],
+      disabledVariants: [],
     },
     maxBandwidth: TrackBandwidthLimit = 0, // unlimited bandwidth
   ): Promise<string> {
@@ -579,7 +579,7 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
    */
   public async setEncodingBandwidth(
     trackId: string,
-    rid: string,
+    rid: Variant,
     bandwidth: BandwidthLimit,
     // todo change type to Promise<void>
   ): Promise<boolean> {
@@ -637,7 +637,7 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
    * @param {string} trackId - Id of track
    * @param {Encoding} encoding - Encoding to receive
    */
-  public setTargetTrackEncoding(trackId: string, encoding: Encoding) {
+  public setTargetTrackEncoding(trackId: string, encoding: Variant) {
     if (!this.webrtc) throw this.handleWebRTCNotInitialized();
 
     return this.webrtc.setTargetTrackEncoding(trackId, encoding);
@@ -657,7 +657,7 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
    * @param {string} trackId - Id of track
    * @param {Encoding} encoding - Encoding that will be enabled
    */
-  public enableTrackEncoding(trackId: string, encoding: Encoding) {
+  public enableTrackEncoding(trackId: string, encoding: Variant) {
     if (!this.webrtc) throw this.handleWebRTCNotInitialized();
 
     return this.webrtc.enableTrackEncoding(trackId, encoding);
@@ -675,7 +675,7 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
    * @param {string} trackId - Id of track
    * @param {Encoding} encoding - Encoding that will be disabled
    */
-  public disableTrackEncoding(trackId: string, encoding: Encoding) {
+  public disableTrackEncoding(trackId: string, encoding: Variant) {
     if (!this.webrtc) throw this.handleWebRTCNotInitialized();
 
     return this.webrtc.disableTrackEncoding(trackId, encoding);

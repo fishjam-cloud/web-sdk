@@ -1,5 +1,5 @@
 import type {
-  Encoding,
+  Variant,
   SimulcastConfig,
   TrackMetadata,
   ConnectConfig as TSClientConnectConfig,
@@ -17,7 +17,7 @@ import type {
 
 export type Track = {
   stream: MediaStream | null;
-  encoding: Encoding | null;
+  encoding: Variant | null;
   trackId: TrackId;
   metadata?: TrackMetadata;
   simulcastConfig: SimulcastConfig | null;
@@ -80,8 +80,12 @@ export type ScreenshareApi = {
   currentTracksMiddleware: TracksMiddleware | null;
 };
 
-export type SimulcastBandwidthLimits = Record<Encoding, number>;
+export type SimulcastBandwidthLimits = {
+  [Variant.VARIANT_LOW]: number;
+  [Variant.VARIANT_MEDIUM]: number;
+  [Variant.VARIANT_HIGH]: number;
+};
 
-export type StartStreamingProps = { simulcast?: Encoding[] | false };
+export type StartStreamingProps = { simulcast?: Variant[] | false };
 
 export type BandwidthLimits = { singleStream: number; simulcast: SimulcastBandwidthLimits };

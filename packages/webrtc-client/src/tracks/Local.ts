@@ -1,12 +1,10 @@
 import { LocalTrack } from './LocalTrack';
 import type {
   BandwidthLimit,
-  Encoding,
   LocalTrackId,
   MetadataJson,
   MLineId,
   RemoteTrackId,
-  SimulcastConfig,
   TrackBandwidthLimit,
   WebRTCEndpointEvents,
 } from '../types';
@@ -15,14 +13,15 @@ import { isTrackKind, TrackContextImpl } from '../internal';
 import type { ConnectionManager } from '../ConnectionManager';
 import type { EndpointId, TrackId } from './TrackCommon';
 import type { WebRTCEndpoint } from '../webRTCEndpoint';
-import type { MediaEvent as PeerMediaEvent } from '@fishjam-cloud/protobufs/peer';
+import type { MediaEvent_TrackBitrates, MediaEvent as PeerMediaEvent } from '@fishjam-cloud/protobufs/peer';
 import {
   MediaEvent_SdpOffer,
   MediaEvent_RenegotiateTracks,
   MediaEvent_UpdateEndpointMetadata,
   MediaEvent_UpdateTrackMetadata,
 } from '@fishjam-cloud/protobufs/peer';
-import { Bitrate } from '../bitrate';
+import { MediaEvent_Track_SimulcastConfig } from '@fishjam-cloud/protobufs/server';
+import { Variant } from '@fishjam-cloud/protobufs/shared';
 
 /**
  * This class encapsulates methods related to handling the list of local tracks and local endpoint.
@@ -98,7 +97,7 @@ export class Local {
     track: MediaStreamTrack,
     stream: MediaStream,
     trackMetadata: unknown | undefined,
-    simulcastConfig: SimulcastConfig,
+    simulcastConfig: MediaEvent_Track_SimulcastConfig,
     maxBandwidth: TrackBandwidthLimit,
   ): LocalTrack => {
     const trackContext = new TrackContextImpl(this.localEndpoint, trackId, trackMetadata, simulcastConfig);
@@ -179,7 +178,7 @@ export class Local {
     this.localEndpoint.id = endpointId;
   };
 
-  public setEncodingBandwidth = async (trackId: TrackId, rid: Encoding, bandwidth: BandwidthLimit): Promise<void> => {
+  public setEncodingBandwidth = async (trackId: TrackId, rid: Variant, bandwidth: BandwidthLimit): Promise<void> => {
     const trackManager = this.localTracks[trackId];
     if (!trackManager) throw new Error(`Cannot find ${trackId}`);
 
@@ -247,7 +246,7 @@ export class Local {
     }
   };
 
-  public disableLocalTrackEncoding = async (trackId: string, encoding: Encoding): Promise<void> => {
+  public disableLocalTrackEncoding = async (trackId: string, encoding: Variant): Promise<void> => {
     const localTrack = this.localTracks[trackId];
     if (!localTrack) throw new Error(`Track ${trackId} not found`);
 
@@ -266,7 +265,7 @@ export class Local {
     });
   };
 
-  public enableLocalTrackEncoding = async (trackId: TrackId, encoding: Encoding): Promise<void> => {
+  public enableLocalTrackEncoding = async (trackId: TrackId, encoding: Variant): Promise<void> => {
     const trackManager = this.localTracks[trackId];
     if (!trackManager) throw new Error(`Cannot find ${trackId}`);
 
@@ -291,7 +290,7 @@ export class Local {
     );
 
   // TODO add bitrates
-  private getTrackIdToTrackBitrates = (): Record<LocalTrackId, { bitrate: number }> =>
+  private getTrackIdToTrackBitrates = (): Record<LocalTrackId, MediaEvent_TrackBitrates> =>
     Object.values(this.localTracks).reduce((acc, { id }) => ({ ...acc, [id]: { bitrate: 500 } }), {});
 
   private getMidToTrackId = (): Record<MLineId, LocalTrackId> => {

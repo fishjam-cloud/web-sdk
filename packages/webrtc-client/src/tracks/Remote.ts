@@ -1,10 +1,11 @@
-import type { Encoding, EncodingReason, MetadataJson, TrackContext, WebRTCEndpointEvents } from '../types';
+import type { EncodingReason, MetadataJson, TrackContext, WebRTCEndpointEvents } from '../types';
 import { RemoteTrack } from './RemoteTrack';
 import type { EndpointWithTrackContext } from '../internal';
 import { TrackContextImpl } from '../internal';
-// import type { MediaEvent as PeerMediaEvent } from '@fishjam-cloud/protobufs/peer';
 import type { EndpointId, TrackId } from './TrackCommon';
-import { MediaEvent_VadNotification_Status } from '@fishjam-cloud/protobufs/server';
+import { MediaEvent_Track, MediaEvent_VadNotification_Status } from '@fishjam-cloud/protobufs/server';
+import { MediaEvent_EnableTrackVariant, MediaEvent_VariantBitrate } from '@fishjam-cloud/protobufs/peer';
+import { Variant } from '@fishjam-cloud/protobufs/shared';
 
 export class Remote {
   private readonly remoteTracks: Record<TrackId, RemoteTrack> = {};
@@ -33,20 +34,16 @@ export class Remote {
     return remoteTrack;
   };
 
-  public addTracks = (endpointId: EndpointId, tracks: Record<TrackId, MetadataJson>) => {
+  public addTracks = (endpointId: EndpointId, tracks: Record<TrackId, MediaEvent_Track>) => {
     const endpoint: EndpointWithTrackContext | undefined = this.remoteEndpoints[endpointId];
 
     if (!endpoint) throw new Error(`Endpoint ${endpointId} not found`);
 
     Object.entries(tracks)
-      .map(([trackId, metadataJson]) => {
+      .map(([trackId, { metadataJson, simulcastConfig }]) => {
         const parsedMetadata = metadataJson ? JSON.parse(metadataJson) : undefined;
-        // simulcastConfig is not available in the current implementation
-        const trackContext = new TrackContextImpl(endpoint, trackId, parsedMetadata, {
-          enabled: false,
-          activeEncodings: [],
-          disabledEncodings: [],
-        });
+
+        const trackContext = new TrackContextImpl(endpoint, trackId, parsedMetadata, simulcastConfig);
 
         return new RemoteTrack(trackId, trackContext);
       })
@@ -129,7 +126,7 @@ export class Remote {
     this.emit('trackUpdated', remoteTrack.trackContext);
   };
 
-  public disableRemoteTrackEncoding = (trackId: TrackId, encoding: Encoding) => {
+  public disableRemoteTrackEncoding = (trackId: TrackId, encoding: Variant) => {
     const remoteTrack = this.remoteTracks[trackId];
     if (!remoteTrack) throw new Error(`Track ${trackId} not found`);
 
@@ -138,7 +135,7 @@ export class Remote {
     this.emit('trackEncodingDisabled', remoteTrack.trackContext, encoding);
   };
 
-  public enableRemoteTrackEncoding = (trackId: TrackId, encoding: Encoding) => {
+  public enableRemoteTrackEncoding = (trackId: TrackId, encoding: Variant) => {
     const remoteTrack = this.remoteTracks[trackId];
     if (!remoteTrack) throw new Error(`Track ${trackId} not found`);
 
@@ -147,7 +144,7 @@ export class Remote {
     this.emit('trackEncodingEnabled', remoteTrack.trackContext, encoding);
   };
 
-  public setRemoteTrackEncoding = (trackId: TrackId, encoding: Encoding, reason: EncodingReason) => {
+  public setRemoteTrackEncoding = (trackId: TrackId, encoding: Variant, reason: EncodingReason) => {
     const remoteTrack = this.remoteTracks[trackId];
     if (!remoteTrack) throw new Error(`Track ${trackId} not found`);
 
@@ -193,25 +190,20 @@ export class Remote {
     );
   };
 
-  public setTargetRemoteTrackEncoding = (trackId: TrackId, variant: Encoding) => {
-    // const remoteTrack = this.remoteTracks[trackId];
-    // if (!remoteTrack) throw new Error(`Track ${trackId} not found`);
+  public setTargetRemoteTrackEncoding = (trackId: TrackId, variant: Variant) => {
+    const remoteTrack = this.remoteTracks[trackId];
+    if (!remoteTrack) throw new Error(`Track ${trackId} not found`);
 
     try {
-      // remoteTrack.setTargetTrackEncoding(variant);
+      remoteTrack.setTargetTrackEncoding(variant);
+
       // TODO - Implement when simulcast is available
-      // const mediaEvent = generateCustomEvent({
-      //   type: 'setTargetTrackVariant',
-      //   data: {
-      //     trackId: trackId,
-      //     variant,
-      //   },
-      // });
-      // this.sendMediaEvent({ mediaEvent });
-      // this.emit('targetTrackEncodingRequested', {
-      //   trackId,
-      //   variant,
-      // });
+      const mediaEvent = MediaEvent_EnableTrackVariant.create({ variant, trackId });
+      this.sendMediaEvent();
+      this.emit('targetTrackEncodingRequested', {
+        trackId,
+        variant,
+      });
     } catch (e) {
       console.warn(e);
     }

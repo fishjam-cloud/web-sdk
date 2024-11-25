@@ -11,15 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import EventEmitter from 'events';
 import type TypedEmitter from 'typed-emitter';
 import { Deferred } from './deferred';
-import type {
-  BandwidthLimit,
-  Encoding,
-  SimulcastConfig,
-  TrackBandwidthLimit,
-  TrackContext,
-  WebRTCEndpointEvents,
-} from './types';
-import { isEncoding } from './types';
+import type { BandwidthLimit, TrackBandwidthLimit, TrackContext, WebRTCEndpointEvents } from './types';
 import type { EndpointWithTrackContext } from './internal';
 import { LocalTrackManager } from './tracks/LocalTrackManager';
 import { CommandsQueue } from './CommandsQueue';
@@ -27,10 +19,11 @@ import { Remote } from './tracks/Remote';
 import { Local } from './tracks/Local';
 import type { TurnServer } from './ConnectionManager';
 import { ConnectionManager } from './ConnectionManager';
-import { Candidate } from '@fishjam-cloud/protobufs/shared';
+import { Candidate, Variant } from '@fishjam-cloud/protobufs/shared';
 import type {
   MediaEvent_OfferData,
   MediaEvent_SdpAnswer,
+  MediaEvent_Track_SimulcastConfig,
   MediaEvent as ServerMediaEvent,
 } from '@fishjam-cloud/protobufs/server';
 
@@ -113,14 +106,14 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
 
       this.local.setLocalEndpointId(connectedEvent.endpointId);
 
-      const connectedEndpoint = connectedEvent.endpointsIdToEndpoint[connectedEvent.endpointId];
+      const connectedEndpoint = connectedEvent.endpointIdToEndpoint[connectedEvent.endpointId];
 
       if (connectedEndpoint?.metadataJson) {
         const parsedMetadata = JSON.parse(connectedEndpoint?.metadataJson);
         this.local.setEndpointMetadata(parsedMetadata);
       }
 
-      Object.entries(connectedEvent.endpointsIdToEndpoint)
+      Object.entries(connectedEvent.endpointIdToEndpoint)
         .filter(([endpointId]) => endpointId !== this.local.getEndpoint().id)
         .forEach(([endpointId, endpoint]) => {
           this.remote.addRemoteEndpoint(endpointId, endpoint.metadataJson);
@@ -197,10 +190,10 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
     } else if (event.tracksAdded) {
       this.localTrackManager.ongoingRenegotiation = true;
 
-      const { trackIdToMetadataJson, endpointId } = event.tracksAdded;
+      const { trackIdToTrack, endpointId } = event.tracksAdded;
       if (this.getEndpointId() === endpointId) return;
 
-      this.remote.addTracks(endpointId, trackIdToMetadataJson);
+      this.remote.addTracks(endpointId, trackIdToTrack);
     } else if (event.tracksRemoved) {
       this.localTrackManager.ongoingRenegotiation = true;
 
@@ -376,10 +369,10 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
   public async addTrack(
     track: MediaStreamTrack,
     trackMetadata?: unknown,
-    simulcastConfig: SimulcastConfig = {
+    simulcastConfig: MediaEvent_Track_SimulcastConfig = {
       enabled: false,
-      activeEncodings: [],
-      disabledEncodings: [],
+      enabledVariants: [],
+      disabledVariants: [],
     },
     maxBandwidth: TrackBandwidthLimit = 0,
   ): Promise<string> {
@@ -401,6 +394,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
       resolutionNotifier.reject(error);
     }
     await resolutionNotifier.promise;
+
     this.emit('localTrackAdded', {
       trackId,
       track,
@@ -494,9 +488,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
    * @param {BandwidthLimit} bandwidth - desired max bandwidth used by the encoding (in kbps)
    * @returns
    */
-  public async setEncodingBandwidth(trackId: string, rid: string, bandwidth: BandwidthLimit): Promise<void> {
-    if (!isEncoding(rid)) throw new Error(`Rid is invalid ${rid}`);
-
+  public async setEncodingBandwidth(trackId: string, rid: Variant, bandwidth: BandwidthLimit): Promise<void> {
     if (!this.connectionManager) throw new Error(`There is no active RTCPeerConnection`);
 
     return await this.local.setEncodingBandwidth(trackId, rid, bandwidth);
@@ -559,7 +551,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
    * webrtc.setTargetTrackEncoding(incomingTrackCtx.trackId, "l")
    * ```
    */
-  public setTargetTrackEncoding(trackId: string, variant: Encoding) {
+  public setTargetTrackEncoding(trackId: string, variant: Variant) {
     this.remote.setTargetRemoteTrackEncoding(trackId, variant);
   }
 
@@ -575,7 +567,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
    * webrtc.enableTrackEncoding(trackId, "l");
    * ```
    */
-  public enableTrackEncoding = async (trackId: string, encoding: Encoding) => {
+  public enableTrackEncoding = async (trackId: string, encoding: Variant) => {
     await this.local.enableLocalTrackEncoding(trackId, encoding);
   };
 
@@ -589,7 +581,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
    * webrtc.disableTrackEncoding(trackId, "l");
    * ```
    */
-  public disableTrackEncoding = async (trackId: string, encoding: Encoding) => {
+  public disableTrackEncoding = async (trackId: string, encoding: Variant) => {
     await this.local.disableLocalTrackEncoding(trackId, encoding);
   };
 

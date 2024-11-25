@@ -1,10 +1,11 @@
 import { createStream } from "./mocks";
 import { VideoPlayer } from "./VideoPlayer";
 import { useRef, useState } from "react";
-import type {
-  BandwidthLimit,
-  SimulcastConfig,
-  WebRTCEndpoint,
+import {
+  Variant,
+  type BandwidthLimit,
+  type SimulcastConfig,
+  type WebRTCEndpoint,
 } from "@fishjam-cloud/ts-client";
 import { MuteTrackTest } from "./MuteTrackTest";
 
@@ -31,7 +32,7 @@ export const MockComponent = ({ webrtc }: Props) => {
     "unknown" | "success" | "failure"
   >("unknown");
   const [trackMetadataInput, setTrackMetadataInput] = useState(
-    JSON.stringify({ goodTrack: "ye" }),
+    JSON.stringify({ goodTrack: "ye" })
   );
 
   const addHeart = async () => {
@@ -78,8 +79,12 @@ export const MockComponent = ({ webrtc }: Props) => {
 
     const simulcastConfig: SimulcastConfig = {
       enabled: true,
-      activeEncodings: ["h", "m", "l"],
-      disabledEncodings: [],
+      enabledVariants: [
+        Variant.VARIANT_LOW,
+        Variant.VARIANT_MEDIUM,
+        Variant.VARIANT_HIGH,
+      ],
+      disabledVariants: [],
     };
     const maxBandwidth: BandwidthLimit = 0;
 
@@ -87,7 +92,7 @@ export const MockComponent = ({ webrtc }: Props) => {
       track,
       JSON.parse(trackMetadataInput),
       simulcastConfig,
-      maxBandwidth,
+      maxBandwidth
     );
   };
 

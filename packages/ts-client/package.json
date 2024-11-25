@@ -40,12 +40,12 @@
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.2",
     "@fishjam-cloud/protobufs": "workspace:*",
+    "@fishjam-cloud/webrtc-client": "workspace:*",
     "events": "^3.3.0",
     "typed-emitter": "^2.1.0",
     "uuid": "^11.0.2"
   },
   "devDependencies": {
-    "@fishjam-cloud/webrtc-client": "workspace:*",
     "@playwright/test": "^1.48.2",
     "@types/events": "^3.0.3",
     "@types/node": "^22.9.0",

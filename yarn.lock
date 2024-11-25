@@ -640,6 +640,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@faker-js/faker@npm:^9.2.0":
+  version: 9.2.0
+  resolution: "@faker-js/faker@npm:9.2.0"
+  checksum: 10c0/d711a5d206558f90e3ce9ecafe366e236fbe190b4df9d3968b512ccb87ec625843c919d16050beade88b790ed3df6332f6a837e41fba6de33e7a2f8daa67f08d
+  languageName: node
+  linkType: hard
+
 "@fastify/busboy@npm:^2.0.0":
   version: 2.1.1
   resolution: "@fastify/busboy@npm:2.1.1"
@@ -709,6 +716,7 @@ __metadata:
   resolution: "@fishjam-cloud/webrtc-client@workspace:packages/webrtc-client"
   dependencies:
     "@bufbuild/protobuf": "npm:^2.2.0"
+    "@faker-js/faker": "npm:^9.2.0"
     "@fishjam-cloud/protobufs": "workspace:*"
     "@playwright/test": "npm:^1.47.2"
     "@types/events": "npm:^3.0.3"

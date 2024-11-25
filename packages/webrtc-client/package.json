@@ -47,6 +47,7 @@
     "uuid": "^11.0.2"
   },
   "devDependencies": {
+    "@faker-js/faker": "^9.2.0",
     "@fishjam-cloud/protobufs": "workspace:*",
     "@playwright/test": "^1.47.2",
     "@types/events": "^3.0.3",

@@ -7,16 +7,19 @@ import {
 } from './fixtures';
 import type { WebRTCEndpoint } from '../src';
 import { mockRTCPeerConnection } from './mocks';
+import { MediaEvent } from '@fishjam-cloud/protobufs/server';
 
 export const setupRoom = (webRTCEndpoint: WebRTCEndpoint, endpointId: string, trackId: string): void => {
-  const connectedEvent = createConnectedEventWithOneEndpointWithOneTrack(endpointId, trackId);
-  webRTCEndpoint.receiveMediaEvent(JSON.stringify(connectedEvent));
+  const connected = createConnectedEventWithOneEndpointWithOneTrack(endpointId, trackId);
+  const connectedEvent = MediaEvent.encode({ connected }).finish();
+  webRTCEndpoint.receiveMediaEvent(connectedEvent);
 
   // Right now info about tracks from connectedEvent is ignored
   // We need to fix it but not in this commit
   // We need more tests (e2e) to introduce this change
-  const addTrackEvent = createAddTrackMediaEvent(endpointId, trackId);
-  webRTCEndpoint.receiveMediaEvent(JSON.stringify(addTrackEvent));
+  const tracksAdded = createAddTrackMediaEvent(endpointId, trackId);
+  const tracksAddedEvent = MediaEvent.encode({ tracksAdded }).finish();
+  webRTCEndpoint.receiveMediaEvent(tracksAddedEvent);
 };
 
 // Fix proposal:

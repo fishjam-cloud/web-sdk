@@ -1,5 +1,3 @@
-import type { CustomBandwidthEstimationEvent } from './schema';
-import { CustomBandwidthEstimationEventSchema } from './schema';
 import { faker } from '@faker-js/faker';
 import {
   MediaEvent_Connected,
@@ -58,16 +56,16 @@ export const createEncodingSwitchedEvent = (
     trackId,
   });
 
-export const _createBandwidthEstimationEvent = (): CustomBandwidthEstimationEvent =>
-  CustomBandwidthEstimationEventSchema.parse({
-    data: {
-      data: {
-        estimation: 261506.7264961106,
-      },
-      type: 'bandwidthEstimation',
-    },
-    type: 'custom',
-  });
+// export const createBandwidthEstimationEvent = (): CustomBandwidthEstimationEvent =>
+//   CustomBandwidthEstimationEventSchema.parse({
+//     data: {
+//       data: {
+//         estimation: 261506.7264961106,
+//       },
+//       type: 'bandwidthEstimation',
+//     },
+//     type: 'custom',
+//   });
 
 export const createCustomVadNotificationEvent = (
   trackId: string,

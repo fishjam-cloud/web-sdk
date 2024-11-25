@@ -1,4 +1,4 @@
-import { createConnectedEvent, createEmptyEndpoint, createSimulcastTrack, trackId } from '../fixtures';
+import { createConnectedEvent, createEmptyEndpoint, createTrackWithSimulcast, trackId } from '../fixtures';
 import type { Endpoint } from '../../src';
 import { WebRTCEndpoint } from '../../src';
 import { expect, vi, it } from 'vitest';

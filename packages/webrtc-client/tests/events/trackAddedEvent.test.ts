@@ -7,7 +7,11 @@ import {
   trackId,
 } from '../fixtures';
 import { mockRTCPeerConnection } from '../mocks';
-import { serializeServerMediaEvent } from '../../src/mediaEvent';
+import {
+  deserializePeerMediaEvent,
+  deserializeServerMediaEvent,
+  serializeServerMediaEvent,
+} from '../../src/mediaEvent';
 import { expect, it } from 'vitest';
 
 it('Connect to room with one endpoint then addTrack produce event', () =>
@@ -15,10 +19,9 @@ it('Connect to room with one endpoint then addTrack produce event', () =>
     // Given
     const webRTCEndpoint = new WebRTCEndpoint();
 
-    const mediaEvent = serializeServerMediaEvent({ connected: createConnectedEventWithOneEndpoint() });
-    webRTCEndpoint.receiveMediaEvent(mediaEvent);
-
     const eventWithOneEndpoint = createConnectedEventWithOneEndpoint();
+    webRTCEndpoint.receiveMediaEvent(serializeServerMediaEvent({ connected: eventWithOneEndpoint }));
+
     const [otherEndpointId] = Object.entries(eventWithOneEndpoint.endpointIdToEndpoint).find(
       ([id]) => id !== eventWithOneEndpoint.endpointId,
     )!;
@@ -40,94 +43,99 @@ it('Connect to room with one endpoint then addTrack produce event', () =>
     expect(Object.values(remoteTracks).length).toBe(1);
   }));
 
-// it('Correctly parses track metadata', () =>
-//   new Promise((done) => {
-//     // Given
-//     const webRTCEndpoint = new WebRTCEndpoint();
+it('Correctly parses track metadata', () =>
+  new Promise((done) => {
+    // Given
+    const webRTCEndpoint = new WebRTCEndpoint();
 
-//     const mediaEvent = serializeServerMediaEvent({ connected: createConnectedEventWithOneEndpoint() });
-//     webRTCEndpoint.receiveMediaEvent(mediaEvent);
+    const connected = createConnectedEventWithOneEndpoint();
 
-//     const trackAddedEvent = createAddTrackMediaEvent(
-//       createConnectedEventWithOneEndpoint().data.otherEndpoints[0]!.id,
-//       trackId,
-//       { peer: { goodStuff: 'ye', extraFluff: 'nah' } },
-//     );
+    webRTCEndpoint.receiveMediaEvent(serializeServerMediaEvent({ connected }));
 
-//     webRTCEndpoint.on('trackAdded', (ctx) => {
-//       // Then
-//       expect(ctx.metadata).toEqual({ peer: { goodStuff: 'ye', extraFluff: 'nah' } });
-//       done('');
-//     });
+    const otherEndpointId = Object.keys(connected.endpointIdToEndpoint).find((id) => id !== connected.endpointId)!;
 
-//     // When
-//     webRTCEndpoint.receiveMediaEvent(JSON.stringify(trackAddedEvent));
-//   }));
+    const tracksAdded = createAddTrackMediaEvent(otherEndpointId, trackId, {
+      peer: { goodStuff: 'ye', extraFluff: 'nah' },
+    });
 
-// it('tracksAdded -> handle offerData with one video track from server', () =>
-//   new Promise((done) => {
-//     // Given
-//     const { addTransceiverCallback } = mockRTCPeerConnection();
+    webRTCEndpoint.on('trackAdded', (ctx) => {
+      // Then
+      expect(ctx.metadata).toEqual({ peer: { goodStuff: 'ye', extraFluff: 'nah' } });
+      done('');
+    });
 
-//     const webRTCEndpoint = new WebRTCEndpoint();
+    // When
+    webRTCEndpoint.receiveMediaEvent(serializeServerMediaEvent({ tracksAdded }));
+  }));
 
-//     const connectedEvent = createConnectedEventWithOneEndpoint();
+it('tracksAdded -> handle offerData with one video track from server', () =>
+  new Promise((done) => {
+    // Given
+    const { addTransceiverCallback } = mockRTCPeerConnection();
 
-//     webRTCEndpoint.receiveMediaEvent(JSON.stringify(connectedEvent));
+    const webRTCEndpoint = new WebRTCEndpoint();
 
-//     const trackAddedEvent: TracksAddedMediaEvent = createAddTrackMediaEvent(
-//       connectedEvent.data.otherEndpoints[0]!.id,
-//       trackId,
-//     );
+    const connected = createConnectedEventWithOneEndpoint();
 
-//     webRTCEndpoint.receiveMediaEvent(JSON.stringify(trackAddedEvent));
+    webRTCEndpoint.receiveMediaEvent(serializeServerMediaEvent({ connected }));
 
-//     const offerData: CustomOfferDataEvent = createCustomOfferDataEventWithOneVideoTrack();
+    const otherEndpointId = Object.keys(connected.endpointIdToEndpoint).find((id) => id !== connected.endpointId)!;
 
-//     webRTCEndpoint.on('sendMediaEvent', (mediaEvent) => {
-//       expect(mediaEvent).toContain('sdpOffer');
-//       const event = deserializeMediaEvent(mediaEvent);
-//       expect(event.type).toBe('custom');
-//       expect(event.data.type).toBe('sdpOffer');
-//       done('');
-//     });
+    const trackAddedEvent = createAddTrackMediaEvent(otherEndpointId, trackId);
 
-//     // When
-//     webRTCEndpoint.receiveMediaEvent(JSON.stringify(offerData));
+    webRTCEndpoint.receiveMediaEvent(serializeServerMediaEvent({ tracksAdded: trackAddedEvent }));
 
-//     // Then
+    const offerData = createCustomOfferDataEventWithOneVideoTrack();
 
-//     // todo
-//     //  if there is no connection: Setup callbacks else restartIce
-//     expect(addTransceiverCallback.mock.calls).toHaveLength(1);
-//     expect(addTransceiverCallback.mock.calls[0][0]).toBe('video');
+    webRTCEndpoint.on('sendMediaEvent', (mediaEvent) => {
+      const event = deserializePeerMediaEvent(mediaEvent);
+      expect(event.sdpOffer).toBeDefined();
+      done('');
+    });
 
-//     const transceivers = webRTCEndpoint['connectionManager']!.getConnection()!.getTransceivers();
+    // When
+    webRTCEndpoint.receiveMediaEvent(serializeServerMediaEvent({ offerData }));
 
-//     expect(transceivers.length).toBe(1);
-//     expect(transceivers[0]!.direction).toBe('recvonly');
-//   }));
+    // Then
 
-// it('tracksAdded -> offerData with one track -> handle sdpAnswer data with one video track from server', () => {
-//   // Given
-//   mockRTCPeerConnection();
+    // todo
+    //  if there is no connection: Setup callbacks else restartIce
+    expect(addTransceiverCallback.mock.calls).toHaveLength(1);
+    expect(addTransceiverCallback.mock.calls[0][0]).toBe('video');
 
-//   const webRTCEndpoint = new WebRTCEndpoint();
+    const transceivers = webRTCEndpoint['connectionManager']!.getConnection()!.getTransceivers();
 
-//   webRTCEndpoint.receiveMediaEvent(JSON.stringify(createConnectedEventWithOneEndpoint()));
-//   webRTCEndpoint.receiveMediaEvent(
-//     JSON.stringify(createAddTrackMediaEvent(createConnectedEventWithOneEndpoint().data.otherEndpoints[0]!.id, trackId)),
-//   );
-//   webRTCEndpoint.receiveMediaEvent(JSON.stringify(createCustomOfferDataEventWithOneVideoTrack()));
+    expect(transceivers.length).toBe(1);
+    expect(transceivers[0]!.direction).toBe('recvonly');
+  }));
 
-//   // When
-//   const answerData = createAnswerData(trackId);
+it('tracksAdded -> offerData with one track -> handle sdpAnswer data with one video track from server', () => {
+  // Given
+  mockRTCPeerConnection();
 
-//   webRTCEndpoint.receiveMediaEvent(JSON.stringify(answerData));
+  const webRTCEndpoint = new WebRTCEndpoint();
 
-//   // Then
-//   const midToTrackId = webRTCEndpoint['local']['getMidToTrackId']();
+  const connected = createConnectedEventWithOneEndpoint();
 
-//   // midToTrackId?.size should be undefined because the local peer doesn't offer anything
-//   expect(midToTrackId?.size).toBe(undefined);
-// });
+  webRTCEndpoint.receiveMediaEvent(serializeServerMediaEvent({ connected }));
+
+  const otherEndpointId = Object.keys(connected.endpointIdToEndpoint).find((id) => id !== connected.endpointId)!;
+
+  webRTCEndpoint.receiveMediaEvent(
+    serializeServerMediaEvent({ tracksAdded: createAddTrackMediaEvent(otherEndpointId, trackId) }),
+  );
+  webRTCEndpoint.receiveMediaEvent(
+    serializeServerMediaEvent({ offerData: createCustomOfferDataEventWithOneVideoTrack() }),
+  );
+
+  // When
+  const sdpAnswer = createAnswerData(trackId);
+
+  webRTCEndpoint.receiveMediaEvent(serializeServerMediaEvent({ sdpAnswer }));
+
+  // Then
+  const midToTrackId = webRTCEndpoint['local']['getMidToTrackId']();
+
+  // midToTrackId?.size should be undefined because the local peer doesn't offer anything
+  expect(midToTrackId?.size).toBe(undefined);
+});

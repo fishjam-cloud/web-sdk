@@ -20,7 +20,6 @@ import { Local } from './tracks/Local';
 import { ConnectionManager } from './ConnectionManager';
 import { Candidate, Variant } from '@fishjam-cloud/protobufs/shared';
 import type {
-  MediaEvent_IceServer,
   MediaEvent_OfferData,
   MediaEvent_SdpAnswer,
   MediaEvent_Track_SimulcastConfig,
@@ -315,8 +314,11 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
     });
 
     try {
-      const sdp = JSON.parse(data.sdpAnswer);
-      await this.connectionManager.setRemoteDescription(sdp);
+      // TODO Protobufs shall either send just the sdp string or the whole RTCSessionDescriptionInit object
+      // not an JSON encoded object
+      // adjust after FCE-928 is resolved
+      const sessionDescription: RTCSessionDescriptionInit = JSON.parse(data.sdpAnswer);
+      await this.connectionManager.setRemoteDescription(sessionDescription);
     } catch (err) {
       console.error(err);
     }
@@ -664,7 +666,6 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
         console.warn('RTCPeerConnection stopped or restarted');
         return;
       }
-
       const sdpOffer = this.local.createSdpOfferEvent(offer);
 
       this.sendMediaEvent({ sdpOffer });

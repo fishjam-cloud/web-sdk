@@ -164,7 +164,8 @@ export const createAddLocalTrackSDPOffer = (): MediaEvent_OfferData =>
 
 export const createAnswerData = (trackId: string): MediaEvent_SdpAnswer =>
   MediaEvent_SdpAnswer.create({
-    sdpAnswer: `v=0\r
+    sdpAnswer: JSON.stringify({
+      sdp: `v=0\r
     o=- 39483584182226872 0 IN IP4 127.0.0.1\r
     s=-\r
     t=0 0\r
@@ -197,6 +198,8 @@ export const createAnswerData = (trackId: string): MediaEvent_SdpAnswer =>
     a=rtcp-rsize\r
     a=ssrc:663086196 cname:${trackId}-video-60ff1fb2-6868-42be-8c92-311733034415\r
     `,
+      type: 'answer',
+    }),
     midToTrackId: {
       '0': '9afe80ce-1964-4958-a386-d7a9e3097ca7:5c74b6b3-cb72-49f1-a76b-0df4895a3d32',
     },
@@ -207,38 +210,41 @@ export const createAddLocalTrackAnswerData = (trackId: string): MediaEvent_SdpAn
     midToTrackId: {
       '0': trackId,
     },
-    sdpAnswer: `v=0\r
-  o=- 63903156084304368 0 IN IP4 127.0.0.1\r
-  s=-\r
-  t=0 0\r
-  a=group:BUNDLE 0\r
-  a=extmap-allow-mixed\r
-  a=ice-lite\r
-  m=video 9 UDP/TLS/RTP/SAVPF 106 107\r
-  c=IN IP4 0.0.0.0\r
-  a=recvonly\r
-  a=ice-ufrag:dHiY\r
-  a=ice-pwd:IAPCE68QAQ8AxSF0OQIEZp\r
-  a=ice-options:trickle\r
-  a=fingerprint:sha-256 C1:50:4C:EC:98:1D:62:C8:DA:AE:F8:5B:44:4F:76:BB:4E:FF:5E:51:3E:A7:62:9B:58:38:A5:13:D0:B1:50:67\r
-  a=setup:passive\r
-  a=mid:0\r
-  a=msid:7bf8bef4-be67-456c-8635-ba58339c29e9 ad3deb09-60a6-4bfc-aa14-482ed4f60667\r
-  a=rtcp-mux\r
-  a=rtpmap:106 H264/90000\r
-  a=fmtp:106 profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1\r
-  a=rtpmap:107 rtx/90000\r
-  a=fmtp:107 apt=106\r
-  a=extmap:4 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01\r
-  a=rtcp-fb:106 transport-cc\r
-  a=extmap:9 urn:ietf:params:rtp-hdrext:sdes:mid\r
-  a=extmap:10 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id\r
-  a=extmap:11 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id\r
-  a=rtcp-fb:106 ccm fir\r
-  a=rtcp-fb:106 nack\r
-  a=rtcp-fb:106 nack pli\r
-  a=rtcp-rsize\r
-  `,
+    sdpAnswer: JSON.stringify({
+      sdp: `v=0\r
+    o=- 63903156084304368 0 IN IP4 127.0.0.1\r
+    s=-\r
+    t=0 0\r
+    a=group:BUNDLE 0\r
+    a=extmap-allow-mixed\r
+    a=ice-lite\r
+    m=video 9 UDP/TLS/RTP/SAVPF 106 107\r
+    c=IN IP4 0.0.0.0\r
+    a=recvonly\r
+    a=ice-ufrag:dHiY\r
+    a=ice-pwd:IAPCE68QAQ8AxSF0OQIEZp\r
+    a=ice-options:trickle\r
+    a=fingerprint:sha-256 C1:50:4C:EC:98:1D:62:C8:DA:AE:F8:5B:44:4F:76:BB:4E:FF:5E:51:3E:A7:62:9B:58:38:A5:13:D0:B1:50:67\r
+    a=setup:passive\r
+    a=mid:0\r
+    a=msid:7bf8bef4-be67-456c-8635-ba58339c29e9 ad3deb09-60a6-4bfc-aa14-482ed4f60667\r
+    a=rtcp-mux\r
+    a=rtpmap:106 H264/90000\r
+    a=fmtp:106 profile-level-id=42e01f;level-asymmetry-allowed=1;packetization-mode=1\r
+    a=rtpmap:107 rtx/90000\r
+    a=fmtp:107 apt=106\r
+    a=extmap:4 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01\r
+    a=rtcp-fb:106 transport-cc\r
+    a=extmap:9 urn:ietf:params:rtp-hdrext:sdes:mid\r
+    a=extmap:10 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id\r
+    a=extmap:11 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id\r
+    a=rtcp-fb:106 ccm fir\r
+    a=rtcp-fb:106 nack\r
+    a=rtcp-fb:106 nack pli\r
+    a=rtcp-rsize\r
+    `,
+      type: 'answer',
+    }),
   });
 
 export const createEndpointUpdatedPeerMetadata = (endpointId: string, metadata: unknown): MediaEvent_EndpointUpdated =>

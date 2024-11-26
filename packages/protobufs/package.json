@@ -13,6 +13,6 @@
     "build": "./protobuf.sh"
   },
   "devDependencies": {
-    "ts-proto": "^2.2.7"
+    "ts-proto": "^2.4.0"
   }
 }

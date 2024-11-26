@@ -293,7 +293,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
       .filter((localTrack) => localTrack !== null)
       .forEach((localTrack) => {
         const trackContext = localTrack.trackContext;
-        console.log('negotiation done', trackContext);
+
         trackContext.negotiationStatus = 'done';
 
         if (trackContext.pendingMetadataUpdate) {
@@ -311,12 +311,10 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
 
     // probably there is no need to reassign it on every onAnswer
     this.connectionManager.setOnTrackReady((event) => {
-      console.log('onTrackReady', event.type, event.track);
       this.onTrackReady(event);
     });
 
     try {
-      console.log('set description', data);
       const sdp = JSON.parse(data.sdpAnswer);
       await this.connectionManager.setRemoteDescription(sdp);
     } catch (err) {

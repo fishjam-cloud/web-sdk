@@ -297,11 +297,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
     });
 
     try {
-      // TODO Protobufs shall either send just the sdp string or the whole RTCSessionDescriptionInit object
-      // not an JSON encoded object
-      // adjust after FCE-928 is resolved
-      const sessionDescription: RTCSessionDescriptionInit = JSON.parse(data.sdpAnswer);
-      await this.connectionManager.setRemoteDescription(sessionDescription);
+      await this.connectionManager.setRemoteDescription({ sdp: data.sdp, type: 'answer' });
     } catch (err) {
       console.error(err);
     }

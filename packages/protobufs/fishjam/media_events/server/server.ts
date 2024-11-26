@@ -128,7 +128,8 @@ export interface MediaEvent_OfferData_TrackTypes {
 
 /** Sent after receiving `SdpOffer` from Peer */
 export interface MediaEvent_SdpAnswer {
-  sdpAnswer: string;
+  /** The value of the `sessionDescription.sdp` */
+  sdp: string;
   midToTrackId: { [key: string]: string };
 }
 
@@ -2004,13 +2005,13 @@ export const MediaEvent_OfferData_TrackTypes: MessageFns<MediaEvent_OfferData_Tr
 };
 
 function createBaseMediaEvent_SdpAnswer(): MediaEvent_SdpAnswer {
-  return { sdpAnswer: "", midToTrackId: {} };
+  return { sdp: "", midToTrackId: {} };
 }
 
 export const MediaEvent_SdpAnswer: MessageFns<MediaEvent_SdpAnswer> = {
   encode(message: MediaEvent_SdpAnswer, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.sdpAnswer !== "") {
-      writer.uint32(10).string(message.sdpAnswer);
+    if (message.sdp !== "") {
+      writer.uint32(10).string(message.sdp);
     }
     Object.entries(message.midToTrackId).forEach(([key, value]) => {
       MediaEvent_SdpAnswer_MidToTrackIdEntry.encode({ key: key as any, value }, writer.uint32(18).fork()).join();
@@ -2030,7 +2031,7 @@ export const MediaEvent_SdpAnswer: MessageFns<MediaEvent_SdpAnswer> = {
             break;
           }
 
-          message.sdpAnswer = reader.string();
+          message.sdp = reader.string();
           continue;
         }
         case 2: {
@@ -2055,7 +2056,7 @@ export const MediaEvent_SdpAnswer: MessageFns<MediaEvent_SdpAnswer> = {
 
   fromJSON(object: any): MediaEvent_SdpAnswer {
     return {
-      sdpAnswer: isSet(object.sdpAnswer) ? globalThis.String(object.sdpAnswer) : "",
+      sdp: isSet(object.sdp) ? globalThis.String(object.sdp) : "",
       midToTrackId: isObject(object.midToTrackId)
         ? Object.entries(object.midToTrackId).reduce<{ [key: string]: string }>((acc, [key, value]) => {
           acc[key] = String(value);
@@ -2067,8 +2068,8 @@ export const MediaEvent_SdpAnswer: MessageFns<MediaEvent_SdpAnswer> = {
 
   toJSON(message: MediaEvent_SdpAnswer): unknown {
     const obj: any = {};
-    if (message.sdpAnswer !== "") {
-      obj.sdpAnswer = message.sdpAnswer;
+    if (message.sdp !== "") {
+      obj.sdp = message.sdp;
     }
     if (message.midToTrackId) {
       const entries = Object.entries(message.midToTrackId);
@@ -2087,7 +2088,7 @@ export const MediaEvent_SdpAnswer: MessageFns<MediaEvent_SdpAnswer> = {
   },
   fromPartial<I extends Exact<DeepPartial<MediaEvent_SdpAnswer>, I>>(object: I): MediaEvent_SdpAnswer {
     const message = createBaseMediaEvent_SdpAnswer();
-    message.sdpAnswer = object.sdpAnswer ?? "";
+    message.sdp = object.sdp ?? "";
     message.midToTrackId = Object.entries(object.midToTrackId ?? {}).reduce<{ [key: string]: string }>(
       (acc, [key, value]) => {
         if (value !== undefined) {

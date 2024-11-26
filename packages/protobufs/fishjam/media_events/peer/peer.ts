@@ -59,7 +59,8 @@ export interface MediaEvent_RenegotiateTracks {
  * The "mid" is an identifier used to associate an RTP packet with an MLine from the SDP offer/answer.
  */
 export interface MediaEvent_SdpOffer {
-  sdpOffer: string;
+  /** The value of the `sessionDescription.sdp` */
+  sdp: string;
   trackIdToMetadataJson: { [key: string]: string };
   /** Maps track_id to its bitrate. The track_id in the TrackBitrates message is ignored (we use the map key), so it can be ommited. */
   trackIdToBitrates: { [key: string]: MediaEvent_TrackBitrates };
@@ -707,13 +708,13 @@ export const MediaEvent_RenegotiateTracks: MessageFns<MediaEvent_RenegotiateTrac
 };
 
 function createBaseMediaEvent_SdpOffer(): MediaEvent_SdpOffer {
-  return { sdpOffer: "", trackIdToMetadataJson: {}, trackIdToBitrates: {}, midToTrackId: {} };
+  return { sdp: "", trackIdToMetadataJson: {}, trackIdToBitrates: {}, midToTrackId: {} };
 }
 
 export const MediaEvent_SdpOffer: MessageFns<MediaEvent_SdpOffer> = {
   encode(message: MediaEvent_SdpOffer, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.sdpOffer !== "") {
-      writer.uint32(10).string(message.sdpOffer);
+    if (message.sdp !== "") {
+      writer.uint32(10).string(message.sdp);
     }
     Object.entries(message.trackIdToMetadataJson).forEach(([key, value]) => {
       MediaEvent_SdpOffer_TrackIdToMetadataJsonEntry.encode({ key: key as any, value }, writer.uint32(18).fork())
@@ -740,7 +741,7 @@ export const MediaEvent_SdpOffer: MessageFns<MediaEvent_SdpOffer> = {
             break;
           }
 
-          message.sdpOffer = reader.string();
+          message.sdp = reader.string();
           continue;
         }
         case 2: {
@@ -787,7 +788,7 @@ export const MediaEvent_SdpOffer: MessageFns<MediaEvent_SdpOffer> = {
 
   fromJSON(object: any): MediaEvent_SdpOffer {
     return {
-      sdpOffer: isSet(object.sdpOffer) ? globalThis.String(object.sdpOffer) : "",
+      sdp: isSet(object.sdp) ? globalThis.String(object.sdp) : "",
       trackIdToMetadataJson: isObject(object.trackIdToMetadataJson)
         ? Object.entries(object.trackIdToMetadataJson).reduce<{ [key: string]: string }>((acc, [key, value]) => {
           acc[key] = String(value);
@@ -814,8 +815,8 @@ export const MediaEvent_SdpOffer: MessageFns<MediaEvent_SdpOffer> = {
 
   toJSON(message: MediaEvent_SdpOffer): unknown {
     const obj: any = {};
-    if (message.sdpOffer !== "") {
-      obj.sdpOffer = message.sdpOffer;
+    if (message.sdp !== "") {
+      obj.sdp = message.sdp;
     }
     if (message.trackIdToMetadataJson) {
       const entries = Object.entries(message.trackIdToMetadataJson);
@@ -852,7 +853,7 @@ export const MediaEvent_SdpOffer: MessageFns<MediaEvent_SdpOffer> = {
   },
   fromPartial<I extends Exact<DeepPartial<MediaEvent_SdpOffer>, I>>(object: I): MediaEvent_SdpOffer {
     const message = createBaseMediaEvent_SdpOffer();
-    message.sdpOffer = object.sdpOffer ?? "";
+    message.sdp = object.sdp ?? "";
     message.trackIdToMetadataJson = Object.entries(object.trackIdToMetadataJson ?? {}).reduce<
       { [key: string]: string }
     >((acc, [key, value]) => {

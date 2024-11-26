@@ -1,4 +1,11 @@
-import type { EncodingReason, MetadataJson, RemoteTrackId, TrackContext, WebRTCEndpointEvents } from '../types';
+import type {
+  EncodingReason,
+  MetadataJson,
+  RemoteTrackId,
+  TrackContext,
+  VadStatus,
+  WebRTCEndpointEvents,
+} from '../types';
 import { RemoteTrack } from './RemoteTrack';
 import type { EndpointWithTrackContext } from '../internal';
 import { TrackContextImpl } from '../internal';
@@ -163,7 +170,7 @@ export class Remote {
     const remoteTrack = this.remoteTracks[trackId];
     if (!remoteTrack) throw new Error(`Track ${trackId} not found`);
 
-    let nextStatus = null;
+    let nextStatus: VadStatus | null = null;
 
     if (vadStatus === MediaEvent_VadNotification_Status.STATUS_SILENCE) {
       nextStatus = 'silence';
@@ -172,6 +179,7 @@ export class Remote {
     }
 
     if (nextStatus) {
+      remoteTrack.trackContext.vadStatus = nextStatus;
       remoteTrack.trackContext.emit('voiceActivityChanged', remoteTrack.trackContext);
     } else {
       console.warn('Received unknown vad status: ', vadStatus);

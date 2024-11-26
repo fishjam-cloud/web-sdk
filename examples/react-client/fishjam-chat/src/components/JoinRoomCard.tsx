@@ -3,23 +3,11 @@ import { useInitializeDevices, useConnect } from "@fishjam-cloud/react-client";
 import { Loader2 } from "lucide-react";
 
 import { FC, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "./ui/accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
 
 import { useForm } from "react-hook-form";
 import { getRoomCredentials } from "@/lib/roomManager";
@@ -50,16 +38,8 @@ export const JoinRoomCard: FC<Props> = (props) => {
 
   useAutoConnect();
 
-  const onJoinRoom = async ({
-    roomManagerUrl,
-    roomName,
-    peerName,
-  }: RoomForm) => {
-    const { url, peerToken } = await getRoomCredentials(
-      roomManagerUrl,
-      roomName,
-      peerName,
-    );
+  const onJoinRoom = async ({ roomManagerUrl, roomName, peerName }: RoomForm) => {
+    const { url, peerToken } = await getRoomCredentials(roomManagerUrl, roomName, peerName);
     persistFormValues({ roomManagerUrl, roomName, peerName });
     await connect({
       url,
@@ -81,19 +61,13 @@ export const JoinRoomCard: FC<Props> = (props) => {
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="roomManagerUrl">Room Manager URL</Label>
 
-              <Input
-                placeholder="URL of your Room Manager"
-                {...form.register("roomManagerUrl")}
-              />
+              <Input placeholder="URL of your Room Manager" {...form.register("roomManagerUrl")} />
             </div>
 
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="roomName">Room name</Label>
 
-              <Input
-                {...form.register("roomName")}
-                placeholder="Name of your room"
-              />
+              <Input {...form.register("roomName")} placeholder="Name of your room" />
             </div>
 
             <div className="flex flex-col space-y-1.5">
@@ -122,16 +96,8 @@ export const JoinRoomCard: FC<Props> = (props) => {
         </CardContent>
 
         <CardFooter className="flex justify-end">
-          <Button
-            disabled={form.formState.isSubmitting}
-            type="submit"
-            className="w-24"
-          >
-            {form.formState.isSubmitting ? (
-              <Loader2 className="animate-spin" />
-            ) : (
-              <span>Join room</span>
-            )}
+          <Button disabled={form.formState.isSubmitting} type="submit" className="w-24">
+            {form.formState.isSubmitting ? <Loader2 className="animate-spin" /> : <span>Join room</span>}
           </Button>
         </CardFooter>
       </form>

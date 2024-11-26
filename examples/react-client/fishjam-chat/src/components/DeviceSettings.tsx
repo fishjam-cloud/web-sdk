@@ -10,12 +10,8 @@ export const CameraSettings = () => {
   const hasValidDevices = devices.some((device) => device.deviceId);
 
   return (
-    <div className="flex justify-center flex-col items-center gap-4">
-      <DeviceSelect
-        devices={devices}
-        onSelectDevice={initialize}
-        defaultDevice={activeDevice ?? devices[0]}
-      />
+    <div className="flex flex-col items-center justify-center gap-4">
+      <DeviceSelect devices={devices} onSelectDevice={initialize} defaultDevice={activeDevice ?? devices[0]} />
 
       {hasValidDevices && <BlurToggleButton type="button" />}
 
@@ -28,12 +24,8 @@ export const MicrophoneSettings = () => {
   const { stream, devices, initialize, activeDevice } = useMicrophone();
 
   return (
-    <div className="flex justify-center flex-col items-center gap-4">
-      <DeviceSelect
-        devices={devices}
-        onSelectDevice={initialize}
-        defaultDevice={activeDevice ?? devices[0]}
-      />
+    <div className="flex flex-col items-center justify-center gap-4">
+      <DeviceSelect devices={devices} onSelectDevice={initialize} defaultDevice={activeDevice ?? devices[0]} />
 
       {stream && <AudioVisualizer stream={stream} />}
     </div>

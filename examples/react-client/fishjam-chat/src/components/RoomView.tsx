@@ -7,21 +7,19 @@ import { nonNullablePredicate } from "@/lib/utils";
 export const RoomView = () => {
   const { localPeer, remotePeers } = usePeers<{ displayName: string }>();
 
-  const trackAmount = [localPeer, ...remotePeers]
-    .filter(nonNullablePredicate)
-    .reduce((acc, curr) => {
-      if (curr.cameraTrack) acc++;
-      if (curr.screenShareVideoTrack) acc++;
-      return acc;
-    }, 0);
+  const trackAmount = [localPeer, ...remotePeers].filter(nonNullablePredicate).reduce((acc, curr) => {
+    if (curr.cameraTrack) acc++;
+    if (curr.screenShareVideoTrack) acc++;
+    return acc;
+  }, 0);
 
   const tilesSqrt = trackAmount === 2 ? 2 : Math.ceil(Math.sqrt(trackAmount));
 
   return (
-    <div className="flex flex-col justify-between w-full">
+    <div className="flex w-full flex-col justify-between">
       <section className="flex-1 overflow-y-auto">
         <div
-          className="w-full h-full grid grid-flow-row gap-4 p-4"
+          className="grid h-full w-full grid-flow-row gap-4 p-4"
           style={{
             gridTemplateRows: `repeat(${tilesSqrt}, minmax(0, 1fr))`,
             gridTemplateColumns: `repeat(${tilesSqrt}, minmax(0, 1fr))`,
@@ -42,24 +40,12 @@ export const RoomView = () => {
           )}
 
           {remotePeers.map(
-            ({
-              id,
-              cameraTrack,
-              microphoneTrack,
-              screenShareVideoTrack,
-              screenShareAudioTrack,
-              metadata,
-            }) => {
+            ({ id, cameraTrack, microphoneTrack, screenShareVideoTrack, screenShareAudioTrack, metadata }) => {
               const label = metadata?.peer?.displayName ?? id;
 
               return (
                 <Fragment key={id}>
-                  <Tile
-                    id={id}
-                    name={label}
-                    videoTrack={cameraTrack}
-                    audioTrack={microphoneTrack}
-                  />
+                  <Tile id={id} name={label} videoTrack={cameraTrack} audioTrack={microphoneTrack} />
 
                   {screenShareVideoTrack && (
                     <Tile

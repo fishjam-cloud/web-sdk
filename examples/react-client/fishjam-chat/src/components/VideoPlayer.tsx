@@ -14,16 +14,7 @@ const VideoPlayer: FC<VideoPlayerProps> = ({ stream, peerId, ...props }) => {
   }, [stream]);
 
   return (
-    <video
-      {...props}
-      width="100%"
-      height="auto"
-      autoPlay
-      playsInline
-      muted
-      data-peer-id={peerId}
-      ref={videoRef}
-    />
+    <video {...props} width="100%" height="auto" autoPlay playsInline muted data-peer-id={peerId} ref={videoRef} />
   );
 };
 

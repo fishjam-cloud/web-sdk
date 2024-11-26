@@ -8,11 +8,7 @@ type RoomManagerResponse = {
   peer: BasicInfo;
 };
 
-export const getRoomCredentials = async (
-  roomManagerUrl: string,
-  roomName: string,
-  peerName: string,
-) => {
+export const getRoomCredentials = async (roomManagerUrl: string, roomName: string, peerName: string) => {
   const res = await axios.get<RoomManagerResponse>(roomManagerUrl, {
     params: { peerName, roomName },
   });

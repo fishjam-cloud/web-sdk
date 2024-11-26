@@ -32,7 +32,7 @@ export const MockComponent = ({ webrtc }: Props) => {
     "unknown" | "success" | "failure"
   >("unknown");
   const [trackMetadataInput, setTrackMetadataInput] = useState(
-    JSON.stringify({ goodTrack: "ye" })
+    JSON.stringify({ goodTrack: "ye" }),
   );
 
   const addHeart = async () => {
@@ -92,7 +92,7 @@ export const MockComponent = ({ webrtc }: Props) => {
       track,
       JSON.parse(trackMetadataInput),
       simulcastConfig,
-      maxBandwidth
+      maxBandwidth,
     );
   };
 

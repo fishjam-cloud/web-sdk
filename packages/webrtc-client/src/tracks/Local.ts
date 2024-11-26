@@ -20,8 +20,8 @@ import {
   MediaEvent_UpdateEndpointMetadata,
   MediaEvent_UpdateTrackMetadata,
 } from '@fishjam-cloud/protobufs/peer';
-import { MediaEvent_Track_SimulcastConfig } from '@fishjam-cloud/protobufs/server';
-import { Variant } from '@fishjam-cloud/protobufs/shared';
+import type { MediaEvent_Track_SimulcastConfig } from '@fishjam-cloud/protobufs/server';
+import type { Variant } from '@fishjam-cloud/protobufs/shared';
 
 /**
  * This class encapsulates methods related to handling the list of local tracks and local endpoint.

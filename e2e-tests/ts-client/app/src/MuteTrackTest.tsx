@@ -18,7 +18,7 @@ export const MuteTrackTest = ({ webrtc }: Props) => {
 
   useEffect(() => {
     const localTrackAdded: WebRTCEndpointEvents["localTrackAdded"] = (
-      event
+      event,
     ) => {
       setCurrentStream(event.stream);
       setCurrentTrack(event.track);
@@ -26,7 +26,7 @@ export const MuteTrackTest = ({ webrtc }: Props) => {
     };
 
     const localTrackReplaced: WebRTCEndpointEvents["localTrackReplaced"] = (
-      event
+      event,
     ) => {
       setCurrentTrack(event.track);
     };
@@ -56,14 +56,14 @@ export const MuteTrackTest = ({ webrtc }: Props) => {
           Variant.VARIANT_HIGH,
         ],
         disabledVariants: [],
-      }
+      },
     );
   };
 
   const replaceTrack = async (
     trackId: string | null,
     stream: MediaStream | null,
-    track: MediaStreamTrack | null
+    track: MediaStreamTrack | null,
   ) => {
     if (!trackId) throw Error("Track id is null");
 
@@ -102,7 +102,7 @@ export const MuteTrackTest = ({ webrtc }: Props) => {
             replaceTrack(
               trackId,
               heart2Mock.stream,
-              heart2Mock.stream.getVideoTracks()[0]
+              heart2Mock.stream.getVideoTracks()[0],
             )
           }
         >
@@ -113,7 +113,7 @@ export const MuteTrackTest = ({ webrtc }: Props) => {
             replaceTrack(
               trackId,
               brain2Mock.stream,
-              brain2Mock.stream.getVideoTracks()[0]
+              brain2Mock.stream.getVideoTracks()[0],
             )
           }
         >

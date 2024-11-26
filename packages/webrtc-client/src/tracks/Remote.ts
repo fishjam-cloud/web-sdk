@@ -10,9 +10,9 @@ import { RemoteTrack } from './RemoteTrack';
 import type { EndpointWithTrackContext } from '../internal';
 import { TrackContextImpl } from '../internal';
 import type { EndpointId, TrackId } from './TrackCommon';
-import { MediaEvent_Track, MediaEvent_VadNotification_Status } from '@fishjam-cloud/protobufs/server';
-import { MediaEvent_EnableTrackVariant, MediaEvent_VariantBitrate } from '@fishjam-cloud/protobufs/peer';
-import { Variant } from '@fishjam-cloud/protobufs/shared';
+import type { MediaEvent_Track } from '@fishjam-cloud/protobufs/server';
+import { MediaEvent_VadNotification_Status } from '@fishjam-cloud/protobufs/server';
+import type { Variant } from '@fishjam-cloud/protobufs/shared';
 
 export class Remote {
   private readonly remoteTracks: Record<TrackId, RemoteTrack> = {};

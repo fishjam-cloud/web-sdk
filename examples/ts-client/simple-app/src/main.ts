@@ -36,10 +36,10 @@ const removeTrackButton =
 const localVideo =
   document.querySelector<HTMLVideoElement>("#local-track-video")!;
 const enumerateDevicesButton = document.querySelector<HTMLVideoElement>(
-  "#enumerate-devices-btn"
+  "#enumerate-devices-btn",
 )!;
 const screenSharingContainer = document.querySelector<HTMLVideoElement>(
-  "#screen-sharing-container"
+  "#screen-sharing-container",
 )!;
 const templateVideoPlayer = document.querySelector("#video-player-template")!;
 const ENCODINGS: Variant[] = [
@@ -176,7 +176,7 @@ client.on("peerUpdated", (_peer) => {});
 
 client.on("peerLeft", (peer) => {
   const peerComponent = document.querySelector(
-    `div[data-peer-id="${peer.id}"`
+    `div[data-peer-id="${peer.id}"`,
   )!;
   peerComponent.remove();
   toastInfo(`Peer left`);
@@ -185,11 +185,11 @@ client.on("peerLeft", (peer) => {
 const setupSimulcastCheckbox = (
   element: DocumentFragment,
   trackId: string,
-  encoding: "l" | "m" | "h"
+  encoding: "l" | "m" | "h",
 ) => {
   const simulcastInputL: HTMLInputElement | null =
     element.querySelector<HTMLInputElement>(
-      `.simulcast-input-radio-${encoding}`
+      `.simulcast-input-radio-${encoding}`,
     );
   if (!simulcastInputL) return;
 
@@ -200,10 +200,10 @@ const setupSimulcastCheckbox = (
       client.setTargetTrackEncoding(trackId, encoding);
     } else {
       console.warn(
-        "You cannot set 'targetTrackEncoding' on a track that doesn't have an active simulcast."
+        "You cannot set 'targetTrackEncoding' on a track that doesn't have an active simulcast.",
       );
       toastInfo(
-        "You cannot set 'targetTrackEncoding' on a track that doesn't have an active simulcast."
+        "You cannot set 'targetTrackEncoding' on a track that doesn't have an active simulcast.",
       );
     }
   });
@@ -217,7 +217,7 @@ client.on("trackReady", (ctx) => {
   const peerComponent = document.querySelector(`div[data-peer-id="${peerId}"`)!;
 
   const videoPlayerTemplate = document.querySelector<HTMLTemplateElement>(
-    "#remote-peer-template-video"
+    "#remote-peer-template-video",
   );
   if (!videoPlayerTemplate) throw new Error("Remote video template not found");
 
@@ -264,7 +264,7 @@ client.on("trackReady", (ctx) => {
   rawMetadata.innerHTML = JSON.stringify(ctx.metadata, undefined, 2);
 
   const parsedMetadata = videoWrapper.querySelector(
-    ".remote-track-parsed-metadata"
+    ".remote-track-parsed-metadata",
   );
   if (!parsedMetadata) throw new Error("Parsed metadata component not found");
   parsedMetadata.innerHTML = JSON.stringify(ctx.metadata, undefined, 2);
@@ -280,7 +280,7 @@ client.on("trackReady", (ctx) => {
 client.on("trackUpdated", (ctx) => {
   console.log({ name: "trackUpdated", ctx });
   const videoWrapper: HTMLElement | null = document.querySelector(
-    `div[data-track-id="${ctx.trackId}"`
+    `div[data-track-id="${ctx.trackId}"`,
   )!;
 
   const rawMetadata = videoWrapper.querySelector(".remote-track-raw-metadata");
@@ -288,7 +288,7 @@ client.on("trackUpdated", (ctx) => {
   rawMetadata.innerHTML = JSON.stringify(ctx.metadata, undefined, 2);
 
   const parsedMetadata = videoWrapper.querySelector(
-    ".remote-track-parsed-metadata"
+    ".remote-track-parsed-metadata",
   );
   if (!parsedMetadata) throw new Error("Parsed metadata component not found");
   parsedMetadata.innerHTML = JSON.stringify(ctx.metadata, undefined, 2);
@@ -297,7 +297,7 @@ client.on("trackUpdated", (ctx) => {
 client.on("trackAdded", (ctx) => {
   ctx.on("encodingChanged", () => {
     const activeEncodingElement = document.querySelector(
-      `div[data-track-id="${ctx.trackId}"] .simulcast-active-encoding`
+      `div[data-track-id="${ctx.trackId}"] .simulcast-active-encoding`,
     )!;
     activeEncodingElement.innerHTML = ctx.encoding ?? "";
   });
@@ -306,7 +306,7 @@ client.on("trackAdded", (ctx) => {
 
 client.on("trackRemoved", (ctx) => {
   const tracksContainer: HTMLElement | null = document.querySelector(
-    `div[data-track-id="${ctx.trackId}"`
+    `div[data-track-id="${ctx.trackId}"`,
   );
   tracksContainer?.remove();
 });
@@ -429,7 +429,7 @@ enumerateDevicesButton.addEventListener("click", async () => {
           if (!videoPlayer.srcObject) return;
 
           remoteTracks.cameras[device.deviceId] = await addTrack(
-            videoPlayer.srcObject
+            videoPlayer.srcObject,
           );
           videoPlayer.classList.add(...borderActiveClasses);
         });
@@ -454,14 +454,14 @@ const templateClone = (
 screenSharingContainer.appendChild(templateClone);
 
 const screenSharingVideo = templateClone.querySelector(
-  ".video-player"
+  ".video-player",
 )! as HTMLVideoElement;
 
 templateClone
   .querySelector(".start-template-btn")!
   .addEventListener("click", async () => {
     const stream = await navigator.mediaDevices.getDisplayMedia(
-      SCREEN_SHARING_MEDIA_CONSTRAINTS
+      SCREEN_SHARING_MEDIA_CONSTRAINTS,
     );
     console.log("Screen sharing stream");
     screenSharingVideo.srcObject = stream;
@@ -485,7 +485,7 @@ templateClone
     if (!screenSharingVideo.srcObject) return;
 
     remoteTracks.screen = await addTrack(
-      screenSharingVideo.srcObject as MediaStream
+      screenSharingVideo.srcObject as MediaStream,
     );
     screenSharingVideo.classList.add(...borderActiveClasses);
   });
@@ -499,7 +499,7 @@ templateClone
 
 (function hideRemotePeersIfEmpty() {
   const remotePeersContainer = document.getElementById(
-    "remote-peers-container"
+    "remote-peers-container",
   )!;
   const targetNode = document.getElementById("remote-peers")!;
 
@@ -521,7 +521,7 @@ templateClone
 // Toasts
 
 const templateAlert = document.getElementById(
-  "toast-alert-template"
+  "toast-alert-template",
 )! as HTMLTemplateElement;
 
 function toastAlert(message: string) {
@@ -529,7 +529,7 @@ function toastAlert(message: string) {
 }
 
 const templateInfo = document.getElementById(
-  "toast-info-template"
+  "toast-info-template",
 )! as HTMLTemplateElement;
 
 function toastInfo(message: string) {
@@ -537,7 +537,7 @@ function toastInfo(message: string) {
 }
 
 const templateSuccess = document.getElementById(
-  "toast-success-template"
+  "toast-success-template",
 )! as HTMLTemplateElement;
 
 function toastSuccess(message: string) {
@@ -562,7 +562,7 @@ function toast(message: string, template: HTMLTemplateElement) {
   ];
   const toastContainer = document.getElementById("toast-container")!;
   const clone = template.content.firstElementChild!.cloneNode(
-    true
+    true,
   )! as HTMLElement;
 
   let animationDuration: number = 0;

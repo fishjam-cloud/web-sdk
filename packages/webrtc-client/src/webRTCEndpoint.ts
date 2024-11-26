@@ -18,7 +18,8 @@ import { CommandsQueue } from './CommandsQueue';
 import { Remote } from './tracks/Remote';
 import { Local } from './tracks/Local';
 import { ConnectionManager } from './ConnectionManager';
-import { Candidate, Variant } from '@fishjam-cloud/protobufs/shared';
+import type { Variant } from '@fishjam-cloud/protobufs/shared';
+import { Candidate } from '@fishjam-cloud/protobufs/shared';
 import type {
   MediaEvent_OfferData,
   MediaEvent_SdpAnswer,

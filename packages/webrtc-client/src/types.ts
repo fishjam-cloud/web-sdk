@@ -1,7 +1,7 @@
 import type TypedEmitter from 'typed-emitter';
 import type { SerializedMediaEvent } from './mediaEvent';
 import type { MediaEvent_Track_SimulcastConfig } from '@fishjam-cloud/protobufs/server';
-import { Variant } from '@fishjam-cloud/protobufs/shared';
+import type { Variant } from '@fishjam-cloud/protobufs/shared';
 
 export type LocalTrackId = string;
 export type MLineId = string;

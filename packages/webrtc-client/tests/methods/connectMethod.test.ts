@@ -30,7 +30,9 @@ it("Method 'connect' sends metadata in event", () =>
     webRTCEndpoint.on('sendMediaEvent', (mediaEvent) => {
       // Then
       const event = deserializePeerMediaEvent(mediaEvent);
-      expect(JSON.parse(event.connect?.metadataJson!)).toMatchObject(peerMetadata);
+      const metadataJson = event.connect?.metadataJson;
+      expect(metadataJson).toBeDefined();
+      expect(JSON.parse(metadataJson!)).toMatchObject(peerMetadata);
       done('');
     });
 

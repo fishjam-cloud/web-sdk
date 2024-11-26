@@ -11,7 +11,7 @@ import type {
   VadStatus,
 } from './types';
 import type { MediaEvent_Track_SimulcastConfig } from '@fishjam-cloud/protobufs/server';
-import { Variant } from '@fishjam-cloud/protobufs/shared';
+import type { Variant } from '@fishjam-cloud/protobufs/shared';
 
 export const isTrackKind = (kind: string): kind is TrackKind => kind === 'audio' || kind === 'video';
 

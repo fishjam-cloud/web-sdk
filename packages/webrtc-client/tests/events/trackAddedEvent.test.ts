@@ -7,11 +7,7 @@ import {
   trackId,
 } from '../fixtures';
 import { mockRTCPeerConnection } from '../mocks';
-import {
-  deserializePeerMediaEvent,
-  deserializeServerMediaEvent,
-  serializeServerMediaEvent,
-} from '../../src/mediaEvent';
+import { deserializePeerMediaEvent, serializeServerMediaEvent } from '../../src/mediaEvent';
 import { expect, it } from 'vitest';
 
 it('Connect to room with one endpoint then addTrack produce event', () =>

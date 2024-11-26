@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import type { MediaEvent_Track, MediaEvent_VadNotification_Status } from '@fishjam-cloud/protobufs/server';
 import {
   MediaEvent_Connected,
   MediaEvent_Endpoint,
@@ -7,13 +8,11 @@ import {
   MediaEvent_EndpointUpdated,
   MediaEvent_OfferData,
   MediaEvent_SdpAnswer,
-  MediaEvent_Track,
   MediaEvent_TracksAdded,
   MediaEvent_TracksRemoved,
   MediaEvent_TrackUpdated,
   MediaEvent_TrackVariantSwitched,
   MediaEvent_VadNotification,
-  MediaEvent_VadNotification_Status,
 } from '@fishjam-cloud/protobufs/server';
 import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 import { Variant } from '../src';

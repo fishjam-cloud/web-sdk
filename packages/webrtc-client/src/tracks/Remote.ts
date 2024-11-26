@@ -102,7 +102,7 @@ export class Remote {
     const endpoint: EndpointWithTrackContext | undefined = this.remoteEndpoints[endpointId];
     if (!endpoint) throw new Error(`Endpoint ${endpointId} not found`);
 
-    endpoint.metadata = metadataJson;
+    endpoint.metadata = metadataJson ? JSON.parse(metadataJson) : undefined;
 
     this.emit('endpointUpdated', endpoint);
   };

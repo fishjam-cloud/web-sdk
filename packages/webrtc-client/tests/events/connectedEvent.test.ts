@@ -4,7 +4,6 @@ import type { Endpoint } from '../../src';
 import { WebRTCEndpoint } from '../../src';
 import { expect, vi, it } from 'vitest';
 import { serializeServerMediaEvent } from '../../src/mediaEvent';
-import { L } from 'vitest/dist/chunks/reporters.DAfKSDh5.js';
 
 it('Connecting to empty room produce event', () =>
   new Promise((done) => {

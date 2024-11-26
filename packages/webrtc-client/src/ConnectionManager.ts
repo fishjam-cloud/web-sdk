@@ -1,30 +1,14 @@
 import type { MediaEvent_OfferData_TrackTypes } from '@fishjam-cloud/protobufs/server';
 import type { MediaStreamTrackId } from './types';
 
-export type TurnServer = {
-  transport: string;
-  password: string;
-  serverAddr: string;
-  serverPort: string;
-  username: string;
-};
-
 export class ConnectionManager {
   private readonly connection: RTCPeerConnection;
-  public readonly isExWebRTC: boolean;
 
-  constructor(turnServers: TurnServer[]) {
-    this.isExWebRTC = turnServers.length === 0;
-
-    const iceServers = this.isExWebRTC
-      ? [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun.l.google.com:5349' }]
-      : this.getIceServers(turnServers);
-    const iceTransportPolicy = this.isExWebRTC ? 'all' : 'relay';
-
+  constructor(iceServers: RTCIceServer[]) {
     this.connection = new RTCPeerConnection({
       bundlePolicy: 'max-bundle',
       iceServers: iceServers,
-      iceTransportPolicy: iceTransportPolicy,
+      iceTransportPolicy: 'all',
     });
   }
 
@@ -36,24 +20,6 @@ export class ConnectionManager {
     const isIceNotConnected = this.connection.iceConnectionState !== 'connected';
 
     return isSignalingUnstable && isConnectionNotConnected && isIceNotConnected;
-  };
-
-  /**
-   * Configures TURN servers for WebRTC connections by adding them to the provided RTCConfiguration object.
-   */
-  private getIceServers = (turnServers: TurnServer[]): RTCIceServer[] => {
-    return turnServers.map((turnServer: TurnServer) => {
-      const transport = turnServer.transport === 'tls' ? 'tcp' : turnServer.transport;
-      const uri = turnServer.transport === 'tls' ? 'turns' : 'turn';
-      const address = turnServer.serverAddr;
-      const port = turnServer.serverPort;
-
-      return {
-        credential: turnServer.password,
-        urls: uri.concat(':', address, ':', port, '?transport=', transport),
-        username: turnServer.username,
-      };
-    });
   };
 
   public getConnection = (): RTCPeerConnection => {

@@ -1,5 +1,5 @@
 import type { SerializedMediaEvent } from './mediaEvent';
-import { deserializeMediaEvent, serializeMediaEvent } from './mediaEvent';
+import { deserializeServerMediaEvent, serializePeerMediaEvent } from './mediaEvent';
 import type { MediaEvent as PeerMediaEvent } from '@fishjam-cloud/protobufs/peer';
 import {
   MediaEvent_Connect,
@@ -17,10 +17,10 @@ import { LocalTrackManager } from './tracks/LocalTrackManager';
 import { CommandsQueue } from './CommandsQueue';
 import { Remote } from './tracks/Remote';
 import { Local } from './tracks/Local';
-import type { TurnServer } from './ConnectionManager';
 import { ConnectionManager } from './ConnectionManager';
 import { Candidate, Variant } from '@fishjam-cloud/protobufs/shared';
 import type {
+  MediaEvent_IceServer,
   MediaEvent_OfferData,
   MediaEvent_SdpAnswer,
   MediaEvent_Track_SimulcastConfig,
@@ -35,6 +35,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
   private readonly remote: Remote;
   private readonly local: Local;
   private readonly commandsQueue: CommandsQueue;
+  private proposedIceServers: RTCIceServer[] = [];
   public bandwidthEstimation: bigint = BigInt(0);
 
   public connectionManager?: ConnectionManager;
@@ -97,12 +98,12 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
    * ```
    */
   public receiveMediaEvent = async (mediaEvent: SerializedMediaEvent) => {
-    const deserializedMediaEvent = deserializeMediaEvent(mediaEvent);
-
-    console.log('Got Server Event', deserializedMediaEvent);
+    const deserializedMediaEvent = deserializeServerMediaEvent(mediaEvent);
 
     if (deserializedMediaEvent.connected) {
       const connectedEvent = deserializedMediaEvent.connected;
+
+      this.proposedIceServers = connectedEvent.iceServers;
 
       this.local.setLocalEndpointId(connectedEvent.endpointId);
 
@@ -616,8 +617,8 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
    * that endpoint was removed in {@link WebRTCEndpointEvents.endpointRemoved},
    */
   public disconnect = () => {
-    const mediaEvent = MediaEvent_Disconnect.create();
-    this.sendMediaEvent(mediaEvent);
+    const disconnect = MediaEvent_Disconnect.create();
+    this.sendMediaEvent({ disconnect });
     this.emit('disconnectRequested', {});
     this.cleanUp();
   };
@@ -642,10 +643,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
   }
 
   private sendMediaEvent = (mediaEvent: PeerMediaEvent) => {
-    const serializedMediaEvent = serializeMediaEvent(mediaEvent);
-    console.log('Sending Peer Event', mediaEvent);
-
-    this.emit('sendMediaEvent', serializedMediaEvent);
+    this.emit('sendMediaEvent', serializePeerMediaEvent(mediaEvent));
   };
 
   private async createAndSendOffer() {
@@ -708,8 +706,8 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
     connection.addEventListener('iceconnectionstatechange', onIceConnectionStateChange);
   };
 
-  private createNewConnection = (turnServers: TurnServer[] = []) => {
-    const connectionManager = new ConnectionManager(turnServers);
+  private createNewConnection = () => {
+    const connectionManager = new ConnectionManager(this.proposedIceServers);
 
     this.localTrackManager.updateConnection(connectionManager);
     this.local.updateConnection(connectionManager);

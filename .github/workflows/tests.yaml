@@ -1,4 +1,4 @@
-name: Playwright Tests
+name: Tests 🧪
 
 on:
   push:
@@ -26,6 +26,9 @@ jobs:
 
       - name: Build 📦
         run: yarn build
+
+      - name: Run unit tests 🧪
+        run: yarn test:unit
 
       - name: Install Playwright Browsers 🧭
         run: npx playwright install --with-deps

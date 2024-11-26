@@ -156,7 +156,7 @@ export class Remote {
     this.emit('trackEncodingEnabled', remoteTrack.trackContext, encoding);
   };
 
-  public setRemoteTrackEncoding = (trackId: TrackId, encoding: Variant, reason: EncodingReason) => {
+  public setRemoteTrackEncoding = (trackId: TrackId, encoding: Variant, reason?: EncodingReason) => {
     const remoteTrack = this.remoteTracks[trackId];
     if (!remoteTrack) throw new Error(`Track ${trackId} not found`);
 

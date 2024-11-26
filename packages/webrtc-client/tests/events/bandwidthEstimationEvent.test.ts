@@ -21,3 +21,5 @@
 //     // When
 //     webRTCEndpoint.receiveMediaEvent(JSON.stringify(bandwidthEstimationEvent));
 //   }));
+import { describe } from 'vitest';
+describe.skip('Skipping bandwidth estimation, not yet implemented in Fishjam', () => {});

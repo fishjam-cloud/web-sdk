@@ -248,34 +248,16 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
       });
 
       this.disconnect();
+    } else if (event.trackVariantSwitched) {
+      const { trackId, variant } = event.trackVariantSwitched;
+      this.remote.setRemoteTrackEncoding(trackId, variant);
+    } else if (event.trackVariantEnabled) {
+      const { trackId, variant } = event.trackVariantEnabled;
+      this.remote.enableRemoteTrackEncoding(trackId, variant);
+    } else if (event.trackVariantDisabled) {
+      const { trackId, variant } = event.trackVariantDisabled;
+      this.remote.disableRemoteTrackEncoding(trackId, variant);
     }
-    //
-    //        this.remote.disableRemoteTrackEncoding(
-    //          deserializedMediaEvent.data.trackId,
-    //          deserializedMediaEvent.data.encoding,
-    //        );
-    //        break;
-    //      }
-    //
-    //      case 'trackEncodingEnabled': {
-    //        const data = deserializedMediaEvent.data;
-    //
-    //        if (this.getEndpointId() === data.endpointId) return;
-    //
-    //        this.remote.enableRemoteTrackEncoding(data.trackId, data.encoding);
-    //        break;
-    //      }
-    //
-    //      case 'encodingSwitched': {
-    //        const data = deserializedMediaEvent.data;
-    //
-    //        this.remote.setRemoteTrackEncoding(data.trackId, data.encoding, data.reason);
-    //        break;
-    //      }
-    //      case 'custom':
-    //        await this.handleMediaEvent(deserializedMediaEvent.data as MediaEvent);
-    //        break;
-    //
   };
 
   private onSdpAnswer = async (data: MediaEvent_SdpAnswer) => {

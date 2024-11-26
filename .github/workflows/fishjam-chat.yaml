@@ -27,6 +27,8 @@ jobs:
         with:
           node-version: 20.x
           cache: "npm"
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
       - name: Install node dependencies
         run: yarn
       - name: Build project

@@ -6,7 +6,7 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { Candidate, Metadata, MidToTrackId } from "../shared";
+import { Candidate, Variant, variantFromJSON, variantToJSON } from "../shared";
 
 export const protobufPackage = "fishjam.media_events.server";
 
@@ -24,38 +24,62 @@ export interface MediaEvent {
   candidate?: Candidate | undefined;
   sdpAnswer?: MediaEvent_SdpAnswer | undefined;
   vadNotification?: MediaEvent_VadNotification | undefined;
+  trackVariantSwitched?: MediaEvent_TrackVariantSwitched | undefined;
+  trackVariantDisabled?: MediaEvent_TrackVariantDisabled | undefined;
+  trackVariantEnabled?: MediaEvent_TrackVariantEnabled | undefined;
 }
 
 /** SCHEMAS */
 export interface MediaEvent_Track {
-  trackId: string;
-  metadata: Metadata | undefined;
+  metadataJson: string;
+  simulcastConfig: MediaEvent_Track_SimulcastConfig | undefined;
+}
+
+export interface MediaEvent_Track_SimulcastConfig {
+  enabled: boolean;
+  enabledVariants: Variant[];
+  disabledVariants: Variant[];
 }
 
 export interface MediaEvent_Endpoint {
-  endpointId: string;
   endpointType: string;
-  metadata: Metadata | undefined;
-  tracks: MediaEvent_Track[];
+  metadataJson: string;
+  trackIdToTrack: { [key: string]: MediaEvent_Track };
+}
+
+export interface MediaEvent_Endpoint_TrackIdToTrackEntry {
+  key: string;
+  value: MediaEvent_Track | undefined;
+}
+
+export interface MediaEvent_IceServer {
+  credential: string;
+  urls: string[];
+  username: string;
 }
 
 /** Sent when metadata of one of the endpoints was updated */
 export interface MediaEvent_EndpointUpdated {
   endpointId: string;
-  metadata: Metadata | undefined;
+  metadataJson: string;
 }
 
 /** Sent when metadata of one of the tracks was updated */
 export interface MediaEvent_TrackUpdated {
   endpointId: string;
   trackId: string;
-  metadata: Metadata | undefined;
+  metadataJson: string;
 }
 
 /** Sent to informs that one of the peers has added one or more tracks. */
 export interface MediaEvent_TracksAdded {
   endpointId: string;
-  tracks: MediaEvent_Track[];
+  trackIdToTrack: { [key: string]: MediaEvent_Track };
+}
+
+export interface MediaEvent_TracksAdded_TrackIdToTrackEntry {
+  key: string;
+  value: MediaEvent_Track | undefined;
 }
 
 /** Sent to informs that one of the peers has removed one or more tracks. */
@@ -67,13 +91,19 @@ export interface MediaEvent_TracksRemoved {
 /** Sent to all peers in the room after a new endpoint was added. */
 export interface MediaEvent_EndpointAdded {
   endpointId: string;
-  metadata: Metadata | undefined;
+  metadataJson: string;
 }
 
 /** Sent to the peer after connecting to the WebRTC Endpoint. */
 export interface MediaEvent_Connected {
   endpointId: string;
-  endpoints: MediaEvent_Endpoint[];
+  endpointIdToEndpoint: { [key: string]: MediaEvent_Endpoint };
+  iceServers: MediaEvent_IceServer[];
+}
+
+export interface MediaEvent_Connected_EndpointIdToEndpointEntry {
+  key: string;
+  value: MediaEvent_Endpoint | undefined;
 }
 
 /** Sent to all remaining peers in the room after some endpoint was removed. */
@@ -99,7 +129,12 @@ export interface MediaEvent_OfferData_TrackTypes {
 /** Sent after receiving `SdpOffer` from Peer */
 export interface MediaEvent_SdpAnswer {
   sdpAnswer: string;
-  midToTrackId: MidToTrackId[];
+  midToTrackId: { [key: string]: string };
+}
+
+export interface MediaEvent_SdpAnswer_MidToTrackIdEntry {
+  key: string;
+  value: string;
 }
 
 /**
@@ -151,6 +186,27 @@ export function mediaEvent_VadNotification_StatusToJSON(object: MediaEvent_VadNo
   }
 }
 
+/** Informs that track's variant has been changed */
+export interface MediaEvent_TrackVariantSwitched {
+  endpointId: string;
+  trackId: string;
+  variant: Variant;
+}
+
+/** Sent when track's variant has been disabled */
+export interface MediaEvent_TrackVariantDisabled {
+  endpointId: string;
+  trackId: string;
+  variant: Variant;
+}
+
+/** Sent when track's variant has been enabled */
+export interface MediaEvent_TrackVariantEnabled {
+  endpointId: string;
+  trackId: string;
+  variant: Variant;
+}
+
 function createBaseMediaEvent(): MediaEvent {
   return {
     endpointUpdated: undefined,
@@ -165,6 +221,9 @@ function createBaseMediaEvent(): MediaEvent {
     candidate: undefined,
     sdpAnswer: undefined,
     vadNotification: undefined,
+    trackVariantSwitched: undefined,
+    trackVariantDisabled: undefined,
+    trackVariantEnabled: undefined,
   };
 }
 
@@ -205,6 +264,15 @@ export const MediaEvent: MessageFns<MediaEvent> = {
     }
     if (message.vadNotification !== undefined) {
       MediaEvent_VadNotification.encode(message.vadNotification, writer.uint32(98).fork()).join();
+    }
+    if (message.trackVariantSwitched !== undefined) {
+      MediaEvent_TrackVariantSwitched.encode(message.trackVariantSwitched, writer.uint32(106).fork()).join();
+    }
+    if (message.trackVariantDisabled !== undefined) {
+      MediaEvent_TrackVariantDisabled.encode(message.trackVariantDisabled, writer.uint32(114).fork()).join();
+    }
+    if (message.trackVariantEnabled !== undefined) {
+      MediaEvent_TrackVariantEnabled.encode(message.trackVariantEnabled, writer.uint32(122).fork()).join();
     }
     return writer;
   },
@@ -312,6 +380,30 @@ export const MediaEvent: MessageFns<MediaEvent> = {
           message.vadNotification = MediaEvent_VadNotification.decode(reader, reader.uint32());
           continue;
         }
+        case 13: {
+          if (tag !== 106) {
+            break;
+          }
+
+          message.trackVariantSwitched = MediaEvent_TrackVariantSwitched.decode(reader, reader.uint32());
+          continue;
+        }
+        case 14: {
+          if (tag !== 114) {
+            break;
+          }
+
+          message.trackVariantDisabled = MediaEvent_TrackVariantDisabled.decode(reader, reader.uint32());
+          continue;
+        }
+        case 15: {
+          if (tag !== 122) {
+            break;
+          }
+
+          message.trackVariantEnabled = MediaEvent_TrackVariantEnabled.decode(reader, reader.uint32());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -340,6 +432,15 @@ export const MediaEvent: MessageFns<MediaEvent> = {
       sdpAnswer: isSet(object.sdpAnswer) ? MediaEvent_SdpAnswer.fromJSON(object.sdpAnswer) : undefined,
       vadNotification: isSet(object.vadNotification)
         ? MediaEvent_VadNotification.fromJSON(object.vadNotification)
+        : undefined,
+      trackVariantSwitched: isSet(object.trackVariantSwitched)
+        ? MediaEvent_TrackVariantSwitched.fromJSON(object.trackVariantSwitched)
+        : undefined,
+      trackVariantDisabled: isSet(object.trackVariantDisabled)
+        ? MediaEvent_TrackVariantDisabled.fromJSON(object.trackVariantDisabled)
+        : undefined,
+      trackVariantEnabled: isSet(object.trackVariantEnabled)
+        ? MediaEvent_TrackVariantEnabled.fromJSON(object.trackVariantEnabled)
         : undefined,
     };
   },
@@ -381,6 +482,15 @@ export const MediaEvent: MessageFns<MediaEvent> = {
     }
     if (message.vadNotification !== undefined) {
       obj.vadNotification = MediaEvent_VadNotification.toJSON(message.vadNotification);
+    }
+    if (message.trackVariantSwitched !== undefined) {
+      obj.trackVariantSwitched = MediaEvent_TrackVariantSwitched.toJSON(message.trackVariantSwitched);
+    }
+    if (message.trackVariantDisabled !== undefined) {
+      obj.trackVariantDisabled = MediaEvent_TrackVariantDisabled.toJSON(message.trackVariantDisabled);
+    }
+    if (message.trackVariantEnabled !== undefined) {
+      obj.trackVariantEnabled = MediaEvent_TrackVariantEnabled.toJSON(message.trackVariantEnabled);
     }
     return obj;
   },
@@ -426,21 +536,30 @@ export const MediaEvent: MessageFns<MediaEvent> = {
     message.vadNotification = (object.vadNotification !== undefined && object.vadNotification !== null)
       ? MediaEvent_VadNotification.fromPartial(object.vadNotification)
       : undefined;
+    message.trackVariantSwitched = (object.trackVariantSwitched !== undefined && object.trackVariantSwitched !== null)
+      ? MediaEvent_TrackVariantSwitched.fromPartial(object.trackVariantSwitched)
+      : undefined;
+    message.trackVariantDisabled = (object.trackVariantDisabled !== undefined && object.trackVariantDisabled !== null)
+      ? MediaEvent_TrackVariantDisabled.fromPartial(object.trackVariantDisabled)
+      : undefined;
+    message.trackVariantEnabled = (object.trackVariantEnabled !== undefined && object.trackVariantEnabled !== null)
+      ? MediaEvent_TrackVariantEnabled.fromPartial(object.trackVariantEnabled)
+      : undefined;
     return message;
   },
 };
 
 function createBaseMediaEvent_Track(): MediaEvent_Track {
-  return { trackId: "", metadata: undefined };
+  return { metadataJson: "", simulcastConfig: undefined };
 }
 
 export const MediaEvent_Track: MessageFns<MediaEvent_Track> = {
   encode(message: MediaEvent_Track, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.trackId !== "") {
-      writer.uint32(10).string(message.trackId);
+    if (message.metadataJson !== "") {
+      writer.uint32(10).string(message.metadataJson);
     }
-    if (message.metadata !== undefined) {
-      Metadata.encode(message.metadata, writer.uint32(18).fork()).join();
+    if (message.simulcastConfig !== undefined) {
+      MediaEvent_Track_SimulcastConfig.encode(message.simulcastConfig, writer.uint32(18).fork()).join();
     }
     return writer;
   },
@@ -457,7 +576,7 @@ export const MediaEvent_Track: MessageFns<MediaEvent_Track> = {
             break;
           }
 
-          message.trackId = reader.string();
+          message.metadataJson = reader.string();
           continue;
         }
         case 2: {
@@ -465,7 +584,7 @@ export const MediaEvent_Track: MessageFns<MediaEvent_Track> = {
             break;
           }
 
-          message.metadata = Metadata.decode(reader, reader.uint32());
+          message.simulcastConfig = MediaEvent_Track_SimulcastConfig.decode(reader, reader.uint32());
           continue;
         }
       }
@@ -479,18 +598,20 @@ export const MediaEvent_Track: MessageFns<MediaEvent_Track> = {
 
   fromJSON(object: any): MediaEvent_Track {
     return {
-      trackId: isSet(object.trackId) ? globalThis.String(object.trackId) : "",
-      metadata: isSet(object.metadata) ? Metadata.fromJSON(object.metadata) : undefined,
+      metadataJson: isSet(object.metadataJson) ? globalThis.String(object.metadataJson) : "",
+      simulcastConfig: isSet(object.simulcastConfig)
+        ? MediaEvent_Track_SimulcastConfig.fromJSON(object.simulcastConfig)
+        : undefined,
     };
   },
 
   toJSON(message: MediaEvent_Track): unknown {
     const obj: any = {};
-    if (message.trackId !== "") {
-      obj.trackId = message.trackId;
+    if (message.metadataJson !== "") {
+      obj.metadataJson = message.metadataJson;
     }
-    if (message.metadata !== undefined) {
-      obj.metadata = Metadata.toJSON(message.metadata);
+    if (message.simulcastConfig !== undefined) {
+      obj.simulcastConfig = MediaEvent_Track_SimulcastConfig.toJSON(message.simulcastConfig);
     }
     return obj;
   },
@@ -500,32 +621,153 @@ export const MediaEvent_Track: MessageFns<MediaEvent_Track> = {
   },
   fromPartial<I extends Exact<DeepPartial<MediaEvent_Track>, I>>(object: I): MediaEvent_Track {
     const message = createBaseMediaEvent_Track();
-    message.trackId = object.trackId ?? "";
-    message.metadata = (object.metadata !== undefined && object.metadata !== null)
-      ? Metadata.fromPartial(object.metadata)
+    message.metadataJson = object.metadataJson ?? "";
+    message.simulcastConfig = (object.simulcastConfig !== undefined && object.simulcastConfig !== null)
+      ? MediaEvent_Track_SimulcastConfig.fromPartial(object.simulcastConfig)
       : undefined;
     return message;
   },
 };
 
+function createBaseMediaEvent_Track_SimulcastConfig(): MediaEvent_Track_SimulcastConfig {
+  return { enabled: false, enabledVariants: [], disabledVariants: [] };
+}
+
+export const MediaEvent_Track_SimulcastConfig: MessageFns<MediaEvent_Track_SimulcastConfig> = {
+  encode(message: MediaEvent_Track_SimulcastConfig, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.enabled !== false) {
+      writer.uint32(8).bool(message.enabled);
+    }
+    writer.uint32(18).fork();
+    for (const v of message.enabledVariants) {
+      writer.int32(v);
+    }
+    writer.join();
+    writer.uint32(26).fork();
+    for (const v of message.disabledVariants) {
+      writer.int32(v);
+    }
+    writer.join();
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): MediaEvent_Track_SimulcastConfig {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMediaEvent_Track_SimulcastConfig();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.enabled = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag === 16) {
+            message.enabledVariants.push(reader.int32() as any);
+
+            continue;
+          }
+
+          if (tag === 18) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.enabledVariants.push(reader.int32() as any);
+            }
+
+            continue;
+          }
+
+          break;
+        }
+        case 3: {
+          if (tag === 24) {
+            message.disabledVariants.push(reader.int32() as any);
+
+            continue;
+          }
+
+          if (tag === 26) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.disabledVariants.push(reader.int32() as any);
+            }
+
+            continue;
+          }
+
+          break;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MediaEvent_Track_SimulcastConfig {
+    return {
+      enabled: isSet(object.enabled) ? globalThis.Boolean(object.enabled) : false,
+      enabledVariants: globalThis.Array.isArray(object?.enabledVariants)
+        ? object.enabledVariants.map((e: any) => variantFromJSON(e))
+        : [],
+      disabledVariants: globalThis.Array.isArray(object?.disabledVariants)
+        ? object.disabledVariants.map((e: any) => variantFromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: MediaEvent_Track_SimulcastConfig): unknown {
+    const obj: any = {};
+    if (message.enabled !== false) {
+      obj.enabled = message.enabled;
+    }
+    if (message.enabledVariants?.length) {
+      obj.enabledVariants = message.enabledVariants.map((e) => variantToJSON(e));
+    }
+    if (message.disabledVariants?.length) {
+      obj.disabledVariants = message.disabledVariants.map((e) => variantToJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<MediaEvent_Track_SimulcastConfig>, I>>(
+    base?: I,
+  ): MediaEvent_Track_SimulcastConfig {
+    return MediaEvent_Track_SimulcastConfig.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<MediaEvent_Track_SimulcastConfig>, I>>(
+    object: I,
+  ): MediaEvent_Track_SimulcastConfig {
+    const message = createBaseMediaEvent_Track_SimulcastConfig();
+    message.enabled = object.enabled ?? false;
+    message.enabledVariants = object.enabledVariants?.map((e) => e) || [];
+    message.disabledVariants = object.disabledVariants?.map((e) => e) || [];
+    return message;
+  },
+};
+
 function createBaseMediaEvent_Endpoint(): MediaEvent_Endpoint {
-  return { endpointId: "", endpointType: "", metadata: undefined, tracks: [] };
+  return { endpointType: "", metadataJson: "", trackIdToTrack: {} };
 }
 
 export const MediaEvent_Endpoint: MessageFns<MediaEvent_Endpoint> = {
   encode(message: MediaEvent_Endpoint, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.endpointId !== "") {
-      writer.uint32(10).string(message.endpointId);
-    }
     if (message.endpointType !== "") {
       writer.uint32(18).string(message.endpointType);
     }
-    if (message.metadata !== undefined) {
-      Metadata.encode(message.metadata, writer.uint32(26).fork()).join();
+    if (message.metadataJson !== "") {
+      writer.uint32(26).string(message.metadataJson);
     }
-    for (const v of message.tracks) {
-      MediaEvent_Track.encode(v!, writer.uint32(34).fork()).join();
-    }
+    Object.entries(message.trackIdToTrack).forEach(([key, value]) => {
+      MediaEvent_Endpoint_TrackIdToTrackEntry.encode({ key: key as any, value }, writer.uint32(34).fork()).join();
+    });
     return writer;
   },
 
@@ -536,14 +778,6 @@ export const MediaEvent_Endpoint: MessageFns<MediaEvent_Endpoint> = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.endpointId = reader.string();
-          continue;
-        }
         case 2: {
           if (tag !== 18) {
             break;
@@ -557,7 +791,7 @@ export const MediaEvent_Endpoint: MessageFns<MediaEvent_Endpoint> = {
             break;
           }
 
-          message.metadata = Metadata.decode(reader, reader.uint32());
+          message.metadataJson = reader.string();
           continue;
         }
         case 4: {
@@ -565,7 +799,10 @@ export const MediaEvent_Endpoint: MessageFns<MediaEvent_Endpoint> = {
             break;
           }
 
-          message.tracks.push(MediaEvent_Track.decode(reader, reader.uint32()));
+          const entry4 = MediaEvent_Endpoint_TrackIdToTrackEntry.decode(reader, reader.uint32());
+          if (entry4.value !== undefined) {
+            message.trackIdToTrack[entry4.key] = entry4.value;
+          }
           continue;
         }
       }
@@ -579,28 +816,33 @@ export const MediaEvent_Endpoint: MessageFns<MediaEvent_Endpoint> = {
 
   fromJSON(object: any): MediaEvent_Endpoint {
     return {
-      endpointId: isSet(object.endpointId) ? globalThis.String(object.endpointId) : "",
       endpointType: isSet(object.endpointType) ? globalThis.String(object.endpointType) : "",
-      metadata: isSet(object.metadata) ? Metadata.fromJSON(object.metadata) : undefined,
-      tracks: globalThis.Array.isArray(object?.tracks)
-        ? object.tracks.map((e: any) => MediaEvent_Track.fromJSON(e))
-        : [],
+      metadataJson: isSet(object.metadataJson) ? globalThis.String(object.metadataJson) : "",
+      trackIdToTrack: isObject(object.trackIdToTrack)
+        ? Object.entries(object.trackIdToTrack).reduce<{ [key: string]: MediaEvent_Track }>((acc, [key, value]) => {
+          acc[key] = MediaEvent_Track.fromJSON(value);
+          return acc;
+        }, {})
+        : {},
     };
   },
 
   toJSON(message: MediaEvent_Endpoint): unknown {
     const obj: any = {};
-    if (message.endpointId !== "") {
-      obj.endpointId = message.endpointId;
-    }
     if (message.endpointType !== "") {
       obj.endpointType = message.endpointType;
     }
-    if (message.metadata !== undefined) {
-      obj.metadata = Metadata.toJSON(message.metadata);
+    if (message.metadataJson !== "") {
+      obj.metadataJson = message.metadataJson;
     }
-    if (message.tracks?.length) {
-      obj.tracks = message.tracks.map((e) => MediaEvent_Track.toJSON(e));
+    if (message.trackIdToTrack) {
+      const entries = Object.entries(message.trackIdToTrack);
+      if (entries.length > 0) {
+        obj.trackIdToTrack = {};
+        entries.forEach(([k, v]) => {
+          obj.trackIdToTrack[k] = MediaEvent_Track.toJSON(v);
+        });
+      }
     }
     return obj;
   },
@@ -610,18 +852,197 @@ export const MediaEvent_Endpoint: MessageFns<MediaEvent_Endpoint> = {
   },
   fromPartial<I extends Exact<DeepPartial<MediaEvent_Endpoint>, I>>(object: I): MediaEvent_Endpoint {
     const message = createBaseMediaEvent_Endpoint();
-    message.endpointId = object.endpointId ?? "";
     message.endpointType = object.endpointType ?? "";
-    message.metadata = (object.metadata !== undefined && object.metadata !== null)
-      ? Metadata.fromPartial(object.metadata)
+    message.metadataJson = object.metadataJson ?? "";
+    message.trackIdToTrack = Object.entries(object.trackIdToTrack ?? {}).reduce<{ [key: string]: MediaEvent_Track }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = MediaEvent_Track.fromPartial(value);
+        }
+        return acc;
+      },
+      {},
+    );
+    return message;
+  },
+};
+
+function createBaseMediaEvent_Endpoint_TrackIdToTrackEntry(): MediaEvent_Endpoint_TrackIdToTrackEntry {
+  return { key: "", value: undefined };
+}
+
+export const MediaEvent_Endpoint_TrackIdToTrackEntry: MessageFns<MediaEvent_Endpoint_TrackIdToTrackEntry> = {
+  encode(message: MediaEvent_Endpoint_TrackIdToTrackEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== undefined) {
+      MediaEvent_Track.encode(message.value, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): MediaEvent_Endpoint_TrackIdToTrackEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMediaEvent_Endpoint_TrackIdToTrackEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = MediaEvent_Track.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MediaEvent_Endpoint_TrackIdToTrackEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? MediaEvent_Track.fromJSON(object.value) : undefined,
+    };
+  },
+
+  toJSON(message: MediaEvent_Endpoint_TrackIdToTrackEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== undefined) {
+      obj.value = MediaEvent_Track.toJSON(message.value);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<MediaEvent_Endpoint_TrackIdToTrackEntry>, I>>(
+    base?: I,
+  ): MediaEvent_Endpoint_TrackIdToTrackEntry {
+    return MediaEvent_Endpoint_TrackIdToTrackEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<MediaEvent_Endpoint_TrackIdToTrackEntry>, I>>(
+    object: I,
+  ): MediaEvent_Endpoint_TrackIdToTrackEntry {
+    const message = createBaseMediaEvent_Endpoint_TrackIdToTrackEntry();
+    message.key = object.key ?? "";
+    message.value = (object.value !== undefined && object.value !== null)
+      ? MediaEvent_Track.fromPartial(object.value)
       : undefined;
-    message.tracks = object.tracks?.map((e) => MediaEvent_Track.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseMediaEvent_IceServer(): MediaEvent_IceServer {
+  return { credential: "", urls: [], username: "" };
+}
+
+export const MediaEvent_IceServer: MessageFns<MediaEvent_IceServer> = {
+  encode(message: MediaEvent_IceServer, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.credential !== "") {
+      writer.uint32(10).string(message.credential);
+    }
+    for (const v of message.urls) {
+      writer.uint32(18).string(v!);
+    }
+    if (message.username !== "") {
+      writer.uint32(26).string(message.username);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): MediaEvent_IceServer {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMediaEvent_IceServer();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.credential = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.urls.push(reader.string());
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.username = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MediaEvent_IceServer {
+    return {
+      credential: isSet(object.credential) ? globalThis.String(object.credential) : "",
+      urls: globalThis.Array.isArray(object?.urls) ? object.urls.map((e: any) => globalThis.String(e)) : [],
+      username: isSet(object.username) ? globalThis.String(object.username) : "",
+    };
+  },
+
+  toJSON(message: MediaEvent_IceServer): unknown {
+    const obj: any = {};
+    if (message.credential !== "") {
+      obj.credential = message.credential;
+    }
+    if (message.urls?.length) {
+      obj.urls = message.urls;
+    }
+    if (message.username !== "") {
+      obj.username = message.username;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<MediaEvent_IceServer>, I>>(base?: I): MediaEvent_IceServer {
+    return MediaEvent_IceServer.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<MediaEvent_IceServer>, I>>(object: I): MediaEvent_IceServer {
+    const message = createBaseMediaEvent_IceServer();
+    message.credential = object.credential ?? "";
+    message.urls = object.urls?.map((e) => e) || [];
+    message.username = object.username ?? "";
     return message;
   },
 };
 
 function createBaseMediaEvent_EndpointUpdated(): MediaEvent_EndpointUpdated {
-  return { endpointId: "", metadata: undefined };
+  return { endpointId: "", metadataJson: "" };
 }
 
 export const MediaEvent_EndpointUpdated: MessageFns<MediaEvent_EndpointUpdated> = {
@@ -629,8 +1050,8 @@ export const MediaEvent_EndpointUpdated: MessageFns<MediaEvent_EndpointUpdated> 
     if (message.endpointId !== "") {
       writer.uint32(10).string(message.endpointId);
     }
-    if (message.metadata !== undefined) {
-      Metadata.encode(message.metadata, writer.uint32(18).fork()).join();
+    if (message.metadataJson !== "") {
+      writer.uint32(18).string(message.metadataJson);
     }
     return writer;
   },
@@ -655,7 +1076,7 @@ export const MediaEvent_EndpointUpdated: MessageFns<MediaEvent_EndpointUpdated> 
             break;
           }
 
-          message.metadata = Metadata.decode(reader, reader.uint32());
+          message.metadataJson = reader.string();
           continue;
         }
       }
@@ -670,7 +1091,7 @@ export const MediaEvent_EndpointUpdated: MessageFns<MediaEvent_EndpointUpdated> 
   fromJSON(object: any): MediaEvent_EndpointUpdated {
     return {
       endpointId: isSet(object.endpointId) ? globalThis.String(object.endpointId) : "",
-      metadata: isSet(object.metadata) ? Metadata.fromJSON(object.metadata) : undefined,
+      metadataJson: isSet(object.metadataJson) ? globalThis.String(object.metadataJson) : "",
     };
   },
 
@@ -679,8 +1100,8 @@ export const MediaEvent_EndpointUpdated: MessageFns<MediaEvent_EndpointUpdated> 
     if (message.endpointId !== "") {
       obj.endpointId = message.endpointId;
     }
-    if (message.metadata !== undefined) {
-      obj.metadata = Metadata.toJSON(message.metadata);
+    if (message.metadataJson !== "") {
+      obj.metadataJson = message.metadataJson;
     }
     return obj;
   },
@@ -691,15 +1112,13 @@ export const MediaEvent_EndpointUpdated: MessageFns<MediaEvent_EndpointUpdated> 
   fromPartial<I extends Exact<DeepPartial<MediaEvent_EndpointUpdated>, I>>(object: I): MediaEvent_EndpointUpdated {
     const message = createBaseMediaEvent_EndpointUpdated();
     message.endpointId = object.endpointId ?? "";
-    message.metadata = (object.metadata !== undefined && object.metadata !== null)
-      ? Metadata.fromPartial(object.metadata)
-      : undefined;
+    message.metadataJson = object.metadataJson ?? "";
     return message;
   },
 };
 
 function createBaseMediaEvent_TrackUpdated(): MediaEvent_TrackUpdated {
-  return { endpointId: "", trackId: "", metadata: undefined };
+  return { endpointId: "", trackId: "", metadataJson: "" };
 }
 
 export const MediaEvent_TrackUpdated: MessageFns<MediaEvent_TrackUpdated> = {
@@ -710,8 +1129,8 @@ export const MediaEvent_TrackUpdated: MessageFns<MediaEvent_TrackUpdated> = {
     if (message.trackId !== "") {
       writer.uint32(18).string(message.trackId);
     }
-    if (message.metadata !== undefined) {
-      Metadata.encode(message.metadata, writer.uint32(26).fork()).join();
+    if (message.metadataJson !== "") {
+      writer.uint32(26).string(message.metadataJson);
     }
     return writer;
   },
@@ -744,7 +1163,7 @@ export const MediaEvent_TrackUpdated: MessageFns<MediaEvent_TrackUpdated> = {
             break;
           }
 
-          message.metadata = Metadata.decode(reader, reader.uint32());
+          message.metadataJson = reader.string();
           continue;
         }
       }
@@ -760,7 +1179,7 @@ export const MediaEvent_TrackUpdated: MessageFns<MediaEvent_TrackUpdated> = {
     return {
       endpointId: isSet(object.endpointId) ? globalThis.String(object.endpointId) : "",
       trackId: isSet(object.trackId) ? globalThis.String(object.trackId) : "",
-      metadata: isSet(object.metadata) ? Metadata.fromJSON(object.metadata) : undefined,
+      metadataJson: isSet(object.metadataJson) ? globalThis.String(object.metadataJson) : "",
     };
   },
 
@@ -772,8 +1191,8 @@ export const MediaEvent_TrackUpdated: MessageFns<MediaEvent_TrackUpdated> = {
     if (message.trackId !== "") {
       obj.trackId = message.trackId;
     }
-    if (message.metadata !== undefined) {
-      obj.metadata = Metadata.toJSON(message.metadata);
+    if (message.metadataJson !== "") {
+      obj.metadataJson = message.metadataJson;
     }
     return obj;
   },
@@ -785,15 +1204,13 @@ export const MediaEvent_TrackUpdated: MessageFns<MediaEvent_TrackUpdated> = {
     const message = createBaseMediaEvent_TrackUpdated();
     message.endpointId = object.endpointId ?? "";
     message.trackId = object.trackId ?? "";
-    message.metadata = (object.metadata !== undefined && object.metadata !== null)
-      ? Metadata.fromPartial(object.metadata)
-      : undefined;
+    message.metadataJson = object.metadataJson ?? "";
     return message;
   },
 };
 
 function createBaseMediaEvent_TracksAdded(): MediaEvent_TracksAdded {
-  return { endpointId: "", tracks: [] };
+  return { endpointId: "", trackIdToTrack: {} };
 }
 
 export const MediaEvent_TracksAdded: MessageFns<MediaEvent_TracksAdded> = {
@@ -801,9 +1218,9 @@ export const MediaEvent_TracksAdded: MessageFns<MediaEvent_TracksAdded> = {
     if (message.endpointId !== "") {
       writer.uint32(10).string(message.endpointId);
     }
-    for (const v of message.tracks) {
-      MediaEvent_Track.encode(v!, writer.uint32(18).fork()).join();
-    }
+    Object.entries(message.trackIdToTrack).forEach(([key, value]) => {
+      MediaEvent_TracksAdded_TrackIdToTrackEntry.encode({ key: key as any, value }, writer.uint32(18).fork()).join();
+    });
     return writer;
   },
 
@@ -827,7 +1244,10 @@ export const MediaEvent_TracksAdded: MessageFns<MediaEvent_TracksAdded> = {
             break;
           }
 
-          message.tracks.push(MediaEvent_Track.decode(reader, reader.uint32()));
+          const entry2 = MediaEvent_TracksAdded_TrackIdToTrackEntry.decode(reader, reader.uint32());
+          if (entry2.value !== undefined) {
+            message.trackIdToTrack[entry2.key] = entry2.value;
+          }
           continue;
         }
       }
@@ -842,9 +1262,12 @@ export const MediaEvent_TracksAdded: MessageFns<MediaEvent_TracksAdded> = {
   fromJSON(object: any): MediaEvent_TracksAdded {
     return {
       endpointId: isSet(object.endpointId) ? globalThis.String(object.endpointId) : "",
-      tracks: globalThis.Array.isArray(object?.tracks)
-        ? object.tracks.map((e: any) => MediaEvent_Track.fromJSON(e))
-        : [],
+      trackIdToTrack: isObject(object.trackIdToTrack)
+        ? Object.entries(object.trackIdToTrack).reduce<{ [key: string]: MediaEvent_Track }>((acc, [key, value]) => {
+          acc[key] = MediaEvent_Track.fromJSON(value);
+          return acc;
+        }, {})
+        : {},
     };
   },
 
@@ -853,8 +1276,14 @@ export const MediaEvent_TracksAdded: MessageFns<MediaEvent_TracksAdded> = {
     if (message.endpointId !== "") {
       obj.endpointId = message.endpointId;
     }
-    if (message.tracks?.length) {
-      obj.tracks = message.tracks.map((e) => MediaEvent_Track.toJSON(e));
+    if (message.trackIdToTrack) {
+      const entries = Object.entries(message.trackIdToTrack);
+      if (entries.length > 0) {
+        obj.trackIdToTrack = {};
+        entries.forEach(([k, v]) => {
+          obj.trackIdToTrack[k] = MediaEvent_Track.toJSON(v);
+        });
+      }
     }
     return obj;
   },
@@ -865,7 +1294,97 @@ export const MediaEvent_TracksAdded: MessageFns<MediaEvent_TracksAdded> = {
   fromPartial<I extends Exact<DeepPartial<MediaEvent_TracksAdded>, I>>(object: I): MediaEvent_TracksAdded {
     const message = createBaseMediaEvent_TracksAdded();
     message.endpointId = object.endpointId ?? "";
-    message.tracks = object.tracks?.map((e) => MediaEvent_Track.fromPartial(e)) || [];
+    message.trackIdToTrack = Object.entries(object.trackIdToTrack ?? {}).reduce<{ [key: string]: MediaEvent_Track }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = MediaEvent_Track.fromPartial(value);
+        }
+        return acc;
+      },
+      {},
+    );
+    return message;
+  },
+};
+
+function createBaseMediaEvent_TracksAdded_TrackIdToTrackEntry(): MediaEvent_TracksAdded_TrackIdToTrackEntry {
+  return { key: "", value: undefined };
+}
+
+export const MediaEvent_TracksAdded_TrackIdToTrackEntry: MessageFns<MediaEvent_TracksAdded_TrackIdToTrackEntry> = {
+  encode(message: MediaEvent_TracksAdded_TrackIdToTrackEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== undefined) {
+      MediaEvent_Track.encode(message.value, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): MediaEvent_TracksAdded_TrackIdToTrackEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMediaEvent_TracksAdded_TrackIdToTrackEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = MediaEvent_Track.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MediaEvent_TracksAdded_TrackIdToTrackEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? MediaEvent_Track.fromJSON(object.value) : undefined,
+    };
+  },
+
+  toJSON(message: MediaEvent_TracksAdded_TrackIdToTrackEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== undefined) {
+      obj.value = MediaEvent_Track.toJSON(message.value);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<MediaEvent_TracksAdded_TrackIdToTrackEntry>, I>>(
+    base?: I,
+  ): MediaEvent_TracksAdded_TrackIdToTrackEntry {
+    return MediaEvent_TracksAdded_TrackIdToTrackEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<MediaEvent_TracksAdded_TrackIdToTrackEntry>, I>>(
+    object: I,
+  ): MediaEvent_TracksAdded_TrackIdToTrackEntry {
+    const message = createBaseMediaEvent_TracksAdded_TrackIdToTrackEntry();
+    message.key = object.key ?? "";
+    message.value = (object.value !== undefined && object.value !== null)
+      ? MediaEvent_Track.fromPartial(object.value)
+      : undefined;
     return message;
   },
 };
@@ -947,7 +1466,7 @@ export const MediaEvent_TracksRemoved: MessageFns<MediaEvent_TracksRemoved> = {
 };
 
 function createBaseMediaEvent_EndpointAdded(): MediaEvent_EndpointAdded {
-  return { endpointId: "", metadata: undefined };
+  return { endpointId: "", metadataJson: "" };
 }
 
 export const MediaEvent_EndpointAdded: MessageFns<MediaEvent_EndpointAdded> = {
@@ -955,8 +1474,8 @@ export const MediaEvent_EndpointAdded: MessageFns<MediaEvent_EndpointAdded> = {
     if (message.endpointId !== "") {
       writer.uint32(10).string(message.endpointId);
     }
-    if (message.metadata !== undefined) {
-      Metadata.encode(message.metadata, writer.uint32(18).fork()).join();
+    if (message.metadataJson !== "") {
+      writer.uint32(18).string(message.metadataJson);
     }
     return writer;
   },
@@ -981,7 +1500,7 @@ export const MediaEvent_EndpointAdded: MessageFns<MediaEvent_EndpointAdded> = {
             break;
           }
 
-          message.metadata = Metadata.decode(reader, reader.uint32());
+          message.metadataJson = reader.string();
           continue;
         }
       }
@@ -996,7 +1515,7 @@ export const MediaEvent_EndpointAdded: MessageFns<MediaEvent_EndpointAdded> = {
   fromJSON(object: any): MediaEvent_EndpointAdded {
     return {
       endpointId: isSet(object.endpointId) ? globalThis.String(object.endpointId) : "",
-      metadata: isSet(object.metadata) ? Metadata.fromJSON(object.metadata) : undefined,
+      metadataJson: isSet(object.metadataJson) ? globalThis.String(object.metadataJson) : "",
     };
   },
 
@@ -1005,8 +1524,8 @@ export const MediaEvent_EndpointAdded: MessageFns<MediaEvent_EndpointAdded> = {
     if (message.endpointId !== "") {
       obj.endpointId = message.endpointId;
     }
-    if (message.metadata !== undefined) {
-      obj.metadata = Metadata.toJSON(message.metadata);
+    if (message.metadataJson !== "") {
+      obj.metadataJson = message.metadataJson;
     }
     return obj;
   },
@@ -1017,15 +1536,13 @@ export const MediaEvent_EndpointAdded: MessageFns<MediaEvent_EndpointAdded> = {
   fromPartial<I extends Exact<DeepPartial<MediaEvent_EndpointAdded>, I>>(object: I): MediaEvent_EndpointAdded {
     const message = createBaseMediaEvent_EndpointAdded();
     message.endpointId = object.endpointId ?? "";
-    message.metadata = (object.metadata !== undefined && object.metadata !== null)
-      ? Metadata.fromPartial(object.metadata)
-      : undefined;
+    message.metadataJson = object.metadataJson ?? "";
     return message;
   },
 };
 
 function createBaseMediaEvent_Connected(): MediaEvent_Connected {
-  return { endpointId: "", endpoints: [] };
+  return { endpointId: "", endpointIdToEndpoint: {}, iceServers: [] };
 }
 
 export const MediaEvent_Connected: MessageFns<MediaEvent_Connected> = {
@@ -1033,8 +1550,12 @@ export const MediaEvent_Connected: MessageFns<MediaEvent_Connected> = {
     if (message.endpointId !== "") {
       writer.uint32(10).string(message.endpointId);
     }
-    for (const v of message.endpoints) {
-      MediaEvent_Endpoint.encode(v!, writer.uint32(18).fork()).join();
+    Object.entries(message.endpointIdToEndpoint).forEach(([key, value]) => {
+      MediaEvent_Connected_EndpointIdToEndpointEntry.encode({ key: key as any, value }, writer.uint32(18).fork())
+        .join();
+    });
+    for (const v of message.iceServers) {
+      MediaEvent_IceServer.encode(v!, writer.uint32(26).fork()).join();
     }
     return writer;
   },
@@ -1059,7 +1580,18 @@ export const MediaEvent_Connected: MessageFns<MediaEvent_Connected> = {
             break;
           }
 
-          message.endpoints.push(MediaEvent_Endpoint.decode(reader, reader.uint32()));
+          const entry2 = MediaEvent_Connected_EndpointIdToEndpointEntry.decode(reader, reader.uint32());
+          if (entry2.value !== undefined) {
+            message.endpointIdToEndpoint[entry2.key] = entry2.value;
+          }
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.iceServers.push(MediaEvent_IceServer.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -1074,8 +1606,17 @@ export const MediaEvent_Connected: MessageFns<MediaEvent_Connected> = {
   fromJSON(object: any): MediaEvent_Connected {
     return {
       endpointId: isSet(object.endpointId) ? globalThis.String(object.endpointId) : "",
-      endpoints: globalThis.Array.isArray(object?.endpoints)
-        ? object.endpoints.map((e: any) => MediaEvent_Endpoint.fromJSON(e))
+      endpointIdToEndpoint: isObject(object.endpointIdToEndpoint)
+        ? Object.entries(object.endpointIdToEndpoint).reduce<{ [key: string]: MediaEvent_Endpoint }>(
+          (acc, [key, value]) => {
+            acc[key] = MediaEvent_Endpoint.fromJSON(value);
+            return acc;
+          },
+          {},
+        )
+        : {},
+      iceServers: globalThis.Array.isArray(object?.iceServers)
+        ? object.iceServers.map((e: any) => MediaEvent_IceServer.fromJSON(e))
         : [],
     };
   },
@@ -1085,8 +1626,17 @@ export const MediaEvent_Connected: MessageFns<MediaEvent_Connected> = {
     if (message.endpointId !== "") {
       obj.endpointId = message.endpointId;
     }
-    if (message.endpoints?.length) {
-      obj.endpoints = message.endpoints.map((e) => MediaEvent_Endpoint.toJSON(e));
+    if (message.endpointIdToEndpoint) {
+      const entries = Object.entries(message.endpointIdToEndpoint);
+      if (entries.length > 0) {
+        obj.endpointIdToEndpoint = {};
+        entries.forEach(([k, v]) => {
+          obj.endpointIdToEndpoint[k] = MediaEvent_Endpoint.toJSON(v);
+        });
+      }
+    }
+    if (message.iceServers?.length) {
+      obj.iceServers = message.iceServers.map((e) => MediaEvent_IceServer.toJSON(e));
     }
     return obj;
   },
@@ -1097,7 +1647,102 @@ export const MediaEvent_Connected: MessageFns<MediaEvent_Connected> = {
   fromPartial<I extends Exact<DeepPartial<MediaEvent_Connected>, I>>(object: I): MediaEvent_Connected {
     const message = createBaseMediaEvent_Connected();
     message.endpointId = object.endpointId ?? "";
-    message.endpoints = object.endpoints?.map((e) => MediaEvent_Endpoint.fromPartial(e)) || [];
+    message.endpointIdToEndpoint = Object.entries(object.endpointIdToEndpoint ?? {}).reduce<
+      { [key: string]: MediaEvent_Endpoint }
+    >((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = MediaEvent_Endpoint.fromPartial(value);
+      }
+      return acc;
+    }, {});
+    message.iceServers = object.iceServers?.map((e) => MediaEvent_IceServer.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseMediaEvent_Connected_EndpointIdToEndpointEntry(): MediaEvent_Connected_EndpointIdToEndpointEntry {
+  return { key: "", value: undefined };
+}
+
+export const MediaEvent_Connected_EndpointIdToEndpointEntry: MessageFns<
+  MediaEvent_Connected_EndpointIdToEndpointEntry
+> = {
+  encode(
+    message: MediaEvent_Connected_EndpointIdToEndpointEntry,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== undefined) {
+      MediaEvent_Endpoint.encode(message.value, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): MediaEvent_Connected_EndpointIdToEndpointEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMediaEvent_Connected_EndpointIdToEndpointEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = MediaEvent_Endpoint.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MediaEvent_Connected_EndpointIdToEndpointEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? MediaEvent_Endpoint.fromJSON(object.value) : undefined,
+    };
+  },
+
+  toJSON(message: MediaEvent_Connected_EndpointIdToEndpointEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== undefined) {
+      obj.value = MediaEvent_Endpoint.toJSON(message.value);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<MediaEvent_Connected_EndpointIdToEndpointEntry>, I>>(
+    base?: I,
+  ): MediaEvent_Connected_EndpointIdToEndpointEntry {
+    return MediaEvent_Connected_EndpointIdToEndpointEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<MediaEvent_Connected_EndpointIdToEndpointEntry>, I>>(
+    object: I,
+  ): MediaEvent_Connected_EndpointIdToEndpointEntry {
+    const message = createBaseMediaEvent_Connected_EndpointIdToEndpointEntry();
+    message.key = object.key ?? "";
+    message.value = (object.value !== undefined && object.value !== null)
+      ? MediaEvent_Endpoint.fromPartial(object.value)
+      : undefined;
     return message;
   },
 };
@@ -1359,7 +2004,7 @@ export const MediaEvent_OfferData_TrackTypes: MessageFns<MediaEvent_OfferData_Tr
 };
 
 function createBaseMediaEvent_SdpAnswer(): MediaEvent_SdpAnswer {
-  return { sdpAnswer: "", midToTrackId: [] };
+  return { sdpAnswer: "", midToTrackId: {} };
 }
 
 export const MediaEvent_SdpAnswer: MessageFns<MediaEvent_SdpAnswer> = {
@@ -1367,9 +2012,9 @@ export const MediaEvent_SdpAnswer: MessageFns<MediaEvent_SdpAnswer> = {
     if (message.sdpAnswer !== "") {
       writer.uint32(10).string(message.sdpAnswer);
     }
-    for (const v of message.midToTrackId) {
-      MidToTrackId.encode(v!, writer.uint32(18).fork()).join();
-    }
+    Object.entries(message.midToTrackId).forEach(([key, value]) => {
+      MediaEvent_SdpAnswer_MidToTrackIdEntry.encode({ key: key as any, value }, writer.uint32(18).fork()).join();
+    });
     return writer;
   },
 
@@ -1393,7 +2038,10 @@ export const MediaEvent_SdpAnswer: MessageFns<MediaEvent_SdpAnswer> = {
             break;
           }
 
-          message.midToTrackId.push(MidToTrackId.decode(reader, reader.uint32()));
+          const entry2 = MediaEvent_SdpAnswer_MidToTrackIdEntry.decode(reader, reader.uint32());
+          if (entry2.value !== undefined) {
+            message.midToTrackId[entry2.key] = entry2.value;
+          }
           continue;
         }
       }
@@ -1408,9 +2056,12 @@ export const MediaEvent_SdpAnswer: MessageFns<MediaEvent_SdpAnswer> = {
   fromJSON(object: any): MediaEvent_SdpAnswer {
     return {
       sdpAnswer: isSet(object.sdpAnswer) ? globalThis.String(object.sdpAnswer) : "",
-      midToTrackId: globalThis.Array.isArray(object?.midToTrackId)
-        ? object.midToTrackId.map((e: any) => MidToTrackId.fromJSON(e))
-        : [],
+      midToTrackId: isObject(object.midToTrackId)
+        ? Object.entries(object.midToTrackId).reduce<{ [key: string]: string }>((acc, [key, value]) => {
+          acc[key] = String(value);
+          return acc;
+        }, {})
+        : {},
     };
   },
 
@@ -1419,8 +2070,14 @@ export const MediaEvent_SdpAnswer: MessageFns<MediaEvent_SdpAnswer> = {
     if (message.sdpAnswer !== "") {
       obj.sdpAnswer = message.sdpAnswer;
     }
-    if (message.midToTrackId?.length) {
-      obj.midToTrackId = message.midToTrackId.map((e) => MidToTrackId.toJSON(e));
+    if (message.midToTrackId) {
+      const entries = Object.entries(message.midToTrackId);
+      if (entries.length > 0) {
+        obj.midToTrackId = {};
+        entries.forEach(([k, v]) => {
+          obj.midToTrackId[k] = v;
+        });
+      }
     }
     return obj;
   },
@@ -1431,7 +2088,95 @@ export const MediaEvent_SdpAnswer: MessageFns<MediaEvent_SdpAnswer> = {
   fromPartial<I extends Exact<DeepPartial<MediaEvent_SdpAnswer>, I>>(object: I): MediaEvent_SdpAnswer {
     const message = createBaseMediaEvent_SdpAnswer();
     message.sdpAnswer = object.sdpAnswer ?? "";
-    message.midToTrackId = object.midToTrackId?.map((e) => MidToTrackId.fromPartial(e)) || [];
+    message.midToTrackId = Object.entries(object.midToTrackId ?? {}).reduce<{ [key: string]: string }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = globalThis.String(value);
+        }
+        return acc;
+      },
+      {},
+    );
+    return message;
+  },
+};
+
+function createBaseMediaEvent_SdpAnswer_MidToTrackIdEntry(): MediaEvent_SdpAnswer_MidToTrackIdEntry {
+  return { key: "", value: "" };
+}
+
+export const MediaEvent_SdpAnswer_MidToTrackIdEntry: MessageFns<MediaEvent_SdpAnswer_MidToTrackIdEntry> = {
+  encode(message: MediaEvent_SdpAnswer_MidToTrackIdEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== "") {
+      writer.uint32(18).string(message.value);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): MediaEvent_SdpAnswer_MidToTrackIdEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMediaEvent_SdpAnswer_MidToTrackIdEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MediaEvent_SdpAnswer_MidToTrackIdEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? globalThis.String(object.value) : "",
+    };
+  },
+
+  toJSON(message: MediaEvent_SdpAnswer_MidToTrackIdEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== "") {
+      obj.value = message.value;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<MediaEvent_SdpAnswer_MidToTrackIdEntry>, I>>(
+    base?: I,
+  ): MediaEvent_SdpAnswer_MidToTrackIdEntry {
+    return MediaEvent_SdpAnswer_MidToTrackIdEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<MediaEvent_SdpAnswer_MidToTrackIdEntry>, I>>(
+    object: I,
+  ): MediaEvent_SdpAnswer_MidToTrackIdEntry {
+    const message = createBaseMediaEvent_SdpAnswer_MidToTrackIdEntry();
+    message.key = object.key ?? "";
+    message.value = object.value ?? "";
     return message;
   },
 };
@@ -1512,6 +2257,288 @@ export const MediaEvent_VadNotification: MessageFns<MediaEvent_VadNotification> 
   },
 };
 
+function createBaseMediaEvent_TrackVariantSwitched(): MediaEvent_TrackVariantSwitched {
+  return { endpointId: "", trackId: "", variant: 0 };
+}
+
+export const MediaEvent_TrackVariantSwitched: MessageFns<MediaEvent_TrackVariantSwitched> = {
+  encode(message: MediaEvent_TrackVariantSwitched, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.endpointId !== "") {
+      writer.uint32(10).string(message.endpointId);
+    }
+    if (message.trackId !== "") {
+      writer.uint32(18).string(message.trackId);
+    }
+    if (message.variant !== 0) {
+      writer.uint32(24).int32(message.variant);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): MediaEvent_TrackVariantSwitched {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMediaEvent_TrackVariantSwitched();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.endpointId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.trackId = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.variant = reader.int32() as any;
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MediaEvent_TrackVariantSwitched {
+    return {
+      endpointId: isSet(object.endpointId) ? globalThis.String(object.endpointId) : "",
+      trackId: isSet(object.trackId) ? globalThis.String(object.trackId) : "",
+      variant: isSet(object.variant) ? variantFromJSON(object.variant) : 0,
+    };
+  },
+
+  toJSON(message: MediaEvent_TrackVariantSwitched): unknown {
+    const obj: any = {};
+    if (message.endpointId !== "") {
+      obj.endpointId = message.endpointId;
+    }
+    if (message.trackId !== "") {
+      obj.trackId = message.trackId;
+    }
+    if (message.variant !== 0) {
+      obj.variant = variantToJSON(message.variant);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<MediaEvent_TrackVariantSwitched>, I>>(base?: I): MediaEvent_TrackVariantSwitched {
+    return MediaEvent_TrackVariantSwitched.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<MediaEvent_TrackVariantSwitched>, I>>(
+    object: I,
+  ): MediaEvent_TrackVariantSwitched {
+    const message = createBaseMediaEvent_TrackVariantSwitched();
+    message.endpointId = object.endpointId ?? "";
+    message.trackId = object.trackId ?? "";
+    message.variant = object.variant ?? 0;
+    return message;
+  },
+};
+
+function createBaseMediaEvent_TrackVariantDisabled(): MediaEvent_TrackVariantDisabled {
+  return { endpointId: "", trackId: "", variant: 0 };
+}
+
+export const MediaEvent_TrackVariantDisabled: MessageFns<MediaEvent_TrackVariantDisabled> = {
+  encode(message: MediaEvent_TrackVariantDisabled, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.endpointId !== "") {
+      writer.uint32(10).string(message.endpointId);
+    }
+    if (message.trackId !== "") {
+      writer.uint32(18).string(message.trackId);
+    }
+    if (message.variant !== 0) {
+      writer.uint32(24).int32(message.variant);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): MediaEvent_TrackVariantDisabled {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMediaEvent_TrackVariantDisabled();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.endpointId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.trackId = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.variant = reader.int32() as any;
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MediaEvent_TrackVariantDisabled {
+    return {
+      endpointId: isSet(object.endpointId) ? globalThis.String(object.endpointId) : "",
+      trackId: isSet(object.trackId) ? globalThis.String(object.trackId) : "",
+      variant: isSet(object.variant) ? variantFromJSON(object.variant) : 0,
+    };
+  },
+
+  toJSON(message: MediaEvent_TrackVariantDisabled): unknown {
+    const obj: any = {};
+    if (message.endpointId !== "") {
+      obj.endpointId = message.endpointId;
+    }
+    if (message.trackId !== "") {
+      obj.trackId = message.trackId;
+    }
+    if (message.variant !== 0) {
+      obj.variant = variantToJSON(message.variant);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<MediaEvent_TrackVariantDisabled>, I>>(base?: I): MediaEvent_TrackVariantDisabled {
+    return MediaEvent_TrackVariantDisabled.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<MediaEvent_TrackVariantDisabled>, I>>(
+    object: I,
+  ): MediaEvent_TrackVariantDisabled {
+    const message = createBaseMediaEvent_TrackVariantDisabled();
+    message.endpointId = object.endpointId ?? "";
+    message.trackId = object.trackId ?? "";
+    message.variant = object.variant ?? 0;
+    return message;
+  },
+};
+
+function createBaseMediaEvent_TrackVariantEnabled(): MediaEvent_TrackVariantEnabled {
+  return { endpointId: "", trackId: "", variant: 0 };
+}
+
+export const MediaEvent_TrackVariantEnabled: MessageFns<MediaEvent_TrackVariantEnabled> = {
+  encode(message: MediaEvent_TrackVariantEnabled, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.endpointId !== "") {
+      writer.uint32(10).string(message.endpointId);
+    }
+    if (message.trackId !== "") {
+      writer.uint32(18).string(message.trackId);
+    }
+    if (message.variant !== 0) {
+      writer.uint32(24).int32(message.variant);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): MediaEvent_TrackVariantEnabled {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMediaEvent_TrackVariantEnabled();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.endpointId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.trackId = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.variant = reader.int32() as any;
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MediaEvent_TrackVariantEnabled {
+    return {
+      endpointId: isSet(object.endpointId) ? globalThis.String(object.endpointId) : "",
+      trackId: isSet(object.trackId) ? globalThis.String(object.trackId) : "",
+      variant: isSet(object.variant) ? variantFromJSON(object.variant) : 0,
+    };
+  },
+
+  toJSON(message: MediaEvent_TrackVariantEnabled): unknown {
+    const obj: any = {};
+    if (message.endpointId !== "") {
+      obj.endpointId = message.endpointId;
+    }
+    if (message.trackId !== "") {
+      obj.trackId = message.trackId;
+    }
+    if (message.variant !== 0) {
+      obj.variant = variantToJSON(message.variant);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<MediaEvent_TrackVariantEnabled>, I>>(base?: I): MediaEvent_TrackVariantEnabled {
+    return MediaEvent_TrackVariantEnabled.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<MediaEvent_TrackVariantEnabled>, I>>(
+    object: I,
+  ): MediaEvent_TrackVariantEnabled {
+    const message = createBaseMediaEvent_TrackVariantEnabled();
+    message.endpointId = object.endpointId ?? "";
+    message.trackId = object.trackId ?? "";
+    message.variant = object.variant ?? 0;
+    return message;
+  },
+};
+
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
@@ -1523,6 +2550,10 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function isObject(value: any): boolean {
+  return typeof value === "object" && value !== null;
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

@@ -1,4 +1,4 @@
-import type { EncodingReason, MetadataJson, TrackContext, WebRTCEndpointEvents } from '../types';
+import type { EncodingReason, MetadataJson, RemoteTrackId, TrackContext, WebRTCEndpointEvents } from '../types';
 import { RemoteTrack } from './RemoteTrack';
 import type { EndpointWithTrackContext } from '../internal';
 import { TrackContextImpl } from '../internal';
@@ -73,7 +73,12 @@ export class Remote {
     this.emit('trackRemoved', remoteTrack.trackContext);
   };
 
-  public addRemoteEndpoint = (endpointId: string, metadataJson?: MetadataJson, sendNotification: boolean = true) => {
+  public addRemoteEndpoint = (
+    endpointId: string,
+    metadataJson?: MetadataJson,
+    tracks?: Record<RemoteTrackId, MediaEvent_Track>,
+    sendNotification: boolean = true,
+  ) => {
     const endpoint = {
       id: endpointId,
       type: 'exwebrtc',
@@ -82,7 +87,7 @@ export class Remote {
     } satisfies EndpointWithTrackContext;
 
     this.addEndpoint(endpoint);
-    this.addTracks(endpoint.id, {});
+    this.addTracks(endpoint.id, tracks ?? {});
 
     if (sendNotification) {
       this.emit('endpointAdded', endpoint);
@@ -198,8 +203,8 @@ export class Remote {
       remoteTrack.setTargetTrackEncoding(variant);
 
       // TODO - Implement when simulcast is available
-      const mediaEvent = MediaEvent_EnableTrackVariant.create({ variant, trackId });
-      this.sendMediaEvent();
+      // const mediaEvent = MediaEvent_EnableTrackVariant.create({ variant, trackId });
+      // this.sendMediaEvent();
       this.emit('targetTrackEncodingRequested', {
         trackId,
         variant,

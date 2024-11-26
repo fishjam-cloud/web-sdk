@@ -117,7 +117,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
       Object.entries(connectedEvent.endpointIdToEndpoint)
         .filter(([endpointId]) => endpointId !== this.local.getEndpoint().id)
         .forEach(([endpointId, endpoint]) => {
-          this.remote.addRemoteEndpoint(endpointId, endpoint.metadataJson);
+          this.remote.addRemoteEndpoint(endpointId, endpoint.metadataJson, endpoint.trackIdToTrack);
         });
 
       const remoteEndpoints = Object.values(this.remote.getRemoteEndpoints());

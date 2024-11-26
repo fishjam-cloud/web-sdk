@@ -52,8 +52,11 @@ export const setupRoomWithMocks = async (
 
   setupRoom(webRTCEndpoint, endpointId, trackId);
 
-  webRTCEndpoint.receiveMediaEvent(JSON.stringify(createAddLocalTrackSDPOffer()));
-  webRTCEndpoint.receiveMediaEvent(JSON.stringify(createAddLocalTrackAnswerData(trackId)));
+  const offerData = createAddLocalTrackSDPOffer();
+  webRTCEndpoint.receiveMediaEvent(MediaEvent.encode({ offerData }).finish());
+
+  const sdpAnswer = createAddLocalTrackAnswerData(trackId);
+  webRTCEndpoint.receiveMediaEvent(MediaEvent.encode({ sdpAnswer }).finish());
 
   const connection = webRTCEndpoint['connectionManager']!;
   const transciever = new RTCRtpTransceiver();

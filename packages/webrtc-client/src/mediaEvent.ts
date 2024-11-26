@@ -9,14 +9,22 @@ export interface MediaEvent {
   data?: any;
 }
 
-export function serializeMediaEvent(mediaEvent: PeerMediaEvent): Uint8Array {
+export function serializePeerMediaEvent(mediaEvent: PeerMediaEvent): Uint8Array {
   const encodedEvent = PeerMediaEvent.encode(mediaEvent).finish();
   return encodedEvent;
 }
 
-export function deserializeMediaEvent(serializedMediaEvent: SerializedMediaEvent): ServerMediaEvent {
-  const decodedEvent = ServerMediaEvent.decode(serializedMediaEvent);
-  return decodedEvent;
+export function serializeServerMediaEvent(mediaEvent: ServerMediaEvent): Uint8Array {
+  const encodedEvent = ServerMediaEvent.encode(mediaEvent).finish();
+  return encodedEvent;
+}
+
+export function deserializeServerMediaEvent(serializedMediaEvent: SerializedMediaEvent): ServerMediaEvent {
+  return ServerMediaEvent.decode(serializedMediaEvent);
+}
+
+export function deserializePeerMediaEvent(serializedMediaEvent: SerializedMediaEvent): PeerMediaEvent {
+  return PeerMediaEvent.decode(serializedMediaEvent);
 }
 
 export function generateMediaEvent<T extends keyof PeerMediaEvent>(type: T, data?: PeerMediaEvent[T]): MediaEvent {
@@ -24,7 +32,3 @@ export function generateMediaEvent<T extends keyof PeerMediaEvent>(type: T, data
 
   return mediaEvent;
 }
-
-// export function generateCustomEvent(data?: any): MediaEvent {
-//   return generateMediaEvent('custom', data);
-// }

@@ -1,4 +1,4 @@
-export { useConnect, useDisconnect } from "./useConnection";
+export { useConnection } from "./useConnection";
 export { useReconnection } from "./useReconnection";
 export { useCamera } from "./devices/useCamera";
 export { useMicrophone } from "./devices/useMicrophone";

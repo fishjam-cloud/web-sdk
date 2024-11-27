@@ -3,7 +3,7 @@ import { useTrackManager } from "./hooks/internal/useTrackManager";
 import { FishjamClient, type ReconnectConfig } from "@fishjam-cloud/ts-client";
 import type { FishjamContextType } from "./hooks/internal/useFishjamContext";
 import { FishjamContext } from "./hooks/internal/useFishjamContext";
-import { DeviceManager } from "./DeviceManager";
+import { DeviceManager } from "./devices/DeviceManager";
 import { usePeerStatus } from "./hooks/internal/usePeerStatus";
 import { useFishjamClientState } from "./hooks/internal/useFishjamClientState";
 import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "./constraints";

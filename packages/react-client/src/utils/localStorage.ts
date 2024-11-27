@@ -1,5 +1,5 @@
 import type { PersistLastDeviceHandlers } from "../types/public";
-import type { DeviceType } from "../DeviceManager";
+import type { DeviceType } from "../devices/DeviceManager";
 
 export function createStorageConfig(
   deviceType: DeviceType,

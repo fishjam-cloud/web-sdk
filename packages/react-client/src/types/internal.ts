@@ -1,4 +1,4 @@
-import type { DeviceType } from "../DeviceManager";
+import type { DeviceType } from "../devices/DeviceManager";
 import type { StartStreamingProps, Track, TrackMiddleware, TracksMiddleware } from "./public";
 import type { Peer } from "@fishjam-cloud/ts-client";
 

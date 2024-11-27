@@ -2,7 +2,8 @@ import { useInitializeDevices, useConnect } from "@fishjam-cloud/react-client";
 
 import { Loader2 } from "lucide-react";
 
-import { FC, useEffect } from "react";
+import type { FC } from "react";
+import { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
@@ -11,7 +12,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./
 
 import { useForm } from "react-hook-form";
 import { getRoomCredentials } from "@/lib/roomManager";
-import { RoomForm } from "@/types";
+import type { RoomForm } from "@/types";
 import { getPersistedFormValues, persistFormValues } from "@/lib/utils";
 import { useAutoConnect } from "@/hooks/useAutoConnect";
 import { CameraSettings, MicrophoneSettings } from "./DeviceSettings";

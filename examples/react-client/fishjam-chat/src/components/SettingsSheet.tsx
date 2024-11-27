@@ -1,4 +1,4 @@
-import { FC, PropsWithChildren } from "react";
+import type { FC, PropsWithChildren } from "react";
 import { SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription, Sheet } from "./ui/sheet";
 import { Label } from "./ui/label";
 import { CameraSettings, MicrophoneSettings } from "./DeviceSettings";

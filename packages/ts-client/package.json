@@ -11,23 +11,23 @@
     "webrtc",
     "fishjam"
   ],
-  "main": "./dist/index.mjs",
-  "types": "./dist/index.d.mts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist/**"
   ],
-  "tsup": {
-    "dts": true,
-    "minify": true,
-    "format": [
-      "esm"
-    ],
-    "noExternal": [
-      "@fishjam-cloud/webrtc-client"
-    ]
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./protos": {
+      "import": "./dist/protos/index.js",
+      "types": "./dist/protos/index.d.ts"
+    }
   },
   "scripts": {
-    "build": "tsup src/index.ts",
+    "build": "tsc",
     "build:check": "tsc --noEmit",
     "format": "prettier --write . --ignore-path ./.eslintignore",
     "format:check": "prettier --check . --ignore-path ./.eslintignore",
@@ -46,19 +46,18 @@
   "devDependencies": {
     "@playwright/test": "^1.49.0",
     "@types/events": "^3.0.3",
-    "@types/node": "^22.9.1",
+    "@types/node": "^22.10.0",
     "@types/uuid": "^10.0.0",
-    "@vitest/coverage-v8": "^2.1.5",
+    "@vitest/coverage-v8": "^2.1.6",
     "fake-mediastreamtrack": "^1.2.0",
     "husky": "^9.1.7",
     "lint-staged": "^15.2.10",
-    "tsup": "^8.3.5",
     "typed-emitter": "^2.1.0",
-    "typedoc": "^0.26.11",
+    "typedoc": "^0.27.0",
     "typedoc-plugin-external-resolver": "^1.0.3",
-    "typedoc-plugin-mdn-links": "^3.3.8",
-    "typescript": "^5.6.3",
-    "vitest": "^2.1.5",
+    "typedoc-plugin-mdn-links": "^4.0.1",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.6",
     "zod": "^3.23.6"
   },
   "lint-staged": {

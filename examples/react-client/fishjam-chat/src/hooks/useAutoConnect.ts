@@ -18,7 +18,7 @@ export const useAutoConnect = () => {
     const { url, peerToken } = await getRoomCredentials(
       roomManagerUrl,
       roomName,
-      peerName
+      peerName,
     );
     await connect({
       url,

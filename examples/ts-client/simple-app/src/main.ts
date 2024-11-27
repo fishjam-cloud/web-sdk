@@ -185,7 +185,7 @@ client.on("peerLeft", (peer) => {
 const setupSimulcastCheckbox = (
   element: DocumentFragment,
   trackId: string,
-  encoding: "l" | "m" | "h",
+  encoding: Variant,
 ) => {
   const simulcastInputL: HTMLInputElement | null =
     element.querySelector<HTMLInputElement>(
@@ -299,7 +299,7 @@ client.on("trackAdded", (ctx) => {
     const activeEncodingElement = document.querySelector(
       `div[data-track-id="${ctx.trackId}"] .simulcast-active-encoding`,
     )!;
-    activeEncodingElement.innerHTML = ctx.encoding ?? "";
+    activeEncodingElement.innerHTML = `${ctx.encoding}`;
   });
   ctx.on("voiceActivityChanged", () => {});
 });

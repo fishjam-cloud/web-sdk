@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useFishjamContext } from "./useFishjamContext";
+import { useFishjamContext } from "./internal/useFishjamContext";
 import type { ConnectConfig } from "../types/public";
 
 /**

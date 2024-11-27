@@ -1,11 +1,11 @@
 import { useRef, type PropsWithChildren } from "react";
-import { useTrackManager } from "./hooks/useTrackManager";
+import { useTrackManager } from "./hooks/internal/useTrackManager";
 import { FishjamClient, type ReconnectConfig } from "@fishjam-cloud/ts-client";
-import type { FishjamContextType } from "./hooks/useFishjamContext";
-import { FishjamContext } from "./hooks/useFishjamContext";
+import type { FishjamContextType } from "./hooks/internal/useFishjamContext";
+import { FishjamContext } from "./hooks/internal/useFishjamContext";
 import { DeviceManager } from "./DeviceManager";
-import { usePeerStatus } from "./hooks/usePeerStatus";
-import { useFishjamClientState } from "./hooks/useFishjamClientState";
+import { usePeerStatus } from "./hooks/internal/usePeerStatus";
+import { useFishjamClientState } from "./hooks/internal/useFishjamClientState";
 import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "./constraints";
 import type { BandwidthLimits, PersistLastDeviceHandlers, StartStreamingProps } from "./types/public";
 import { useScreenShareManager } from "./hooks/useScreenShare";

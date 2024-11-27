@@ -3,7 +3,7 @@ import { useInitializeDevices, useConnect } from "@fishjam-cloud/react-client";
 import { Loader2 } from "lucide-react";
 
 import type { FC } from "react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -51,8 +51,6 @@ export const JoinRoomCard: FC<Props> = (props) => {
 
   useAutoConnect();
 
-  const [error, setError] = useState<string>();
-
   const onJoinRoom = async ({
     roomManagerUrl,
     roomName,
@@ -71,11 +69,13 @@ export const JoinRoomCard: FC<Props> = (props) => {
         token: peerToken,
         peerMetadata: { displayName: peerName },
       });
-      setError(undefined);
+      form.clearErrors();
     } catch (e) {
-      setError((e as { message?: string })?.message);
+      form.setError("root", { message: (e as { message?: string })?.message });
     }
   };
+
+  const error = form.formState.errors.root?.message;
 
   return (
     <Card {...props}>

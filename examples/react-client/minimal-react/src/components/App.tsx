@@ -1,5 +1,9 @@
 import VideoPlayer from "./VideoPlayer";
-import { useConnection, usePeers, useScreenShare } from "@fishjam-cloud/react-client";
+import {
+  useConnection,
+  usePeers,
+  useScreenShare,
+} from "@fishjam-cloud/react-client";
 import { useFishjamClient_DO_NOT_USE } from "@fishjam-cloud/react-client/internal";
 import { useState, Fragment } from "react";
 
@@ -21,7 +25,11 @@ export const App = () => {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-      <input value={token} onChange={(e) => setToken(() => e?.target?.value)} placeholder="token" />
+      <input
+        value={token}
+        onChange={(e) => setToken(() => e?.target?.value)}
+        placeholder="token"
+      />
       <div style={{ display: "flex", flexDirection: "row", gap: "8px" }}>
         <button
           disabled={token === "" || peerStatus === "connected"}

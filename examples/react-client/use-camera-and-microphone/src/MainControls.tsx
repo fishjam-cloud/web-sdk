@@ -29,24 +29,47 @@ const isDeviceStopValue = (e: string | undefined): e is OnDeviceStop =>
 
 const tokenAtom = atomWithStorage("token", "");
 
-const broadcastVideoOnConnectAtom = atomWithStorage<boolean | undefined>("broadcastVideoOnConnect", undefined);
-const broadcastVideoOnDeviceStartAtom = atomWithStorage<boolean | undefined>("broadcastVideoOnDeviceStart", undefined);
-const videoOnDeviceChangeAtom = atomWithStorage<OnDeviceChange>("videoOnDeviceChange", undefined);
-const videoOnDeviceStopAtom = atomWithStorage<OnDeviceStop>("videoOnDeviceStop", undefined);
+const broadcastVideoOnConnectAtom = atomWithStorage<boolean | undefined>(
+  "broadcastVideoOnConnect",
+  undefined,
+);
+const broadcastVideoOnDeviceStartAtom = atomWithStorage<boolean | undefined>(
+  "broadcastVideoOnDeviceStart",
+  undefined,
+);
+const videoOnDeviceChangeAtom = atomWithStorage<OnDeviceChange>(
+  "videoOnDeviceChange",
+  undefined,
+);
+const videoOnDeviceStopAtom = atomWithStorage<OnDeviceStop>(
+  "videoOnDeviceStop",
+  undefined,
+);
 
-const broadcastAudioOnConnectAtom = atomWithStorage<boolean | undefined>("broadcastAudioOnConnect", undefined);
-const broadcastAudioOnDeviceStartAtom = atomWithStorage<boolean | undefined>("broadcastAudioOnDeviceStart", undefined);
-const audioOnDeviceChangeAtom = atomWithStorage<OnDeviceChange>("audioOnDeviceChange", undefined);
-const audioOnDeviceStopAtom = atomWithStorage<OnDeviceStop>("audioOnDeviceStop", undefined);
+const broadcastAudioOnConnectAtom = atomWithStorage<boolean | undefined>(
+  "broadcastAudioOnConnect",
+  undefined,
+);
+const broadcastAudioOnDeviceStartAtom = atomWithStorage<boolean | undefined>(
+  "broadcastAudioOnDeviceStart",
+  undefined,
+);
+const audioOnDeviceChangeAtom = atomWithStorage<OnDeviceChange>(
+  "audioOnDeviceChange",
+  undefined,
+);
+const audioOnDeviceStopAtom = atomWithStorage<OnDeviceStop>(
+  "audioOnDeviceStop",
+  undefined,
+);
 
 const broadcastScreenShareOnConnectAtom = atomWithStorage<boolean | undefined>(
   "broadcastScreenShareOnConnect",
-  undefined
+  undefined,
 );
-const broadcastScreenShareOnDeviceStartAtom = atomWithStorage<boolean | undefined>(
-  "broadcastScreenShareOnDeviceStart",
-  undefined
-);
+const broadcastScreenShareOnDeviceStartAtom = atomWithStorage<
+  boolean | undefined
+>("broadcastScreenShareOnDeviceStart", undefined);
 
 const autostartAtom = atomWithStorage<boolean>("autostart", false, undefined, {
   getOnInit: true,
@@ -60,24 +83,41 @@ export const MainControls = () => {
   const { joinRoom, leaveRoom, peerStatus } = useConnection();
 
   const { localPeer } = usePeers();
-  const localTracks = [localPeer?.cameraTrack, localPeer?.screenShareVideoTrack].filter((track): track is Track =>
-    Boolean(track)
+  const localTracks = [
+    localPeer?.cameraTrack,
+    localPeer?.screenShareVideoTrack,
+  ].filter((track): track is Track => Boolean(track));
+
+  const [broadcastVideoOnConnect, setBroadcastVideoOnConnect] = useAtom(
+    broadcastVideoOnConnectAtom,
+  );
+  const [broadcastVideoOnDeviceStart, setBroadcastVideoOnDeviceStart] = useAtom(
+    broadcastVideoOnDeviceStartAtom,
+  );
+  const [broadcastVideoOnDeviceChange, setBroadcastVideoOnDeviceChange] =
+    useAtom(videoOnDeviceChangeAtom);
+  const [broadcastVideoOnDeviceStop, setBroadcastVideoOnDeviceStop] = useAtom(
+    videoOnDeviceStopAtom,
   );
 
-  const [broadcastVideoOnConnect, setBroadcastVideoOnConnect] = useAtom(broadcastVideoOnConnectAtom);
-  const [broadcastVideoOnDeviceStart, setBroadcastVideoOnDeviceStart] = useAtom(broadcastVideoOnDeviceStartAtom);
-  const [broadcastVideoOnDeviceChange, setBroadcastVideoOnDeviceChange] = useAtom(videoOnDeviceChangeAtom);
-  const [broadcastVideoOnDeviceStop, setBroadcastVideoOnDeviceStop] = useAtom(videoOnDeviceStopAtom);
-
-  const [broadcastAudioOnConnect, setBroadcastAudioOnConnect] = useAtom(broadcastAudioOnConnectAtom);
-  const [broadcastAudioOnDeviceStart, setBroadcastAudioOnDeviceStart] = useAtom(broadcastAudioOnDeviceStartAtom);
-  const [broadcastAudioOnDeviceChange, setBroadcastAudioOnDeviceChange] = useAtom(audioOnDeviceChangeAtom);
-  const [broadcastAudioOnDeviceStop, setBroadcastAudioOnDeviceStop] = useAtom(audioOnDeviceStopAtom);
-
-  const [broadcastScreenShareOnConnect, setBroadcastScreenShareOnConnect] = useAtom(broadcastScreenShareOnConnectAtom);
-  const [broadcastScreenShareOnDeviceStart, setBroadcastScreenShareOnDeviceStart] = useAtom(
-    broadcastScreenShareOnDeviceStartAtom
+  const [broadcastAudioOnConnect, setBroadcastAudioOnConnect] = useAtom(
+    broadcastAudioOnConnectAtom,
   );
+  const [broadcastAudioOnDeviceStart, setBroadcastAudioOnDeviceStart] = useAtom(
+    broadcastAudioOnDeviceStartAtom,
+  );
+  const [broadcastAudioOnDeviceChange, setBroadcastAudioOnDeviceChange] =
+    useAtom(audioOnDeviceChangeAtom);
+  const [broadcastAudioOnDeviceStop, setBroadcastAudioOnDeviceStop] = useAtom(
+    audioOnDeviceStopAtom,
+  );
+
+  const [broadcastScreenShareOnConnect, setBroadcastScreenShareOnConnect] =
+    useAtom(broadcastScreenShareOnConnectAtom);
+  const [
+    broadcastScreenShareOnDeviceStart,
+    setBroadcastScreenShareOnDeviceStart,
+  ] = useAtom(broadcastScreenShareOnDeviceStartAtom);
 
   const [autostart, setAutostart] = useAtom(autostartAtom);
 
@@ -114,7 +154,10 @@ export const MainControls = () => {
 
           <button
             className="btn btn-info btn-sm"
-            disabled={audio.status !== "uninitialized" || video.status !== "uninitialized"}
+            disabled={
+              audio.status !== "uninitialized" ||
+              video.status !== "uninitialized"
+            }
             onClick={() => {
               initializeDevices();
             }}
@@ -186,7 +229,8 @@ export const MainControls = () => {
             name='Broadcast video on device change (default "replace")'
             value={broadcastVideoOnDeviceChange}
             set={(value) => {
-              if (isDeviceChangeValue(value)) setBroadcastVideoOnDeviceChange(value);
+              if (isDeviceChangeValue(value))
+                setBroadcastVideoOnDeviceChange(value);
             }}
             radioClass="radio-primary"
             options={[
@@ -200,7 +244,8 @@ export const MainControls = () => {
             name='Broadcast video on device stop (default "mute")'
             value={broadcastVideoOnDeviceStop}
             set={(value) => {
-              if (isDeviceStopValue(value)) setBroadcastVideoOnDeviceStop(value);
+              if (isDeviceStopValue(value))
+                setBroadcastVideoOnDeviceStop(value);
             }}
             radioClass="radio-primary"
             options={[
@@ -228,7 +273,8 @@ export const MainControls = () => {
             name='Broadcast audio on device change (default "replace")'
             value={broadcastAudioOnDeviceChange}
             set={(value) => {
-              if (isDeviceChangeValue(value)) setBroadcastAudioOnDeviceChange(value);
+              if (isDeviceChangeValue(value))
+                setBroadcastAudioOnDeviceChange(value);
             }}
             radioClass="radio-secondary"
             options={[
@@ -242,7 +288,8 @@ export const MainControls = () => {
             name='Broadcast audio on device stop (default "mute")'
             value={broadcastAudioOnDeviceStop}
             set={(value) => {
-              if (isDeviceStopValue(value)) setBroadcastAudioOnDeviceStop(value);
+              if (isDeviceStopValue(value))
+                setBroadcastAudioOnDeviceStop(value);
             }}
             radioClass="radio-secondary"
             options={[
@@ -315,12 +362,22 @@ export const MainControls = () => {
             <div className="max-w-[500px]">
               {video.stream && <VideoPlayer stream={video.stream} />}
 
-              {audio.stream && <AudioVisualizer stream={audio.stream} trackId={audio.trackId} />}
+              {audio.stream && (
+                <AudioVisualizer
+                  stream={audio.stream}
+                  trackId={audio.trackId}
+                />
+              )}
 
-              {screenShare.videoTrack && <VideoPlayer stream={screenShare.stream} />}
+              {screenShare.videoTrack && (
+                <VideoPlayer stream={screenShare.stream} />
+              )}
 
               {screenShare.audioTrack && (
-                <AudioVisualizer trackId={screenShare.audioTrack.id} stream={screenShare.stream} />
+                <AudioVisualizer
+                  trackId={screenShare.audioTrack.id}
+                  stream={screenShare.stream}
+                />
               )}
             </div>
           </div>
@@ -333,9 +390,13 @@ export const MainControls = () => {
                 <div key={trackId} className="max-w-[500px] border">
                   <span>trackId: {trackId}</span>
 
-                  {track?.kind === "audio" && <AudioVisualizer trackId={track.id} stream={stream} />}
+                  {track?.kind === "audio" && (
+                    <AudioVisualizer trackId={track.id} stream={stream} />
+                  )}
 
-                  {track?.kind === "video" && <VideoPlayer key={trackId} stream={stream} />}
+                  {track?.kind === "video" && (
+                    <VideoPlayer key={trackId} stream={stream} />
+                  )}
                 </div>
               ))}
             </div>

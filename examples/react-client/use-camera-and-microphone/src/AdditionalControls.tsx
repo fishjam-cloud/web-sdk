@@ -3,21 +3,14 @@ import { atomWithStorage } from "jotai/utils";
 import { useAtom } from "jotai";
 import VideoPlayer from "./VideoPlayer";
 import AudioVisualizer from "./AudioVisualizer";
-import {
-  useCamera,
-  useMicrophone,
-  useStatus,
-} from "@fishjam-cloud/react-client";
+import { useCamera, useMicrophone, useConnection } from "@fishjam-cloud/react-client";
 
-const showAdditionalComponentAtom = atomWithStorage(
-  "show-additional-component",
-  false,
-);
+const showAdditionalComponentAtom = atomWithStorage("show-additional-component", false);
 
 export const AdditionalControls = () => {
   const camera = useCamera();
   const microphone = useMicrophone();
-  const status = useStatus();
+  const { peerStatus } = useConnection();
 
   const [show, setShow] = useAtom(showAdditionalComponentAtom);
 
@@ -39,13 +32,9 @@ export const AdditionalControls = () => {
       {show && (
         <div className="flex flex-row flex-wrap gap-2 p-2 md:grid md:grid-cols-2">
           <div className="grid grid-cols-2 gap-2">
-            <DeviceControls device={camera} type={"video"} status={status} />
+            <DeviceControls device={camera} type={"video"} status={peerStatus} />
 
-            <DeviceControls
-              device={microphone}
-              type={"audio"}
-              status={status}
-            />
+            <DeviceControls device={microphone} type={"audio"} status={peerStatus} />
           </div>
 
           <div>
@@ -54,12 +43,7 @@ export const AdditionalControls = () => {
             <div className="max-w-[500px]">
               {camera.stream && <VideoPlayer stream={camera.stream} />}
 
-              {camera.stream && (
-                <AudioVisualizer
-                  stream={camera.stream}
-                  trackId={camera.trackId}
-                />
-              )}
+              {camera.stream && <AudioVisualizer stream={camera.stream} trackId={camera.trackId} />}
             </div>
           </div>
         </div>

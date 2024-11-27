@@ -1,10 +1,5 @@
 import VideoPlayer from "./VideoPlayer";
-import {
-  useConnection,
-  usePeers,
-  useScreenShare,
-  useStatus,
-} from "@fishjam-cloud/react-client";
+import { useConnection, usePeers, useScreenShare } from "@fishjam-cloud/react-client";
 import { useFishjamClient_DO_NOT_USE } from "@fishjam-cloud/react-client/internal";
 import { useState, Fragment } from "react";
 
@@ -13,9 +8,8 @@ const FISHJAM_URL = "ws://localhost:5002";
 export const App = () => {
   const [token, setToken] = useState("");
 
-  const { joinRoom, leaveRoom } = useConnection();
+  const { joinRoom, leaveRoom, peerStatus } = useConnection();
 
-  const status = useStatus();
   const { remotePeers } = usePeers();
   const screenShare = useScreenShare();
   const client = useFishjamClient_DO_NOT_USE();
@@ -27,14 +21,10 @@ export const App = () => {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-      <input
-        value={token}
-        onChange={(e) => setToken(() => e?.target?.value)}
-        placeholder="token"
-      />
+      <input value={token} onChange={(e) => setToken(() => e?.target?.value)} placeholder="token" />
       <div style={{ display: "flex", flexDirection: "row", gap: "8px" }}>
         <button
-          disabled={token === "" || status === "connected"}
+          disabled={token === "" || peerStatus === "connected"}
           onClick={() => {
             if (!token || token === "") throw Error("Token is empty");
             joinRoom({
@@ -46,7 +36,7 @@ export const App = () => {
           Connect
         </button>
         <button
-          disabled={status !== "connected"}
+          disabled={peerStatus !== "connected"}
           onClick={() => {
             leaveRoom();
           }}
@@ -54,7 +44,7 @@ export const App = () => {
           Disconnect
         </button>
         <button
-          disabled={status !== "connected"}
+          disabled={peerStatus !== "connected"}
           onClick={async () => {
             // stream video only
             screenShare.startStreaming({ audioConstraints: false });
@@ -62,7 +52,7 @@ export const App = () => {
         >
           Start screen share
         </button>
-        <span>Status: {status}</span>
+        <span>Status: {peerStatus}</span>
       </div>
 
       {/* Render the video remote tracks from other peers*/}

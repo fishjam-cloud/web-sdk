@@ -6,7 +6,7 @@ import { FishjamContext } from "./hooks/internal/useFishjamContext";
 import { DeviceManager } from "./devices/DeviceManager";
 import { usePeerStatus } from "./hooks/internal/usePeerStatus";
 import { useFishjamClientState } from "./hooks/internal/useFishjamClientState";
-import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "./constraints";
+import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "./devices/constraints";
 import type { BandwidthLimits, PersistLastDeviceHandlers, StartStreamingProps } from "./types/public";
 import { useScreenShareManager } from "./hooks/useScreenShare";
 import { mergeWithDefaultBandwitdthLimits } from "./utils/bandwidth";

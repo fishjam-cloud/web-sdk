@@ -8,7 +8,7 @@ import type {
   MediaStatus,
 } from "../types/internal";
 
-import { prepareMediaTrackConstraints } from "../constraints";
+import { prepareMediaTrackConstraints } from "./constraints";
 
 import EventEmitter from "events";
 import type TypedEmitter from "typed-emitter";

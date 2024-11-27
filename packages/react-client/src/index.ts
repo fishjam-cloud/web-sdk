@@ -25,8 +25,6 @@ export {
   StartStreamingProps,
 } from "./types/public";
 
-export { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS, SCREEN_SHARING_MEDIA_CONSTRAINTS } from "./constraints";
-
 export type {
   Peer,
   MessageEvents,

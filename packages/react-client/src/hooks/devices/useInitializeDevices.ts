@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { prepareConstraints } from "../../constraints";
+import { prepareConstraints } from "../../devices/constraints";
 import { getAvailableMedia, getCorrectedResult } from "../../devices/mediaInitializer";
 import { useFishjamContext } from "../internal/useFishjamContext";
 

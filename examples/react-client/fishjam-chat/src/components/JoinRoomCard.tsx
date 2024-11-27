@@ -2,7 +2,8 @@ import { useInitializeDevices, useConnect } from "@fishjam-cloud/react-client";
 
 import { Loader2 } from "lucide-react";
 
-import { FC, useEffect, useState } from "react";
+import type { FC } from "react";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -23,7 +24,7 @@ import {
 
 import { useForm } from "react-hook-form";
 import { getRoomCredentials } from "@/lib/roomManager";
-import { RoomForm } from "@/types";
+import type { RoomForm } from "@/types";
 import { getPersistedFormValues, persistFormValues } from "@/lib/utils";
 import { useAutoConnect } from "@/hooks/useAutoConnect";
 import { CameraSettings, MicrophoneSettings } from "./DeviceSettings";
@@ -139,7 +140,7 @@ export const JoinRoomCard: FC<Props> = (props) => {
             {form.formState.isSubmitting ? (
               <Loader2 className="animate-spin" />
             ) : (
-              <span>Join rooqm</span>
+              <span>Join room</span>
             )}
           </Button>
         </CardFooter>

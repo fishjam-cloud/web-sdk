@@ -1,7 +1,6 @@
 import VideoPlayer from "./VideoPlayer";
 import {
-  useConnect,
-  useDisconnect,
+  useConnection,
   usePeers,
   useScreenShare,
   useStatus,
@@ -14,8 +13,8 @@ const FISHJAM_URL = "ws://localhost:5002";
 export const App = () => {
   const [token, setToken] = useState("");
 
-  const connect = useConnect();
-  const disconnect = useDisconnect();
+  const { joinRoom, leaveRoom } = useConnection();
+
   const status = useStatus();
   const { remotePeers } = usePeers();
   const screenShare = useScreenShare();
@@ -38,7 +37,7 @@ export const App = () => {
           disabled={token === "" || status === "connected"}
           onClick={() => {
             if (!token || token === "") throw Error("Token is empty");
-            connect({
+            joinRoom({
               token: token,
               url: FISHJAM_URL,
             });
@@ -49,7 +48,7 @@ export const App = () => {
         <button
           disabled={status !== "connected"}
           onClick={() => {
-            disconnect();
+            leaveRoom();
           }}
         >
           Disconnect

@@ -7,8 +7,7 @@ import AudioVisualizer from "./AudioVisualizer";
 import type { Track } from "@fishjam-cloud/react-client";
 import {
   useCamera,
-  useConnect,
-  useDisconnect,
+  useConnection,
   useInitializeDevices,
   useMicrophone,
   usePeers,
@@ -82,8 +81,7 @@ const FISHJAM_URL = "ws://localhost:5002";
 export const MainControls = () => {
   const [token, setToken] = useAtom(tokenAtom);
 
-  const connect = useConnect();
-  const disconnect = useDisconnect();
+  const { joinRoom, leaveRoom } = useConnection();
 
   const { localPeer } = usePeers();
   const localTracks = [
@@ -174,7 +172,7 @@ export const MainControls = () => {
             disabled={token === "" || status === "connected"}
             onClick={() => {
               if (!token || token === "") throw Error("Token is empty");
-              connect({
+              joinRoom({
                 token: token,
                 url: FISHJAM_URL,
               });
@@ -188,9 +186,9 @@ export const MainControls = () => {
             disabled={token === ""}
             onClick={() => {
               if (!token || token === "") throw Error("Token is empty");
-              disconnect();
+              leaveRoom();
 
-              connect({
+              joinRoom({
                 token: token,
                 url: FISHJAM_URL,
               });
@@ -203,7 +201,7 @@ export const MainControls = () => {
             className="btn btn-error btn-sm"
             disabled={status !== "connected"}
             onClick={() => {
-              disconnect();
+              leaveRoom();
             }}
           >
             Disconnect

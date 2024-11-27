@@ -17,7 +17,6 @@
     "dist/**"
   ],
   "tsup": {
-    "dts": true,
     "minify": true,
     "format": [
       "esm"
@@ -28,7 +27,7 @@
     ]
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsup src/index.ts --dts-resolve",
     "build:check": "tsc --noEmit",
     "format": "prettier --write . --ignore-path ./.eslintignore",
     "format:check": "prettier --check . --ignore-path ./.eslintignore",
@@ -39,13 +38,13 @@
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.2",
-    "@fishjam-cloud/protobufs": "workspace:*",
-    "@fishjam-cloud/webrtc-client": "workspace:*",
     "events": "^3.3.0",
     "typed-emitter": "^2.1.0",
     "uuid": "^11.0.3"
   },
   "devDependencies": {
+    "@fishjam-cloud/protobufs": "workspace:*",
+    "@fishjam-cloud/webrtc-client": "workspace:*",
     "@playwright/test": "^1.49.0",
     "@types/events": "^3.0.3",
     "@types/node": "^22.10.0",
@@ -54,6 +53,7 @@
     "fake-mediastreamtrack": "^1.2.0",
     "husky": "^9.1.7",
     "lint-staged": "^15.2.10",
+    "tsup": "^8.3.5",
     "typed-emitter": "^2.1.0",
     "typedoc": "^0.27.0",
     "typedoc-plugin-external-resolver": "^1.0.3",

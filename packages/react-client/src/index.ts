@@ -10,6 +10,8 @@ export {
   useStatus,
   useVAD,
 } from "./hooks/public";
+export type { ConnectConfig, PeerWithTracks } from "./hooks/public";
+
 export { FishjamProvider } from "./fishjamProvider";
 
 export {
@@ -18,8 +20,6 @@ export {
   TracksMiddleware,
   PeerStatus,
   Device,
-  PeerWithTracks,
-  ConnectConfig,
   PersistLastDeviceHandlers,
   ScreenshareApi,
   StartStreamingProps,

@@ -7,11 +7,13 @@ import { nonNullablePredicate } from "@/lib/utils";
 export const RoomView = () => {
   const { localPeer, remotePeers } = usePeers<{ displayName: string }>();
 
-  const trackAmount = [localPeer, ...remotePeers].filter(nonNullablePredicate).reduce((acc, curr) => {
-    if (curr.cameraTrack) acc++;
-    if (curr.screenShareVideoTrack) acc++;
-    return acc;
-  }, 0);
+  const trackAmount = [localPeer, ...remotePeers]
+    .filter(nonNullablePredicate)
+    .reduce((acc, curr) => {
+      if (curr.cameraTrack) acc++;
+      if (curr.screenShareVideoTrack) acc++;
+      return acc;
+    }, 0);
 
   const tilesSqrt = trackAmount === 2 ? 2 : Math.ceil(Math.sqrt(trackAmount));
 
@@ -40,12 +42,24 @@ export const RoomView = () => {
           )}
 
           {remotePeers.map(
-            ({ id, cameraTrack, microphoneTrack, screenShareVideoTrack, screenShareAudioTrack, metadata }) => {
+            ({
+              id,
+              cameraTrack,
+              microphoneTrack,
+              screenShareVideoTrack,
+              screenShareAudioTrack,
+              metadata,
+            }) => {
               const label = metadata?.peer?.displayName ?? id;
 
               return (
                 <Fragment key={id}>
-                  <Tile id={id} name={label} videoTrack={cameraTrack} audioTrack={microphoneTrack} />
+                  <Tile
+                    id={id}
+                    name={label}
+                    videoTrack={cameraTrack}
+                    audioTrack={microphoneTrack}
+                  />
 
                   {screenShareVideoTrack && (
                     <Tile

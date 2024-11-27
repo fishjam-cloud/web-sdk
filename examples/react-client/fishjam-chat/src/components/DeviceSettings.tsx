@@ -11,7 +11,11 @@ export const CameraSettings = () => {
 
   return (
     <div className="flex flex-col items-center justify-center gap-4">
-      <DeviceSelect devices={devices} onSelectDevice={initialize} defaultDevice={activeDevice ?? devices[0]} />
+      <DeviceSelect
+        devices={devices}
+        onSelectDevice={initialize}
+        defaultDevice={activeDevice ?? devices[0]}
+      />
 
       {hasValidDevices && <BlurToggleButton type="button" />}
 
@@ -25,7 +29,11 @@ export const MicrophoneSettings = () => {
 
   return (
     <div className="flex flex-col items-center justify-center gap-4">
-      <DeviceSelect devices={devices} onSelectDevice={initialize} defaultDevice={activeDevice ?? devices[0]} />
+      <DeviceSelect
+        devices={devices}
+        onSelectDevice={initialize}
+        defaultDevice={activeDevice ?? devices[0]}
+      />
 
       {stream && <AudioVisualizer stream={stream} />}
     </div>

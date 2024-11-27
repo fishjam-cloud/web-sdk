@@ -1,5 +1,11 @@
 import type { FC } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 import { Label } from "./ui/label";
 
 type Props = {
@@ -8,13 +14,21 @@ type Props = {
   defaultDevice: MediaDeviceInfo | null;
 };
 
-export const DeviceSelect: FC<Props> = ({ devices, onSelectDevice, defaultDevice }) => {
+export const DeviceSelect: FC<Props> = ({
+  devices,
+  onSelectDevice,
+  defaultDevice,
+}) => {
   const validDevices = devices.filter((device) => device.deviceId);
 
-  if (!validDevices.length) return <Label>No devices found, check browser permissions.</Label>;
+  if (!validDevices.length)
+    return <Label>No devices found, check browser permissions.</Label>;
 
   return (
-    <Select onValueChange={onSelectDevice} defaultValue={defaultDevice?.deviceId}>
+    <Select
+      onValueChange={onSelectDevice}
+      defaultValue={defaultDevice?.deviceId}
+    >
       <SelectTrigger>
         <SelectValue placeholder="Select device" />
       </SelectTrigger>

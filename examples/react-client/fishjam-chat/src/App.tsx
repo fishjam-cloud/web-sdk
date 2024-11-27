@@ -8,7 +8,11 @@ function App() {
 
   return (
     <main className="flex h-screen w-screen bg-stone-100">
-      {isConnected ? <RoomView /> : <JoinRoomCard className="m-auto w-full max-w-md" />}
+      {isConnected ? (
+        <RoomView />
+      ) : (
+        <JoinRoomCard className="m-auto w-full max-w-md" />
+      )}
     </main>
   );
 }

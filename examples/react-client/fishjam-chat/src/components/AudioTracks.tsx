@@ -6,5 +6,7 @@ type Props = {
 };
 
 export function AudioTracks({ audioTracks }: Props) {
-  return audioTracks?.map((audioTrack) => <AudioPlayer stream={audioTrack.stream} key={audioTrack.trackId} />);
+  return audioTracks?.map((audioTrack) => (
+    <AudioPlayer stream={audioTrack.stream} key={audioTrack.trackId} />
+  ));
 }

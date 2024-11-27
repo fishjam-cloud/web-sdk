@@ -15,24 +15,34 @@ const BlurContext = createContext<{
 export const BlurProvider: FC<PropsWithChildren> = ({ children }) => {
   const camera = useCamera();
 
-  const blurMiddleware: TrackMiddleware = useCallback((track: MediaStreamTrack) => {
-    const stream = new MediaStream([track]);
-    const blurProcessor = new BlurProcessor(stream);
+  const blurMiddleware: TrackMiddleware = useCallback(
+    (track: MediaStreamTrack) => {
+      const stream = new MediaStream([track]);
+      const blurProcessor = new BlurProcessor(stream);
 
-    return {
-      track: blurProcessor.track,
-      onClear: () => blurProcessor.destroy(),
-    };
-  }, []);
+      return {
+        track: blurProcessor.track,
+        onClear: () => blurProcessor.destroy(),
+      };
+    },
+    [],
+  );
 
   const isBlurEnabled = camera.currentMiddleware === blurMiddleware;
 
-  const toggleBlur = () => camera.setTrackMiddleware(isBlurEnabled ? null : blurMiddleware);
+  const toggleBlur = () =>
+    camera.setTrackMiddleware(isBlurEnabled ? null : blurMiddleware);
 
-  return <BlurContext.Provider value={{ toggleBlur, isBlurEnabled }}>{children}</BlurContext.Provider>;
+  return (
+    <BlurContext.Provider value={{ toggleBlur, isBlurEnabled }}>
+      {children}
+    </BlurContext.Provider>
+  );
 };
 
-export const BlurToggleButton: FC<ButtonProps & React.RefAttributes<HTMLButtonElement>> = (props) => {
+export const BlurToggleButton: FC<
+  ButtonProps & React.RefAttributes<HTMLButtonElement>
+> = (props) => {
   const blurCtx = useContext(BlurContext);
 
   if (!blurCtx) throw Error("BlurToggle must be used within BlurProvider");

@@ -93,8 +93,16 @@ export class BlurProcessor {
     const gl = this.webglCanvasCtx;
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     const program = gl.createProgram()!;
-    const vs = await this.loadShader(gl, gl.VERTEX_SHADER, "/shaders/blur/vertex.glsl");
-    const fs = await this.loadShader(gl, gl.FRAGMENT_SHADER, "/shaders/blur/fragment.glsl");
+    const vs = await this.loadShader(
+      gl,
+      gl.VERTEX_SHADER,
+      "/shaders/blur/vertex.glsl",
+    );
+    const fs = await this.loadShader(
+      gl,
+      gl.FRAGMENT_SHADER,
+      "/shaders/blur/fragment.glsl",
+    );
     gl.attachShader(program, vs);
     gl.attachShader(program, fs);
     gl.linkProgram(program);
@@ -104,7 +112,11 @@ export class BlurProcessor {
 
     const vertexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -3, -1, 1, 3, 1]), gl.STREAM_DRAW);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -3, -1, 1, 3, 1]),
+      gl.STREAM_DRAW,
+    );
     const a_Position = gl.getAttribLocation(program, "a_Position");
     gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(a_Position);
@@ -124,7 +136,10 @@ export class BlurProcessor {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    const confidenceTextureLoc = gl.getUniformLocation(program, "confidenceTexture");
+    const confidenceTextureLoc = gl.getUniformLocation(
+      program,
+      "confidenceTexture",
+    );
     gl.uniform1i(confidenceTextureLoc, 1);
 
     const resizedTexture = gl.createTexture()!;
@@ -137,7 +152,11 @@ export class BlurProcessor {
     gl.uniform1i(resizedTextureLoc, 2);
   }
 
-  private async loadShader(gl: WebGL2RenderingContext, type: number, path: string): Promise<WebGLShader> {
+  private async loadShader(
+    gl: WebGL2RenderingContext,
+    type: number,
+    path: string,
+  ): Promise<WebGLShader> {
     const shader = gl.createShader(type)!;
     gl.shaderSource(shader, await (await fetch(path)).text());
     gl.compileShader(shader);
@@ -179,10 +198,20 @@ export class BlurProcessor {
 
     this.canvasCtx.drawImage(this.video, 0, 0, this.width / 2, this.height / 2);
 
-    this.resizedCanvasCtx.drawImage(this.canvas, 0, 0, this.width / 4, this.height / 4);
+    this.resizedCanvasCtx.drawImage(
+      this.canvas,
+      0,
+      0,
+      this.width / 4,
+      this.height / 4,
+    );
 
     this.prevVideoTime = this.video.currentTime;
-    this.segmenter.segmentForVideo(this.canvas, this.video.currentTime * 1000, this.onSegmentationReady);
+    this.segmenter.segmentForVideo(
+      this.canvas,
+      this.video.currentTime * 1000,
+      this.onSegmentationReady,
+    );
 
     if (this.worksInForeground) {
       this.video.requestVideoFrameCallback(this.onFrameCallback);
@@ -194,7 +223,14 @@ export class BlurProcessor {
 
     const gl = this.webglCanvasCtx;
     gl.activeTexture(gl.TEXTURE0);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.video);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      this.video,
+    );
 
     gl.activeTexture(gl.TEXTURE1);
     gl.texImage2D(
@@ -210,7 +246,14 @@ export class BlurProcessor {
     );
 
     gl.activeTexture(gl.TEXTURE2);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.resizedCanvas);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      this.resizedCanvas,
+    );
 
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   };

@@ -1,5 +1,12 @@
 import type { FC, PropsWithChildren } from "react";
-import { SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetDescription, Sheet } from "./ui/sheet";
+import {
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  Sheet,
+} from "./ui/sheet";
 import { Label } from "./ui/label";
 import { CameraSettings, MicrophoneSettings } from "./DeviceSettings";
 
@@ -10,7 +17,9 @@ export const SettingsSheet: FC<PropsWithChildren> = ({ children }) => {
       <SheetContent>
         <SheetHeader>
           <SheetTitle>Settings</SheetTitle>
-          <SheetDescription>Adjust your camera, microphone, and other settings.</SheetDescription>
+          <SheetDescription>
+            Adjust your camera, microphone, and other settings.
+          </SheetDescription>
         </SheetHeader>
 
         <section className="mt-4 space-y-4">

@@ -1,16 +1,15 @@
-export {
-  useConnect,
-  useDisconnect,
-  useReconnection,
-  useCamera,
-  useMicrophone,
-  useInitializeDevices,
-  usePeers,
-  useScreenShare,
-  useStatus,
-  useVAD,
-} from "./hooks/public";
-export type { ConnectConfig, PeerWithTracks } from "./hooks/public";
+export type { ConnectConfig } from "./hooks/useConnection";
+export type { PeerWithTracks } from "./hooks/usePeers";
+
+export { useConnect, useDisconnect } from "./hooks/useConnection";
+export { usePeers } from "./hooks/usePeers";
+export { useReconnection } from "./hooks/useReconnection";
+export { useCamera } from "./hooks/devices/useCamera";
+export { useMicrophone } from "./hooks/devices/useMicrophone";
+export { useInitializeDevices } from "./hooks/devices/useInitializeDevices";
+export { useScreenShare } from "./hooks/useScreenShare";
+export { useStatus } from "./hooks/useStatus";
+export { useVAD } from "./hooks/useVAD";
 
 export { FishjamProvider } from "./fishjamProvider";
 

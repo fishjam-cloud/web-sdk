@@ -15,11 +15,10 @@ export const useAutoConnect = () => {
 
   const handleConnection = useCallback(async () => {
     if (!isPeerIdle || !roomManagerUrl || !roomName || !peerName) return;
-    await initializeDevices();
     const { url, peerToken } = await getRoomCredentials(
       roomManagerUrl,
       roomName,
-      peerName,
+      peerName
     );
     await connect({
       url,

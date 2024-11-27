@@ -4,6 +4,7 @@
   "license": "MIT",
   "private": true,
   "workspaces": [
+    "packages/protobufs",
     "packages/ts-client",
     "packages/react-client",
     "packages/webrtc-client",

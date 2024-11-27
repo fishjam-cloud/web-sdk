@@ -8,11 +8,13 @@ import type {
   SimulcastConfig,
 } from "@fishjam-cloud/ts-client";
 import { WebRTCEndpoint } from "@fishjam-cloud/ts-client";
-import { PeerMessage } from "@fishjam-cloud/ts-client/protos";
+import { PeerMessage } from "@fishjam-cloud/protobufs/fishjamPeer";
+import { Variant } from "@fishjam-cloud/protobufs/shared";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { MockComponent } from "./MockComponent";
 import { VideoPlayerWithDetector } from "./VideoPlayerWithDetector";
 import { MediaEvent } from "@fishjam-cloud/protobufs/server";
+import packageJson from "../package.json";
 
 /* eslint-disable no-console */
 
@@ -101,7 +103,9 @@ function connect(token: string, metadata: EndpointMetadata) {
   websocket.binaryType = "arraybuffer";
 
   function socketOpenHandler(_event: Event) {
-    const message = PeerMessage.encode({ authRequest: { token } }).finish();
+    const message = PeerMessage.encode({
+      authRequest: { token, sdkVersion: packageJson.version },
+    }).finish();
     websocket.send(message);
   }
 

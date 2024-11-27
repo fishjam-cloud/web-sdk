@@ -1,6 +1,5 @@
 export {
   useConnection,
-  useReconnection,
   useCamera,
   useMicrophone,
   useInitializeDevices,

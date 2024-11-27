@@ -7,9 +7,8 @@ import type {
   BandwidthLimit,
   SimulcastConfig,
 } from "@fishjam-cloud/ts-client";
-import { Variant } from "@fishjam-cloud/ts-client";
-import { WebRTCEndpoint, sdkVersion } from "@fishjam-cloud/ts-client";
-import { PeerMessage } from "@fishjam-cloud/protobufs/fishjamPeer";
+import { WebRTCEndpoint } from "@fishjam-cloud/ts-client";
+import { PeerMessage } from "@fishjam-cloud/ts-client/protos";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { MockComponent } from "./MockComponent";
 import { VideoPlayerWithDetector } from "./VideoPlayerWithDetector";
@@ -102,9 +101,7 @@ function connect(token: string, metadata: EndpointMetadata) {
   websocket.binaryType = "arraybuffer";
 
   function socketOpenHandler(_event: Event) {
-    const message = PeerMessage.encode({
-      authRequest: { token, sdkVersion },
-    }).finish();
+    const message = PeerMessage.encode({ authRequest: { token } }).finish();
     websocket.send(message);
   }
 
@@ -125,12 +122,12 @@ function connect(token: string, metadata: EndpointMetadata) {
         const mediaEvent = JSON.parse(data?.mediaEvent?.data);
         console.log(
           `%c(${clientId}) - Received: ${JSON.stringify(mediaEvent)}`,
-          "color:green",
+          "color:green"
         );
       } else {
         console.log(
           `%c(${clientId}) - Received: ${JSON.stringify(data)}`,
-          "color:green",
+          "color:green"
         );
       }
 
@@ -186,10 +183,10 @@ async function addScreenshareTrack(): Promise<string> {
 
 export function App() {
   const [tokenInput, setTokenInput] = useState(
-    localStorage.getItem("token") ?? "",
+    localStorage.getItem("token") ?? ""
   );
   const [endpointMetadataInput, setEndpointMetadataInput] = useState(
-    JSON.stringify({ goodStuff: "ye" }),
+    JSON.stringify({ goodStuff: "ye" })
   );
   const [connected, setConnected] = useState(false);
 
@@ -202,7 +199,7 @@ export function App() {
       tokenInput,
       endpointMetadataInput !== ""
         ? JSON.parse(endpointMetadataInput)
-        : undefined,
+        : undefined
     );
   const handleStartScreenshare = () => addScreenshareTrack();
   const handleUpdateEndpointMetadata = () =>
@@ -210,7 +207,7 @@ export function App() {
 
   const [remoteEndpoints, remoteTracks] = useSyncExternalStore(
     (callback) => remoteTracksStore.subscribe(callback),
-    () => remoteTracksStore.snapshot(),
+    () => remoteTracksStore.snapshot()
   );
 
   const setEncoding = (trackId: string, encoding: Variant) => {
@@ -287,7 +284,7 @@ export function App() {
                   </button>
                 </div>
               </div>
-            ),
+            )
           )}
         </div>
       </div>

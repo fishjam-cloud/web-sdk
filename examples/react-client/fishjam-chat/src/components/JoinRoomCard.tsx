@@ -7,7 +7,8 @@ import {
 
 import { Loader2 } from "lucide-react";
 
-import { FC, useEffect } from "react";
+import type { FC } from "react";
+import { useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -27,7 +28,8 @@ import {
 } from "./ui/accordion";
 
 import { useForm } from "react-hook-form";
-import { RoomForm } from "@/types";
+import { getRoomCredentials } from "@/lib/roomManager";
+import type { RoomForm } from "@/types";
 import { getPersistedFormValues, persistFormValues } from "@/lib/utils";
 import { useAutoConnect } from "@/hooks/useAutoConnect";
 import { CameraSettings, MicrophoneSettings } from "./DeviceSettings";
@@ -59,18 +61,18 @@ export const JoinRoomCard: FC<Props> = (props) => {
 
   const onJoinRoom = async ({
     roomManagerUrl,
-    // roomName,
+    roomName,
     peerName,
   }: RoomForm) => {
-    // const { url, peerToken } = await getRoomCredentials(
-    //   roomManagerUrl,
-    //   roomName,
-    //   peerName
-    // );
-    persistFormValues({ roomManagerUrl, roomName: "", peerName });
+    const { url, peerToken } = await getRoomCredentials(
+      roomManagerUrl,
+      roomName,
+      peerName
+    );
+    persistFormValues({ roomManagerUrl, roomName, peerName });
     await connect({
-      url: "http://localhost:5002",
-      token: roomManagerUrl,
+      url,
+      token: peerToken,
       peerMetadata: { displayName: peerName },
     });
 

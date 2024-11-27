@@ -6,7 +6,6 @@ export {
   useInitializeDevices,
   usePeers,
   useScreenShare,
-  useStatus,
   useUpdatePeerMetadata,
   useVAD,
 } from "./hooks/public";

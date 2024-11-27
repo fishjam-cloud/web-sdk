@@ -5,6 +5,5 @@ export { useMicrophone } from "./devices/useMicrophone";
 export { useInitializeDevices } from "./devices/useInitializeDevices";
 export { usePeers } from "./usePeers";
 export { useScreenShare } from "./useScreenShare";
-export { useStatus } from "./useStatus";
 export { useUpdatePeerMetadata } from "./useUpdatePeerMetadata";
 export { useVAD } from "./useVAD";

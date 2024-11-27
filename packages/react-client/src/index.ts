@@ -14,7 +14,7 @@ export type { ConnectConfig, PeerWithTracks } from "./hooks/public";
 
 export { FishjamProvider } from "./fishjamProvider";
 
-export {
+export type {
   Track,
   TrackMiddleware,
   TracksMiddleware,
@@ -32,9 +32,7 @@ export type {
   TrackBandwidthLimit,
   SimulcastBandwidthLimit,
   BandwidthLimit,
-  WebRTCEndpointEvents,
   TrackContextEvents,
-  Endpoint,
   SimulcastConfig,
   TrackContext,
   VadStatus,

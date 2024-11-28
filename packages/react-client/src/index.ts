@@ -1,4 +1,4 @@
-export type { ConnectConfig } from "./hooks/useConnection";
+export type { JoinRoomConfig } from "./hooks/useConnection";
 export type { PeerWithTracks } from "./hooks/usePeers";
 
 export { useConnection } from "./hooks/useConnection";

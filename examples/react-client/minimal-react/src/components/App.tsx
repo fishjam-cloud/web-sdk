@@ -36,8 +36,8 @@ export const App = () => {
           onClick={() => {
             if (!token || token === "") throw Error("Token is empty");
             joinRoom({
-              token: token,
               url: FISHJAM_URL,
+              peerToken: token,
             });
           }}
         >

@@ -171,8 +171,8 @@ export const MainControls = () => {
             onClick={() => {
               if (!token || token === "") throw Error("Token is empty");
               joinRoom({
-                token: token,
                 url: FISHJAM_URL,
+                peerToken: token,
               });
             }}
           >
@@ -187,8 +187,8 @@ export const MainControls = () => {
               leaveRoom();
 
               joinRoom({
-                token: token,
                 url: FISHJAM_URL,
+                peerToken: token,
               });
             }}
           >

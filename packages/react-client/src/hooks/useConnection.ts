@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useFishjamContext } from "./internal/useFishjamContext";
 import type { ConnectConfig as TSClientConnectConfig } from "@fishjam-cloud/ts-client";
-import { useReconnection } from "./useReconnection";
+import { useReconnection } from "./internal/useReconnection";
 
 export type ConnectConfig<P> = Omit<TSClientConnectConfig<P>, "peerMetadata"> & { peerMetadata?: P };
 

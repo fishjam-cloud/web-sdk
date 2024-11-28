@@ -3,7 +3,6 @@ export type { PeerWithTracks } from "./hooks/usePeers";
 
 export { useConnection } from "./hooks/useConnection";
 export { usePeers } from "./hooks/usePeers";
-export { useReconnection } from "./hooks/useReconnection";
 export { useCamera } from "./hooks/devices/useCamera";
 export { useMicrophone } from "./hooks/devices/useMicrophone";
 export { useInitializeDevices } from "./hooks/devices/useInitializeDevices";

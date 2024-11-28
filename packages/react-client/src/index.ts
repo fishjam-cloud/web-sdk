@@ -8,6 +8,7 @@ export { useCamera } from "./hooks/devices/useCamera";
 export { useMicrophone } from "./hooks/devices/useMicrophone";
 export { useInitializeDevices } from "./hooks/devices/useInitializeDevices";
 export { useScreenShare } from "./hooks/useScreenShare";
+export { useUpdatePeerMetadata } from "./hooks/useUpdatePeerMetadata";
 export { useStatus } from "./hooks/useStatus";
 export { useVAD } from "./hooks/useVAD";
 

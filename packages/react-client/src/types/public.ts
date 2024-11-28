@@ -10,7 +10,7 @@ import type {
 import type { DeviceError, DeviceManagerStatus, TrackManager } from "./internal";
 
 export type PeerId = Brand<string, "PeerId">;
-export type TrackId = string; //Brand<string, "TrackId">;
+export type TrackId = string;
 
 export type Peer<PeerMetadata = GenericMetadata, ServerMetadata = GenericMetadata> = Omit<
   LegacyPeer<PeerMetadata, ServerMetadata>,

@@ -26,6 +26,7 @@ export type {
   DeviceType,
   Peer,
   PeerId,
+  TrackId,
 } from "./types/public";
 
 export type {

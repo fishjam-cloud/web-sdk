@@ -11,6 +11,7 @@ import type { EndpointWithTrackContext } from '../internal';
 import { TrackContextImpl } from '../internal';
 import type { EndpointId, TrackId } from './TrackCommon';
 import type { MediaEvent_Track } from '@fishjam-cloud/protobufs/server';
+import { MediaEvent_EnableTrackVariant, MediaEvent as PeerMediaEvent } from '@fishjam-cloud/protobufs/peer';
 import { MediaEvent_VadNotification_Status } from '@fishjam-cloud/protobufs/server';
 import type { Variant } from '@fishjam-cloud/protobufs/shared';
 
@@ -22,17 +23,17 @@ export class Remote {
     event: E,
     ...args: Parameters<Required<WebRTCEndpointEvents>[E]>
   ) => void;
-  // private readonly sendMediaEvent: (mediaEvent: PeerMediaEvent) => void;
+  private readonly sendMediaEvent: (mediaEvent: PeerMediaEvent) => void;
 
   constructor(
     emit: <E extends keyof Required<WebRTCEndpointEvents>>(
       event: E,
       ...args: Parameters<Required<WebRTCEndpointEvents>[E]>
     ) => void,
-    // sendMediaEvent: (mediaEvent: PeerMediaEvent) => void,
+    sendMediaEvent: (mediaEvent: PeerMediaEvent) => void,
   ) {
     this.emit = emit;
-    // this.sendMediaEvent = sendMediaEvent;
+    this.sendMediaEvent = sendMediaEvent;
   }
 
   public getTrackByMid = (mid: string): RemoteTrack => {
@@ -210,9 +211,8 @@ export class Remote {
     try {
       remoteTrack.setTargetTrackEncoding(variant);
 
-      // TODO - Implement when simulcast is available
-      // const mediaEvent = MediaEvent_EnableTrackVariant.create({ variant, trackId });
-      // this.sendMediaEvent();
+      const enableTrackVariant = MediaEvent_EnableTrackVariant.create({ variant, trackId });
+      this.sendMediaEvent({ enableTrackVariant });
       this.emit('targetTrackEncodingRequested', {
         trackId,
         variant,

@@ -1,9 +1,23 @@
 import { useCallback } from "react";
 import { useFishjamContext } from "./internal/useFishjamContext";
-import type { ConnectConfig as TSClientConnectConfig } from "@fishjam-cloud/ts-client";
-import { useReconnection } from "./internal/useReconnection";
 
-export type ConnectConfig<P> = Omit<TSClientConnectConfig<P>, "peerMetadata"> & { peerMetadata?: P };
+import { useReconnection } from "./internal/useReconnection";
+import type { GenericMetadata } from "../types/public";
+
+export interface JoinRoomConfig<PeerMetadata extends GenericMetadata = GenericMetadata> {
+  /**
+   * fishjam URL
+   */
+  url: string;
+  /**
+   * token received from server (or Room Manager)
+   */
+  peerToken: string;
+  /**
+   * string indexed record with metadata, that will be available to all other peers
+   */
+  peerMetadata?: PeerMetadata;
+}
 
 /**
  * @category Connection
@@ -16,7 +30,11 @@ export function useConnection() {
   const reconnectionStatus = useReconnection();
 
   const joinRoom = useCallback(
-    <P>(config: ConnectConfig<P>) => client.connect({ ...config, peerMetadata: config.peerMetadata ?? {} }),
+    <PeerMetadata extends GenericMetadata = GenericMetadata>({
+      url,
+      peerToken,
+      peerMetadata,
+    }: JoinRoomConfig<PeerMetadata>) => client.connect({ url, token: peerToken, peerMetadata }),
     [client],
   );
 

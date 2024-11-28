@@ -1,9 +1,10 @@
+import type { PeerId } from "@fishjam-cloud/react-client";
 import type { RefObject } from "react";
 import { useEffect, useRef } from "react";
 
 type Props = {
   stream: MediaStream | null | undefined;
-  peerId: string;
+  peerId: PeerId;
 };
 
 const VideoPlayer = ({ stream, peerId }: Props) => {
@@ -14,9 +15,7 @@ const VideoPlayer = ({ stream, peerId }: Props) => {
     videoRef.current.srcObject = stream || null;
   }, [stream]);
 
-  return (
-    <video autoPlay playsInline muted data-peer-id={peerId} ref={videoRef} />
-  );
+  return <video autoPlay playsInline muted data-peer-id={peerId} ref={videoRef} />;
 };
 
 export default VideoPlayer;

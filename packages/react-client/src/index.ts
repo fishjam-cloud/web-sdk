@@ -24,10 +24,11 @@ export type {
   ScreenshareApi,
   StartStreamingProps,
   DeviceType,
+  Peer,
+  PeerId,
 } from "./types/public";
 
 export type {
-  Peer,
   MessageEvents,
   CreateConfig,
   TrackBandwidthLimit,

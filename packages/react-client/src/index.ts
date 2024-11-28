@@ -23,6 +23,7 @@ export type {
   PersistLastDeviceHandlers,
   ScreenshareApi,
   StartStreamingProps,
+  DeviceType,
 } from "./types/public";
 
 export type {

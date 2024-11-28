@@ -54,7 +54,7 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
       this.emit(events, ...args);
     };
 
-    this.remote = new Remote(emit);
+    this.remote = new Remote(emit, sendEvent);
     this.local = new Local(emit, sendEvent);
 
     this.localTrackManager = new LocalTrackManager(this.local, sendEvent);

@@ -21,7 +21,7 @@ export const useAutoConnect = () => {
     );
     await joinRoom({
       url,
-      token: peerToken,
+      peerToken,
       peerMetadata: { displayName: peerName },
     });
   }, [isPeerIdle, roomName, peerName, roomManagerUrl, joinRoom]);

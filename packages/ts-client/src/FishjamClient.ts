@@ -150,7 +150,6 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
       this.emit('socketOpen', event);
 
       const sdkVersion = `web-${packageVersion}`;
-      console.log(sdkVersion);
       const message = PeerMessage.encode({ authRequest: { token, sdkVersion } }).finish();
 
       this.websocket?.send(message);

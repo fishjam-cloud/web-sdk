@@ -33,7 +33,7 @@ export function useConnection() {
       url,
       peerToken,
       peerMetadata,
-    }: JoinRoomConfig<PeerMetadata>) => client.connect({ url, token: peerToken, peerMetadata }),
+    }: JoinRoomConfig<PeerMetadata>) => client.connect({ url, token: peerToken, peerMetadata: peerMetadata ?? {} }),
     [client],
   );
 

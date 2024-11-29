@@ -3,7 +3,7 @@ import type { FishjamClient } from "@fishjam-cloud/ts-client";
 import { getRemoteOrLocalTrack } from "../utils/track";
 import type { TracksMiddleware, ScreenshareApi, PeerStatus } from "../types/public";
 import type { ScreenShareState } from "../types/internal";
-import { useFishjamContext } from "./useFishjamContext";
+import { useFishjamContext } from "./internal/useFishjamContext";
 
 interface ScreenShareManagerProps {
   fishjamClient: FishjamClient;
@@ -161,7 +161,7 @@ export const useScreenShare = () => {
   return screenShareManager;
 };
 
-export const getTracksFromStream = (stream: MediaStream): [MediaStreamTrack, MediaStreamTrack | null] => {
+const getTracksFromStream = (stream: MediaStream): [MediaStreamTrack, MediaStreamTrack | null] => {
   const video = stream.getVideoTracks()[0];
   const audio = stream.getAudioTracks()[0] ?? null;
 

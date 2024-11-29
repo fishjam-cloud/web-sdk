@@ -1,8 +1,8 @@
 import {
   useInitializeDevices,
-  useConnect,
   useCamera,
   useMicrophone,
+  useConnection,
 } from "@fishjam-cloud/react-client";
 
 import { Loader2 } from "lucide-react";
@@ -42,7 +42,7 @@ export const JoinRoomCard: FC<Props> = (props) => {
   const camera = useCamera();
   const mic = useMicrophone();
 
-  const connect = useConnect();
+  const { joinRoom } = useConnection();
 
   const persistedValues = getPersistedFormValues();
   const defaultValues = {
@@ -70,9 +70,9 @@ export const JoinRoomCard: FC<Props> = (props) => {
       peerName,
     );
     persistFormValues({ roomManagerUrl, roomName, peerName });
-    await connect({
+    await joinRoom({
       url,
-      token: peerToken,
+      peerToken,
       peerMetadata: { displayName: peerName },
     });
 

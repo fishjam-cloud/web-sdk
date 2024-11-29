@@ -54,7 +54,7 @@ test("Peer doesn't disconnect when trying to set incorrect track encoding", asyn
 
   await assertThatRemoteTracksAreVisible(firstPage, [secondClientId]);
   await assertThatOtherVideoIsPlaying(firstPage);
-  await firstPage.getByRole("button", { name: "l", exact: true }).click();
+  await firstPage.getByRole("button", { name: "Low", exact: true }).click();
   await assertThatOtherVideoIsPlaying(firstPage);
 });
 

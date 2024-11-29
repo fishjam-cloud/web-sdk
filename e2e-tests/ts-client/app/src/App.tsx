@@ -151,7 +151,7 @@ function connect(token: string, metadata: EndpointMetadata) {
         const serverEvent = ServerMediaEvent.encode(
           data.serverMediaEvent
         ).finish();
-        console.log("received", serverEvent);
+
         webrtc.receiveMediaEvent(serverEvent);
       }
     } catch (e) {

@@ -26,6 +26,7 @@ import type {
   Peer,
   TrackMetadata,
 } from './types';
+import { sdkVersion } from './sdkVersion';
 
 const STATISTICS_INTERVAL = 10_000;
 
@@ -147,7 +148,7 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
 
     const socketOpenHandler = (event: Event) => {
       this.emit('socketOpen', event);
-      const message = PeerMessage.encode({ authRequest: { token, sdkVersion: 'web-0.10.0' } }).finish();
+      const message = PeerMessage.encode({ authRequest: { token, sdkVersion: `web-${sdkVersion}` } }).finish();
 
       this.websocket?.send(message);
     };

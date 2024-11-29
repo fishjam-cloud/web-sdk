@@ -104,13 +104,13 @@ const createSimulcastTransceiverConfig = (
 const calculateSimulcastEncodings = (encodings: RTCRtpEncodingParameters[], maxBandwidth: SimulcastBandwidthLimit) => {
   return encodings
     .filter((encoding) => encoding.rid)
-    .map(({ rid }) => {
-      const variant = (!!rid && encodingToVariantMap[rid]) || Variant.VARIANT_UNSPECIFIED;
+    .map((encoding) => {
+      const variant = (!!encoding.rid && encodingToVariantMap[encoding.rid]) || Variant.VARIANT_UNSPECIFIED;
 
       const limit = maxBandwidth.get(variant) || 0;
 
       return {
-        ...encodings,
+        ...encoding,
         maxBitrate: limit > 0 ? limit * 1024 : undefined,
       } satisfies RTCRtpEncodingParameters;
     });

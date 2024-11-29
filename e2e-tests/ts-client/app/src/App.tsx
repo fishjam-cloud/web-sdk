@@ -114,11 +114,11 @@ function connect(token: string, metadata: EndpointMetadata) {
 
   webrtc.on("sendMediaEvent", (mediaEvent: SerializedMediaEvent) => {
     const peerMediaEvent = PeerMediaEvent.decode(mediaEvent);
-    // console.log(
-    //   `%c(${clientId}) - Send: ${peerMediaEvent}`,
-    //   "color:blue",
-    //   peerMediaEvent
-    // );
+    console.log(
+      `%c(${clientId}) - Send: ${peerMediaEvent}`,
+      "color:blue",
+      peerMediaEvent
+    );
     const wrappedMediaEvent = PeerMessage.encode({ peerMediaEvent }).finish();
     websocket.send(wrappedMediaEvent);
   });
@@ -128,20 +128,19 @@ function connect(token: string, metadata: EndpointMetadata) {
     const uint8Array = new Uint8Array(event.data);
     try {
       const data = PeerMessage.decode(uint8Array);
-      console.log(data);
-      // if (data?.mediaEvent) {
-      //   // @ts-ignore
-      //   const mediaEvent = JSON.parse(data?.mediaEvent?.data);
-      //   console.log(
-      //     `%c(${clientId}) - Received: ${JSON.stringify(mediaEvent)}`,
-      //     "color:green"
-      //   );
-      // } else {
-      //   console.log(
-      //     `%c(${clientId}) - Received: ${JSON.stringify(data)}`,
-      //     "color:green"
-      //   );
-      // }
+      if (data?.mediaEvent) {
+        // @ts-ignore
+        const mediaEvent = JSON.parse(data?.mediaEvent?.data);
+        console.log(
+          `%c(${clientId}) - Received: ${JSON.stringify(mediaEvent)}`,
+          "color:green"
+        );
+      } else {
+        console.log(
+          `%c(${clientId}) - Received: ${JSON.stringify(data)}`,
+          "color:green"
+        );
+      }
 
       if (data.authenticated !== undefined) {
         webrtc.connect(metadata);

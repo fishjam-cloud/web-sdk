@@ -117,7 +117,7 @@ function connect(token: string, metadata: EndpointMetadata) {
     console.log(
       `%c(${clientId}) - Send: ${peerMediaEvent}`,
       "color:blue",
-      peerMediaEvent
+      peerMediaEvent,
     );
     const wrappedMediaEvent = PeerMessage.encode({ peerMediaEvent }).finish();
     websocket.send(wrappedMediaEvent);
@@ -133,12 +133,12 @@ function connect(token: string, metadata: EndpointMetadata) {
         const mediaEvent = JSON.parse(data?.mediaEvent?.data);
         console.log(
           `%c(${clientId}) - Received: ${JSON.stringify(mediaEvent)}`,
-          "color:green"
+          "color:green",
         );
       } else {
         console.log(
           `%c(${clientId}) - Received: ${JSON.stringify(data)}`,
-          "color:green"
+          "color:green",
         );
       }
 
@@ -148,7 +148,7 @@ function connect(token: string, metadata: EndpointMetadata) {
         console.warn("Received unexpected control message: authRequest");
       } else if (data.serverMediaEvent !== undefined) {
         const serverEvent = ServerMediaEvent.encode(
-          data.serverMediaEvent
+          data.serverMediaEvent,
         ).finish();
 
         webrtc.receiveMediaEvent(serverEvent);
@@ -196,10 +196,10 @@ async function addScreenshareTrack(): Promise<string> {
 
 export function App() {
   const [tokenInput, setTokenInput] = useState(
-    localStorage.getItem("token") ?? ""
+    localStorage.getItem("token") ?? "",
   );
   const [endpointMetadataInput, setEndpointMetadataInput] = useState(
-    JSON.stringify({ goodStuff: "ye" })
+    JSON.stringify({ goodStuff: "ye" }),
   );
   const [connected, setConnected] = useState(false);
 
@@ -212,7 +212,7 @@ export function App() {
       tokenInput,
       endpointMetadataInput !== ""
         ? JSON.parse(endpointMetadataInput)
-        : undefined
+        : undefined,
     );
   const handleStartScreenshare = () => addScreenshareTrack();
   const handleUpdateEndpointMetadata = () =>
@@ -220,7 +220,7 @@ export function App() {
 
   const [remoteEndpoints, remoteTracks] = useSyncExternalStore(
     (callback) => remoteTracksStore.subscribe(callback),
-    () => remoteTracksStore.snapshot()
+    () => remoteTracksStore.snapshot(),
   );
 
   const setEncoding = (trackId: string, encoding: Variant) => {
@@ -297,7 +297,7 @@ export function App() {
                   </button>
                 </div>
               </div>
-            )
+            ),
           )}
         </div>
       </div>

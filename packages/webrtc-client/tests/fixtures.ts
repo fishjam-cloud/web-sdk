@@ -163,8 +163,7 @@ export const createAddLocalTrackSDPOffer = (): MediaEvent_OfferData =>
 
 export const createAnswerData = (trackId: string): MediaEvent_SdpAnswer =>
   MediaEvent_SdpAnswer.create({
-    sdpAnswer: JSON.stringify({
-      sdp: `v=0\r
+    sdp: `v=0\r
     o=- 39483584182226872 0 IN IP4 127.0.0.1\r
     s=-\r
     t=0 0\r
@@ -197,8 +196,6 @@ export const createAnswerData = (trackId: string): MediaEvent_SdpAnswer =>
     a=rtcp-rsize\r
     a=ssrc:663086196 cname:${trackId}-video-60ff1fb2-6868-42be-8c92-311733034415\r
     `,
-      type: 'answer',
-    }),
     midToTrackId: {
       '0': '9afe80ce-1964-4958-a386-d7a9e3097ca7:5c74b6b3-cb72-49f1-a76b-0df4895a3d32',
     },
@@ -209,8 +206,7 @@ export const createAddLocalTrackAnswerData = (trackId: string): MediaEvent_SdpAn
     midToTrackId: {
       '0': trackId,
     },
-    sdpAnswer: JSON.stringify({
-      sdp: `v=0\r
+    sdp: `v=0\r
     o=- 63903156084304368 0 IN IP4 127.0.0.1\r
     s=-\r
     t=0 0\r
@@ -242,8 +238,6 @@ export const createAddLocalTrackAnswerData = (trackId: string): MediaEvent_SdpAn
     a=rtcp-fb:106 nack pli\r
     a=rtcp-rsize\r
     `,
-      type: 'answer',
-    }),
   });
 
 export const createEndpointUpdatedPeerMetadata = (endpointId: string, metadata: unknown): MediaEvent_EndpointUpdated =>

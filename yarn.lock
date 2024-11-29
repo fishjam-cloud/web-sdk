@@ -464,7 +464,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fishjam-cloud/protobufs@workspace:*, @fishjam-cloud/protobufs@workspace:packages/protobufs":
+"@fishjam-cloud/protobufs@workspace:*, @fishjam-cloud/protobufs@workspace:^, @fishjam-cloud/protobufs@workspace:packages/protobufs":
   version: 0.0.0-use.local
   resolution: "@fishjam-cloud/protobufs@workspace:packages/protobufs"
   dependencies:
@@ -3708,6 +3708,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "fishjam-web-sdk@workspace:."
   dependencies:
+    "@fishjam-cloud/protobufs": "workspace:^"
     "@typescript-eslint/eslint-plugin": "npm:^8.16.0"
     "@typescript-eslint/parser": "npm:^8.16.0"
     eslint: "npm:^8.57.1"

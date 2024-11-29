@@ -84,7 +84,7 @@ export class Local {
     const midToTrackId = this.getMidToTrackId();
 
     return MediaEvent_SdpOffer.create({
-      sdpOffer: JSON.stringify({ sdp: sdpOffer.sdp, type: 'offer' }),
+      sdp: sdpOffer.sdp,
       midToTrackId,
       trackIdToBitrates,
       trackIdToMetadataJson,

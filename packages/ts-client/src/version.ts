@@ -1,3 +1,3 @@
 import { version } from '../package.json';
 
-export const sdkVersion = version;
+export const packageVersion = version;

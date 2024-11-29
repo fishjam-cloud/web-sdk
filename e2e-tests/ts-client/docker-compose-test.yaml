@@ -5,6 +5,7 @@ services:
     image: "ghcr.io/fishjam-cloud/fishjam:0.10.0-dev"
     container_name: fishjam
     restart: on-failure
+    platform: linux/amd64
     healthcheck:
       test: >
         curl --fail -H "authorization: Bearer development"
@@ -14,8 +15,8 @@ services:
       timeout: 2s
       start_period: 30s
     environment:
-      FJ_PORT: 5002
-      FJ_HOST: "localhost:5002"
+      FJ_PORT: 5003
+      FJ_HOST: "localhost:5003"
       FJ_WEBRTC_TURN_IP: "${EXTERNAL_IP:-127.0.0.1}"
       FJ_WEBRTC_TURN_LISTEN_IP: "0.0.0.0"
       FJ_WEBRTC_TURN_PORT_RANGE: "50000-50050"
@@ -23,6 +24,6 @@ services:
       FJ_SERVER_API_TOKEN: "development"
       FJ_CHECK_ORIGIN: "false"
     ports:
-      - "5002:5002"
+      - "5003:5003"
       - "49999:49999"
       - "50000-50050:50000-50050/udp"

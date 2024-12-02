@@ -18,10 +18,10 @@ import { FakeMediaStreamTrack } from 'fake-mediastreamtrack';
 import { Variant } from '../src';
 import { vi } from 'vitest';
 
-export const endpointId = 'exampleEndpointId';
+export const exampleEndpointId = 'exampleEndpointId';
 export const notExistingEndpointId = 'notExistingEndpointId';
 
-export const trackId = 'exampleTrackId';
+export const exampleTrackId = 'exampleTrackId';
 export const notExistingTrackId = 'notExistingTrackId';
 
 export const mockTrack = new FakeMediaStreamTrack({ kind: 'video' });

@@ -23,7 +23,7 @@ export const useScreenShareManager = ({
   const cleanMiddlewareFnRef = useRef<(() => void) | null>(null);
 
   const stream = state.stream ?? null;
-  const [videoTrack, audioTrack] = stream ? getTracksFromStream(stream) : [null, null];
+  const [mediaVideoTrack, mediaAudioTrack] = stream ? getTracksFromStream(stream) : [null, null];
 
   const getDisplayName = () => {
     const name = fishjamClient.getLocalPeer()?.metadata?.peer?.displayName;
@@ -31,14 +31,14 @@ export const useScreenShareManager = ({
   };
 
   const startStreaming: ScreenshareApi["startStreaming"] = async (props) => {
-    const stream = await navigator.mediaDevices.getDisplayMedia({
+    const displayStream = await navigator.mediaDevices.getDisplayMedia({
       video: props?.videoConstraints ?? true,
       audio: props?.audioConstraints ?? true,
     });
 
     const displayName = getDisplayName();
 
-    let [video, audio] = getTracksFromStream(stream);
+    let [video, audio] = getTracksFromStream(displayStream);
 
     if (state.tracksMiddleware) {
       const { videoTrack, audioTrack, onClear } = state.tracksMiddleware(video, audio);
@@ -52,7 +52,7 @@ export const useScreenShareManager = ({
       addTrackPromises.push(fishjamClient.addTrack(audio, { displayName, type: "screenShareAudio", paused: false }));
 
     const [videoId, audioId] = await Promise.all(addTrackPromises);
-    setState({ stream, trackIds: { videoId, audioId } });
+    setState({ stream: displayStream, trackIds: { videoId, audioId } });
   };
 
   const replaceTracks = async (newVideoTrack: MediaStreamTrack, newAudioTrack: MediaStreamTrack | null) => {
@@ -146,8 +146,8 @@ export const useScreenShareManager = ({
     startStreaming,
     stopStreaming,
     stream,
-    videoTrack,
-    audioTrack,
+    videoTrack: mediaVideoTrack,
+    audioTrack: mediaAudioTrack,
     videoBroadcast,
     audioBroadcast,
     setTracksMiddleware,

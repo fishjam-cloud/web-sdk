@@ -3,9 +3,9 @@ import { WebRTCEndpoint } from '../../src';
 import {
   createConnectedEventWithOneEndpoint,
   createEndpointRemoved,
-  endpointId,
+  exampleEndpointId,
   notExistingEndpointId,
-  trackId,
+  exampleTrackId,
 } from '../fixtures';
 import { setupRoom } from '../utils';
 import { expect, it } from 'vitest';
@@ -17,7 +17,7 @@ it('Remove the endpoint that does not exist', () => {
   const webRTCEndpoint = new WebRTCEndpoint();
 
   webRTCEndpoint.receiveMediaEvent(
-    serializeServerMediaEvent({ connected: createConnectedEventWithOneEndpoint(endpointId) }),
+    serializeServerMediaEvent({ connected: createConnectedEventWithOneEndpoint(exampleEndpointId) }),
   );
 
   // When
@@ -38,7 +38,7 @@ it('Remove current peer', () =>
     const currentPeerId = 'currentPeerId';
 
     webRTCEndpoint.receiveMediaEvent(
-      serializeServerMediaEvent({ connected: createConnectedEventWithOneEndpoint(endpointId, currentPeerId) }),
+      serializeServerMediaEvent({ connected: createConnectedEventWithOneEndpoint(exampleEndpointId, currentPeerId) }),
     );
 
     webRTCEndpoint.on('disconnected', () => {
@@ -58,11 +58,13 @@ it('Remove existing endpoint should remove it from remote endpoints', () => {
   const webRTCEndpoint = new WebRTCEndpoint();
 
   webRTCEndpoint.receiveMediaEvent(
-    serializeServerMediaEvent({ connected: createConnectedEventWithOneEndpoint(endpointId) }),
+    serializeServerMediaEvent({ connected: createConnectedEventWithOneEndpoint(exampleEndpointId) }),
   );
 
   // When
-  webRTCEndpoint.receiveMediaEvent(serializeServerMediaEvent({ endpointRemoved: createEndpointRemoved(endpointId) }));
+  webRTCEndpoint.receiveMediaEvent(
+    serializeServerMediaEvent({ endpointRemoved: createEndpointRemoved(exampleEndpointId) }),
+  );
   // Then
   const endpoints = webRTCEndpoint.getRemoteEndpoints();
   expect(Object.values(endpoints).length).toBe(0);
@@ -73,10 +75,12 @@ it('Remove existing endpoint should remove all tracks', () => {
   mockRTCPeerConnection();
   const webRTCEndpoint = new WebRTCEndpoint();
 
-  setupRoom(webRTCEndpoint, endpointId, trackId);
+  setupRoom(webRTCEndpoint, exampleEndpointId, exampleTrackId);
 
   // When
-  webRTCEndpoint.receiveMediaEvent(serializeServerMediaEvent({ endpointRemoved: createEndpointRemoved(endpointId) }));
+  webRTCEndpoint.receiveMediaEvent(
+    serializeServerMediaEvent({ endpointRemoved: createEndpointRemoved(exampleEndpointId) }),
+  );
 
   // Then
   const tracks = webRTCEndpoint.getRemoteTracks();
@@ -89,14 +93,16 @@ it('Remove existing endpoint should emit trackRemoved event', () =>
     mockRTCPeerConnection();
     const webRTCEndpoint = new WebRTCEndpoint();
 
-    setupRoom(webRTCEndpoint, endpointId, trackId);
+    setupRoom(webRTCEndpoint, exampleEndpointId, exampleTrackId);
 
     webRTCEndpoint.on('trackRemoved', (trackContext) => {
       // Then
-      expect(trackContext.trackId).toBe(trackId);
+      expect(trackContext.trackId).toBe(exampleTrackId);
       done('');
     });
 
     // When
-    webRTCEndpoint.receiveMediaEvent(serializeServerMediaEvent({ endpointRemoved: createEndpointRemoved(endpointId) }));
+    webRTCEndpoint.receiveMediaEvent(
+      serializeServerMediaEvent({ endpointRemoved: createEndpointRemoved(exampleEndpointId) }),
+    );
   }));

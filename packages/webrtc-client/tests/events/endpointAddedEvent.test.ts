@@ -4,7 +4,7 @@ import {
   createConnectedEvent,
   createConnectedEventWithOneEndpoint,
   createEndpointAdded,
-  endpointId,
+  exampleEndpointId,
 } from '../fixtures';
 import { expect, it } from 'vitest';
 import { serializeServerMediaEvent } from '../../src/mediaEvent';
@@ -17,7 +17,9 @@ it('Add endpoint to empty state', () => {
   webRTCEndpoint.receiveMediaEvent(serializeServerMediaEvent({ connected: createConnectedEvent() }));
 
   // When
-  webRTCEndpoint.receiveMediaEvent(serializeServerMediaEvent({ endpointAdded: createEndpointAdded(endpointId) }));
+  webRTCEndpoint.receiveMediaEvent(
+    serializeServerMediaEvent({ endpointAdded: createEndpointAdded(exampleEndpointId) }),
+  );
 
   // Then
   const endpoints = webRTCEndpoint.getRemoteEndpoints();
@@ -32,7 +34,9 @@ it('Add another endpoint', () => {
   webRTCEndpoint.receiveMediaEvent(serializeServerMediaEvent({ connected: createConnectedEventWithOneEndpoint() }));
 
   // When
-  webRTCEndpoint.receiveMediaEvent(serializeServerMediaEvent({ endpointAdded: createEndpointAdded(endpointId) }));
+  webRTCEndpoint.receiveMediaEvent(
+    serializeServerMediaEvent({ endpointAdded: createEndpointAdded(exampleEndpointId) }),
+  );
 
   // Then
   const endpoints = webRTCEndpoint.getRemoteEndpoints();
@@ -47,7 +51,7 @@ it('Add endpoint produces event', () =>
 
     webRTCEndpoint.receiveMediaEvent(serializeServerMediaEvent({ connected: createConnectedEventWithOneEndpoint() }));
 
-    const endpointAdded = createEndpointAdded(endpointId);
+    const endpointAdded = createEndpointAdded(exampleEndpointId);
 
     webRTCEndpoint.on('endpointAdded', (endpoint) => {
       // Then
@@ -73,11 +77,11 @@ it('Parses the metadata', () => {
 
   // When
   webRTCEndpoint.receiveMediaEvent(
-    serializeServerMediaEvent({ endpointAdded: createEndpointAdded(endpointId, metadata) }),
+    serializeServerMediaEvent({ endpointAdded: createEndpointAdded(exampleEndpointId, metadata) }),
   );
 
   // Then
   const endpoints: Record<string, any> = webRTCEndpoint.getRemoteEndpoints();
-  const addedEndpoint = endpoints[endpointId];
+  const addedEndpoint = endpoints[exampleEndpointId];
   expect(addedEndpoint.metadata).toEqual(metadata);
 });

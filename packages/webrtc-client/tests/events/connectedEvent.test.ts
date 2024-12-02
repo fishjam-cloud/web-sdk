@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { createConnectedEvent, createEmptyEndpoint, createTrackWithSimulcast, trackId } from '../fixtures';
+import { createConnectedEvent, createEmptyEndpoint, createTrackWithSimulcast, exampleTrackId } from '../fixtures';
 import type { Endpoint } from '../../src';
 import { WebRTCEndpoint } from '../../src';
 import { expect, vi, it } from 'vitest';
@@ -63,7 +63,7 @@ it('Connecting to room with one peer with one track', () =>
 
     const otherEndpoint = createEmptyEndpoint();
 
-    otherEndpoint.trackIdToTrack = { [trackId]: createTrackWithSimulcast() };
+    otherEndpoint.trackIdToTrack = { [exampleTrackId]: createTrackWithSimulcast() };
 
     connected.endpointIdToEndpoint = {
       ...connected.endpointIdToEndpoint,
@@ -78,8 +78,8 @@ it('Connecting to room with one peer with one track', () =>
 
     webRTCEndpoint.on('trackAdded', (ctx) => {
       trackAddedCallback(ctx);
-      expect(ctx.trackId).toBe(trackId);
-      expect(ctx.simulcastConfig?.enabled).toBe(otherEndpoint.trackIdToTrack[trackId]!.simulcastConfig?.enabled);
+      expect(ctx.trackId).toBe(exampleTrackId);
+      expect(ctx.simulcastConfig?.enabled).toBe(otherEndpoint.trackIdToTrack[exampleTrackId]!.simulcastConfig?.enabled);
       done('');
     });
 

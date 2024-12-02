@@ -10,8 +10,8 @@ it('Adding track invokes renegotiation', () =>
     const webRTCEndpoint = new WebRTCEndpoint();
     mockMediaStream();
 
-    const mediaEvent = serializeServerMediaEvent({ connected: createConnectedEventWithOneEndpoint() });
-    webRTCEndpoint.receiveMediaEvent(mediaEvent);
+    const serializedEvent = serializeServerMediaEvent({ connected: createConnectedEventWithOneEndpoint() });
+    webRTCEndpoint.receiveMediaEvent(serializedEvent);
 
     webRTCEndpoint.on('sendMediaEvent', (mediaEvent) => {
       // Then
@@ -35,9 +35,9 @@ it('Adding track updates internal state', () => {
 
   const webRTCEndpoint = new WebRTCEndpoint();
 
-  const mediaEvent = serializeServerMediaEvent({ connected: createConnectedEventWithOneEndpoint() });
+  const serializedEvent = serializeServerMediaEvent({ connected: createConnectedEventWithOneEndpoint() });
 
-  webRTCEndpoint.receiveMediaEvent(mediaEvent);
+  webRTCEndpoint.receiveMediaEvent(serializedEvent);
 
   // When
   webRTCEndpoint.addTrack(mockTrack);

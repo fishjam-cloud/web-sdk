@@ -1,7 +1,7 @@
 import { MediaEvent_VadNotification_Status } from '@fishjam-cloud/protobufs/server';
 import { WebRTCEndpoint } from '../../src';
 import { serializeServerMediaEvent } from '../../src/mediaEvent';
-import { createCustomVadNotificationEvent, endpointId, trackId } from '../fixtures';
+import { createCustomVadNotificationEvent, exampleEndpointId, exampleTrackId } from '../fixtures';
 import { setupRoom } from '../utils';
 import { expect, it } from 'vitest';
 
@@ -9,17 +9,20 @@ it(`Changing VAD notification to "speech" on existing track id`, () => {
   // Given
   const webRTCEndpoint = new WebRTCEndpoint();
 
-  setupRoom(webRTCEndpoint, endpointId, trackId);
+  setupRoom(webRTCEndpoint, exampleEndpointId, exampleTrackId);
 
   // When
   webRTCEndpoint.receiveMediaEvent(
     serializeServerMediaEvent({
-      vadNotification: createCustomVadNotificationEvent(trackId, MediaEvent_VadNotification_Status.STATUS_SPEECH),
+      vadNotification: createCustomVadNotificationEvent(
+        exampleTrackId,
+        MediaEvent_VadNotification_Status.STATUS_SPEECH,
+      ),
     }),
   );
 
   // Then
-  const track = webRTCEndpoint.getRemoteTracks()[trackId]!;
+  const track = webRTCEndpoint.getRemoteTracks()[exampleTrackId]!;
   expect(track.vadStatus).toBe('speech');
 });
 
@@ -27,17 +30,20 @@ it(`Changing VAD notification to "silence" on existing track id`, () => {
   // Given
   const webRTCEndpoint = new WebRTCEndpoint();
 
-  setupRoom(webRTCEndpoint, endpointId, trackId);
+  setupRoom(webRTCEndpoint, exampleEndpointId, exampleTrackId);
 
   // When
   webRTCEndpoint.receiveMediaEvent(
     serializeServerMediaEvent({
-      vadNotification: createCustomVadNotificationEvent(trackId, MediaEvent_VadNotification_Status.STATUS_SILENCE),
+      vadNotification: createCustomVadNotificationEvent(
+        exampleTrackId,
+        MediaEvent_VadNotification_Status.STATUS_SILENCE,
+      ),
     }),
   );
 
   // Then
-  const track = webRTCEndpoint.getRemoteTracks()[trackId]!;
+  const track = webRTCEndpoint.getRemoteTracks()[exampleTrackId]!;
   expect(track.vadStatus).toBe('silence');
 });
 
@@ -46,14 +52,17 @@ it(`Changing VAD notification emits event`, () =>
     // Given
     const webRTCEndpoint = new WebRTCEndpoint();
 
-    setupRoom(webRTCEndpoint, endpointId, trackId);
+    setupRoom(webRTCEndpoint, exampleEndpointId, exampleTrackId);
 
-    webRTCEndpoint.getRemoteTracks()[trackId]!.on('voiceActivityChanged', (context) => {
+    webRTCEndpoint.getRemoteTracks()[exampleTrackId]!.on('voiceActivityChanged', (context) => {
       expect(context.vadStatus).toBe('speech');
       done('');
     });
 
     // When
-    const vadNotification = createCustomVadNotificationEvent(trackId, MediaEvent_VadNotification_Status.STATUS_SPEECH);
+    const vadNotification = createCustomVadNotificationEvent(
+      exampleTrackId,
+      MediaEvent_VadNotification_Status.STATUS_SPEECH,
+    );
     webRTCEndpoint.receiveMediaEvent(serializeServerMediaEvent({ vadNotification }));
   }));

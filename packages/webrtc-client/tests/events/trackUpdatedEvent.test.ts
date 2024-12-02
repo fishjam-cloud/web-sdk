@@ -1,6 +1,6 @@
 import { WebRTCEndpoint } from '../../src';
 import { serializeServerMediaEvent } from '../../src/mediaEvent';
-import { createTrackUpdatedEvent, endpointId, notExistingEndpointId, trackId } from '../fixtures';
+import { createTrackUpdatedEvent, exampleEndpointId, notExistingEndpointId, exampleTrackId } from '../fixtures';
 import { setupRoom } from '../utils';
 import { expect, it } from 'vitest';
 
@@ -9,7 +9,7 @@ it(`Updating existing track emits events`, () =>
     // Given
     const webRTCEndpoint = new WebRTCEndpoint();
 
-    setupRoom(webRTCEndpoint, endpointId, trackId);
+    setupRoom(webRTCEndpoint, exampleEndpointId, exampleTrackId);
 
     webRTCEndpoint.on('trackUpdated', (context) => {
       // Then
@@ -23,7 +23,7 @@ it(`Updating existing track emits events`, () =>
 
     // When
     webRTCEndpoint.receiveMediaEvent(
-      serializeServerMediaEvent({ trackUpdated: createTrackUpdatedEvent(trackId, endpointId, metadata) }),
+      serializeServerMediaEvent({ trackUpdated: createTrackUpdatedEvent(exampleTrackId, exampleEndpointId, metadata) }),
     );
   }));
 
@@ -31,7 +31,7 @@ it(`Updating existing track changes track metadata`, () => {
   // Given
   const webRTCEndpoint = new WebRTCEndpoint();
 
-  setupRoom(webRTCEndpoint, endpointId, trackId);
+  setupRoom(webRTCEndpoint, exampleEndpointId, exampleTrackId);
 
   const metadata = {
     name: 'New name',
@@ -39,11 +39,11 @@ it(`Updating existing track changes track metadata`, () => {
 
   // When
   webRTCEndpoint.receiveMediaEvent(
-    serializeServerMediaEvent({ trackUpdated: createTrackUpdatedEvent(trackId, endpointId, metadata) }),
+    serializeServerMediaEvent({ trackUpdated: createTrackUpdatedEvent(exampleTrackId, exampleEndpointId, metadata) }),
   );
 
   // Then
-  const track = webRTCEndpoint.getRemoteTracks()[trackId];
+  const track = webRTCEndpoint.getRemoteTracks()[exampleTrackId];
   expect(track!.metadata).toEqual(metadata);
 });
 
@@ -51,7 +51,7 @@ it('Correctly parses track metadata', () => {
   // Given
   const webRTCEndpoint = new WebRTCEndpoint();
 
-  setupRoom(webRTCEndpoint, endpointId, trackId);
+  setupRoom(webRTCEndpoint, exampleEndpointId, exampleTrackId);
 
   const metadata = {
     goodStuff: 'ye',
@@ -59,11 +59,11 @@ it('Correctly parses track metadata', () => {
 
   // When
   webRTCEndpoint.receiveMediaEvent(
-    serializeServerMediaEvent({ trackUpdated: createTrackUpdatedEvent(trackId, endpointId, metadata) }),
+    serializeServerMediaEvent({ trackUpdated: createTrackUpdatedEvent(exampleTrackId, exampleEndpointId, metadata) }),
   );
 
   // Then
-  const track = webRTCEndpoint.getRemoteTracks()[trackId]!;
+  const track = webRTCEndpoint.getRemoteTracks()[exampleTrackId]!;
   expect(track.metadata).toEqual({ goodStuff: 'ye' });
 });
 
@@ -71,7 +71,7 @@ it.todo(`Webrtc endpoint skips updating local endpoint metadata`, () => {
   // Given
   const webRTCEndpoint = new WebRTCEndpoint();
 
-  setupRoom(webRTCEndpoint, endpointId, trackId);
+  setupRoom(webRTCEndpoint, exampleEndpointId, exampleTrackId);
 
   const metadata = {
     name: 'New name',
@@ -79,7 +79,7 @@ it.todo(`Webrtc endpoint skips updating local endpoint metadata`, () => {
 
   // When
   webRTCEndpoint.receiveMediaEvent(
-    serializeServerMediaEvent({ trackUpdated: createTrackUpdatedEvent(trackId, endpointId, metadata) }),
+    serializeServerMediaEvent({ trackUpdated: createTrackUpdatedEvent(exampleTrackId, exampleEndpointId, metadata) }),
   );
 
   // Then
@@ -95,7 +95,7 @@ it(`Updating track with invalid endpoint id throws error`, () => {
   // Given
   const webRTCEndpoint = new WebRTCEndpoint();
 
-  setupRoom(webRTCEndpoint, endpointId, trackId);
+  setupRoom(webRTCEndpoint, exampleEndpointId, exampleTrackId);
 
   const metadata = {
     name: 'New name',
@@ -104,7 +104,9 @@ it(`Updating track with invalid endpoint id throws error`, () => {
   // When
   expect(() =>
     webRTCEndpoint.receiveMediaEvent(
-      serializeServerMediaEvent({ trackUpdated: createTrackUpdatedEvent(trackId, notExistingEndpointId, metadata) }),
+      serializeServerMediaEvent({
+        trackUpdated: createTrackUpdatedEvent(exampleTrackId, notExistingEndpointId, metadata),
+      }),
     ),
   )
     // Then

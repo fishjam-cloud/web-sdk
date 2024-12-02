@@ -562,9 +562,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fishjam-e2e/ts-client-e2e@workspace:e2e-tests/ts-client/app":
+"@fishjam-e2e/webrtc-client-e2e@workspace:e2e-tests/webrtc-client/app":
   version: 0.0.0-use.local
-  resolution: "@fishjam-e2e/ts-client-e2e@workspace:e2e-tests/ts-client/app"
+  resolution: "@fishjam-e2e/webrtc-client-e2e@workspace:e2e-tests/webrtc-client/app"
   dependencies:
     "@fishjam-cloud/ts-client": "workspace:*"
     "@playwright/test": "npm:^1.49.0"

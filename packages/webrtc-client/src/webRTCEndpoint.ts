@@ -107,6 +107,11 @@ export class WebRTCEndpoint extends (EventEmitter as new () => TypedEmitter<Requ
 
       this.local.setLocalEndpointId(connectedEvent.endpointId);
 
+      const localEndpointMetadataJson = connectedEvent.endpointIdToEndpoint[connectedEvent.endpointId]?.metadataJson;
+      if (localEndpointMetadataJson) {
+        this.local.setEndpointMetadata(JSON.parse(localEndpointMetadataJson));
+      }
+
       const connectedEndpoint = connectedEvent.endpointIdToEndpoint[connectedEvent.endpointId];
 
       if (connectedEndpoint?.metadataJson) {

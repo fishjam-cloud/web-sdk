@@ -1,5 +1,7 @@
 import {
   useInitializeDevices,
+  useCamera,
+  useMicrophone,
   useConnection,
 } from "@fishjam-cloud/react-client";
 
@@ -37,6 +39,9 @@ type Props = React.HTMLAttributes<HTMLDivElement>;
 export const JoinRoomCard: FC<Props> = (props) => {
   const { initializeDevices } = useInitializeDevices();
 
+  const camera = useCamera();
+  const mic = useMicrophone();
+
   const { joinRoom } = useConnection();
 
   const persistedValues = getPersistedFormValues();
@@ -59,18 +64,30 @@ export const JoinRoomCard: FC<Props> = (props) => {
     roomName,
     peerName,
   }: RoomForm) => {
-    const { url, peerToken } = await getRoomCredentials(
-      roomManagerUrl,
-      roomName,
-      peerName,
-    );
-    persistFormValues({ roomManagerUrl, roomName, peerName });
-    await joinRoom({
-      url,
-      peerToken,
-      peerMetadata: { displayName: peerName },
-    });
+    try {
+      const { url, peerToken } = await getRoomCredentials(
+        roomManagerUrl,
+        roomName,
+        peerName,
+      );
+      persistFormValues({ roomManagerUrl, roomName, peerName });
+      await joinRoom({
+        url,
+        peerToken,
+        peerMetadata: { displayName: peerName },
+      });
+
+      await Promise.all([
+        camera.startStreaming({ simulcast: false }),
+        mic.startStreaming({ simulcast: false }),
+      ]);
+      form.clearErrors();
+    } catch (e) {
+      form.setError("root", { message: (e as { message?: string })?.message });
+    }
   };
+
+  const error = form.formState.errors.root?.message;
 
   return (
     <Card {...props}>
@@ -78,6 +95,7 @@ export const JoinRoomCard: FC<Props> = (props) => {
         <CardHeader>
           <CardTitle>Fishjam Chat</CardTitle>
           <CardDescription>Fill out the form to join the call.</CardDescription>
+          {error && <CardFooter className="text-red-500">{error}</CardFooter>}
         </CardHeader>
 
         <CardContent>

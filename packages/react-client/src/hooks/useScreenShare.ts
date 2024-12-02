@@ -2,7 +2,7 @@ import type { FishjamClient } from "@fishjam-cloud/ts-client";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { ScreenShareState } from "../types/internal";
-import type { PeerStatus,ScreenshareApi, TracksMiddleware } from "../types/public";
+import type { PeerStatus, ScreenshareApi, TracksMiddleware } from "../types/public";
 import { getRemoteOrLocalTrack } from "../utils/track";
 import { useFishjamContext } from "./internal/useFishjamContext";
 

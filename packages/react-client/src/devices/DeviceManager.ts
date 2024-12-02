@@ -10,7 +10,7 @@ import type {
   MediaManager,
   MediaStatus,
 } from "../types/internal";
-import type { DeviceType,PersistLastDeviceHandlers, TrackMiddleware } from "../types/public";
+import type { DeviceType, PersistLastDeviceHandlers, TrackMiddleware } from "../types/public";
 import { parseUserMediaError } from "../utils/errors";
 import { createStorageConfig } from "../utils/localStorage";
 import { setupOnEndedCallback } from "../utils/track";

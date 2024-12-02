@@ -1,7 +1,7 @@
 import "./style.css";
 
 import type { Peer, TrackMetadata } from "@fishjam-cloud/ts-client";
-import { FishjamClient,Variant  } from "@fishjam-cloud/ts-client";
+import { FishjamClient, Variant } from "@fishjam-cloud/ts-client";
 
 import { createStream } from "./createMockStream";
 

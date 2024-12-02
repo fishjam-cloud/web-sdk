@@ -1,4 +1,4 @@
-import type { MediaEvent as PeerMediaEvent,MediaEvent_TrackBitrates } from '@fishjam-cloud/protobufs/peer';
+import type { MediaEvent as PeerMediaEvent, MediaEvent_TrackBitrates } from '@fishjam-cloud/protobufs/peer';
 import {
   MediaEvent_RenegotiateTracks,
   MediaEvent_SdpOffer,

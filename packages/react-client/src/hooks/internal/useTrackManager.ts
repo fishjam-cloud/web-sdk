@@ -1,4 +1,4 @@
-import { type FishjamClient, type TrackMetadata,Variant } from "@fishjam-cloud/ts-client";
+import { type FishjamClient, type TrackMetadata, Variant } from "@fishjam-cloud/ts-client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { MediaManager, TrackManager } from "../../types/internal";

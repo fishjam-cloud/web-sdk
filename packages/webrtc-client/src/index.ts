@@ -1,4 +1,4 @@
-export type { MediaEvent,SerializedMediaEvent } from './mediaEvent';
+export type { MediaEvent, SerializedMediaEvent } from './mediaEvent';
 export type {
   BandwidthLimit,
   EncodingReason,

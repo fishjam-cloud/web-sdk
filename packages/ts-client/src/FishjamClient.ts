@@ -15,7 +15,7 @@ import type TypedEmitter from 'typed-emitter';
 
 import { isAuthError } from './auth';
 import { connectEventsHandler } from './connectEventsHandler';
-import { isComponent,isPeer } from './guards';
+import { isComponent, isPeer } from './guards';
 import { ReconnectManager } from './reconnection';
 import type {
   Component,

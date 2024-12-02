@@ -1,4 +1,4 @@
-import { type MediaEvent as PeerMediaEvent,MediaEvent_RenegotiateTracks } from '@fishjam-cloud/protobufs/peer';
+import { type MediaEvent as PeerMediaEvent, MediaEvent_RenegotiateTracks } from '@fishjam-cloud/protobufs/peer';
 
 import type { SimulcastConfig } from '..';
 import type { ConnectionManager } from '../ConnectionManager';

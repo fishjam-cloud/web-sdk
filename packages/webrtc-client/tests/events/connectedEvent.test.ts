@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { expect, it,vi } from 'vitest';
+import { expect, it, vi } from 'vitest';
 
 import type { Endpoint } from '../../src';
 import { WebRTCEndpoint } from '../../src';

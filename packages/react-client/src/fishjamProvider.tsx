@@ -1,5 +1,5 @@
 import { FishjamClient, type ReconnectConfig } from "@fishjam-cloud/ts-client";
-import { type PropsWithChildren,useRef } from "react";
+import { type PropsWithChildren, useRef } from "react";
 
 import { AUDIO_TRACK_CONSTRAINTS, VIDEO_TRACK_CONSTRAINTS } from "./devices/constraints";
 import { DeviceManager } from "./devices/DeviceManager";

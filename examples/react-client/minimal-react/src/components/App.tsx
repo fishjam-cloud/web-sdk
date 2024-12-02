@@ -4,7 +4,7 @@ import {
   useScreenShare,
 } from "@fishjam-cloud/react-client";
 import { useFishjamClient_DO_NOT_USE } from "@fishjam-cloud/react-client/internal";
-import { Fragment,useState } from "react";
+import { Fragment, useState } from "react";
 
 import VideoPlayer from "./VideoPlayer";
 

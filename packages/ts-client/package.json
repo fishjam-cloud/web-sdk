@@ -20,14 +20,10 @@
     "minify": true,
     "format": [
       "esm"
-    ],
-    "noExternal": [
-      "@fishjam-cloud/webrtc-client",
-      "@fishjam-cloud/protobufs"
     ]
   },
   "scripts": {
-    "build": "tsup src/index.ts --dts-resolve",
+    "build": "yarn build:check && tsup src/index.ts --dts-resolve",
     "build:check": "tsc --noEmit",
     "format": "prettier --write . --ignore-path ./.eslintignore",
     "format:check": "prettier --check . --ignore-path ./.eslintignore",

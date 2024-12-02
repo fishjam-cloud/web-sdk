@@ -45,14 +45,14 @@ export const MuteTrackTest = ({ webrtc }: Props) => {
         enabled: true,
         enabledVariants: [Variant.VARIANT_LOW, Variant.VARIANT_MEDIUM, Variant.VARIANT_HIGH],
         disabledVariants: [],
-      }
+      },
     );
   };
 
   const replaceTrack = async (
     replaceTrackId: string | null,
     stream: MediaStream | null,
-    track: MediaStreamTrack | null
+    track: MediaStreamTrack | null,
   ) => {
     if (!replaceTrackId) throw Error("Track id is null");
 

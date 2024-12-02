@@ -21,7 +21,7 @@ const rgbToText = (pixel: Pixel): string => {
 };
 
 const getTrackIdentifierToInboundRtp = (
-  stats: RTCStatsReport
+  stats: RTCStatsReport,
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 ): Record<string, any> => {
   const result: Record<string, object> = {};

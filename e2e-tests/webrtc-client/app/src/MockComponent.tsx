@@ -1,8 +1,9 @@
-import { createStream } from "./mocks";
-import { VideoPlayer } from "./VideoPlayer";
+import { type BandwidthLimit, type SimulcastConfig, Variant, type WebRTCEndpoint } from "@fishjam-cloud/ts-client";
 import { useRef, useState } from "react";
-import { Variant, type BandwidthLimit, type SimulcastConfig, type WebRTCEndpoint } from "@fishjam-cloud/ts-client";
+
+import { createStream } from "./mocks";
 import { MuteTrackTest } from "./MuteTrackTest";
+import { VideoPlayer } from "./VideoPlayer";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const brainMock = createStream("🧠", "white", "low", 24);

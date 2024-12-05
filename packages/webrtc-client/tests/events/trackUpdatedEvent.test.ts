@@ -1,8 +1,9 @@
+import { expect, it } from 'vitest';
+
 import { WebRTCEndpoint } from '../../src';
 import { serializeServerMediaEvent } from '../../src/mediaEvent';
-import { createTrackUpdatedEvent, exampleEndpointId, notExistingEndpointId, exampleTrackId } from '../fixtures';
+import { createTrackUpdatedEvent, exampleEndpointId, exampleTrackId, notExistingEndpointId } from '../fixtures';
 import { setupRoom } from '../utils';
-import { expect, it } from 'vitest';
 
 it(`Updating existing track emits events`, () =>
   new Promise((done) => {

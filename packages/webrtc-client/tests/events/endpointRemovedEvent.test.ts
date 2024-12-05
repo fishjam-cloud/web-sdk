@@ -1,15 +1,16 @@
-import { mockRTCPeerConnection } from '../mocks';
+import { expect, it } from 'vitest';
+
 import { WebRTCEndpoint } from '../../src';
+import { serializeServerMediaEvent } from '../../src/mediaEvent';
 import {
   createConnectedEventWithOneEndpoint,
   createEndpointRemoved,
   exampleEndpointId,
-  notExistingEndpointId,
   exampleTrackId,
+  notExistingEndpointId,
 } from '../fixtures';
+import { mockRTCPeerConnection } from '../mocks';
 import { setupRoom } from '../utils';
-import { expect, it } from 'vitest';
-import { serializeServerMediaEvent } from '../../src/mediaEvent';
 
 it('Remove the endpoint that does not exist', () => {
   // Given

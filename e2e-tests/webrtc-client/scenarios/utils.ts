@@ -35,7 +35,7 @@ export const createAndJoinPeer = async (
       });
 
       return peerId;
-    } catch (e) {
+    } catch {
       throw {
         status: peerRequest.status(),
         response: await peerRequest.json(),
@@ -46,7 +46,7 @@ export const createAndJoinPeer = async (
 export const joinRoom = async (
   page: Page,
   roomId: string,
-  metadata?: any,
+  metadata?: unknown,
   waitForConnection: boolean = true,
 ): Promise<string> =>
   test.step("Join room", async () => {
@@ -71,7 +71,7 @@ export const joinRoom = async (
       }
 
       return peerId;
-    } catch (e) {
+    } catch {
       throw {
         status: peerRequest.status(),
         response: await peerRequest.json(),
@@ -102,7 +102,7 @@ export const joinRoomAndAddScreenShare = async (
       await addScreenShare(page);
 
       return peerId;
-    } catch (e) {
+    } catch {
       throw {
         status: peerRequest.status(),
         response: await peerRequest.json(),

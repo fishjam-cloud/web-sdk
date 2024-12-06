@@ -11,7 +11,9 @@ test("displays basic UI", async ({ page }) => {
 
   await expect(page).toHaveTitle(/Fishjam Minimal React/);
   await expect(page.getByPlaceholder("token")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Connect", exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Connect", exact: true }),
+  ).toBeVisible();
 });
 
 test("Connect 2 peers to 1 room", async ({ page: firstPage, context }) => {
@@ -28,11 +30,17 @@ test("Connect 2 peers to 1 room", async ({ page: firstPage, context }) => {
     assertThatRemoteTracksAreVisible(firstPage, [secondPageId]),
     assertThatRemoteTracksAreVisible(secondPage, [firstPageId]),
   ]);
-  await Promise.all([assertThatOtherVideoIsPlaying(firstPage), assertThatOtherVideoIsPlaying(secondPage)]);
+  await Promise.all([
+    assertThatOtherVideoIsPlaying(firstPage),
+    assertThatOtherVideoIsPlaying(secondPage),
+  ]);
 });
 
 test("Client properly sees 3 other peers", async ({ page, context }) => {
-  const pages = [page, ...(await Promise.all([...Array(3)].map(() => context.newPage())))];
+  const pages = [
+    page,
+    ...(await Promise.all([...Array(3)].map(() => context.newPage()))),
+  ];
 
   const roomId = await createRoom(page);
 
@@ -55,7 +63,10 @@ test("Client properly sees 3 other peers", async ({ page, context }) => {
 });
 
 test("Peer see peers just in the same room", async ({ page, context }) => {
-  const [p1r1, p2r1, p1r2, p2r2] = [page, ...(await Promise.all([...Array(3)].map(() => context.newPage())))];
+  const [p1r1, p2r1, p1r2, p2r2] = [
+    page,
+    ...(await Promise.all([...Array(3)].map(() => context.newPage()))),
+  ];
   const [firstRoomPages, secondRoomPages] = [
     [p1r1, p2r1],
     [p1r2, p2r2],
@@ -84,7 +95,9 @@ test("Peer see peers just in the same room", async ({ page, context }) => {
         page,
         firstRoomPeerIds.filter((id) => id !== firstRoomPeerIds[idx]),
       );
-      await expect(assertThatRemoteTracksAreVisible(page, secondRoomPeerIds)).rejects.toThrow();
+      await expect(
+        assertThatRemoteTracksAreVisible(page, secondRoomPeerIds),
+      ).rejects.toThrow();
       await assertThatOtherVideoIsPlaying(page);
     }),
     ...secondRoomPages.map(async (page, idx) => {
@@ -92,14 +105,22 @@ test("Peer see peers just in the same room", async ({ page, context }) => {
         page,
         secondRoomPeerIds.filter((id) => id !== secondRoomPeerIds[idx]),
       );
-      await expect(assertThatRemoteTracksAreVisible(page, firstRoomPeerIds)).rejects.toThrow();
+      await expect(
+        assertThatRemoteTracksAreVisible(page, firstRoomPeerIds),
+      ).rejects.toThrow();
       await assertThatOtherVideoIsPlaying(page);
     }),
   ]);
 });
 
-test("Client throws an error if joining room at max capacity", async ({ page, context }) => {
-  const [page1, page2, overflowingPage] = [page, ...(await Promise.all([...Array(2)].map(() => context.newPage())))];
+test("Client throws an error if joining room at max capacity", async ({
+  page,
+  context,
+}) => {
+  const [page1, page2, overflowingPage] = [
+    page,
+    ...(await Promise.all([...Array(2)].map(() => context.newPage()))),
+  ];
 
   const roomId = await createRoom(page, 2);
 
@@ -111,7 +132,9 @@ test("Client throws an error if joining room at max capacity", async ({ page, co
   );
 
   await overflowingPage.goto("/");
-  await expect(joinRoomAndAddScreenShare(overflowingPage, roomId)).rejects.toEqual(
+  await expect(
+    joinRoomAndAddScreenShare(overflowingPage, roomId),
+  ).rejects.toEqual(
     expect.objectContaining({
       status: 503,
       response: {

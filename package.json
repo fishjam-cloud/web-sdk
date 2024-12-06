@@ -10,8 +10,8 @@
     "packages/webrtc-client",
     "examples/ts-client/*",
     "examples/react-client/*",
-    "e2e-tests/webrtc-client/app",
-    "e2e-tests/react-client/app"
+    "e2e-tests/webrtc-client",
+    "e2e-tests/react-client"
   ],
   "packageManager": "yarn@4.4.0",
   "scripts": {

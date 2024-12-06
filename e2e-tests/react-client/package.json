@@ -1,0 +1,10 @@
+{
+  "name": "@fishjam-cloud/e2e-react",
+  "version": "0.0.0",
+  "scripts": {
+    "format": "prettier --write . --ignore-path ./.eslintignore",
+    "format:check": "prettier --check . --ignore-path ./.eslintignore",
+    "lint": "eslint . --ext .ts,.tsx --fix",
+    "lint:check": "eslint . --ext .ts,.tsx"
+  }
+}

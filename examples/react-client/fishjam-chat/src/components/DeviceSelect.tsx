@@ -1,6 +1,7 @@
 import type { DeviceItem } from "@fishjam-cloud/react-client";
 import type { FC } from "react";
 
+import { Label } from "./ui/label";
 import {
   Select,
   SelectContent,

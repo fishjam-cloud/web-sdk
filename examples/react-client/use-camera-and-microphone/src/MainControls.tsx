@@ -12,6 +12,7 @@ import { atomWithStorage } from "jotai/utils";
 
 import AudioVisualizer from "./AudioVisualizer";
 import { Badge } from "./Badge";
+import { DeviceSelector } from "./DeviceSelector";
 import { Radio } from "./Radio";
 import { ScreenShareControls } from "./ScreenShareControls";
 import { ThreeStateRadio } from "./ThreeStateRadio";

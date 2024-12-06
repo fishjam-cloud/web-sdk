@@ -28,7 +28,7 @@ export const joinRoomAndAddScreenShare = async (
       });
 
       return peerId;
-    } catch (e) {
+    } catch {
       // todo fix
       throw {
         status: peerRequest.status(),

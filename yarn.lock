@@ -710,9 +710,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fishjam-e2e/react@workspace:e2e-tests/react-client":
+"@fishjam-e2e/react-client@workspace:e2e-tests/react-client":
   version: 0.0.0-use.local
-  resolution: "@fishjam-e2e/react@workspace:e2e-tests/react-client"
+  resolution: "@fishjam-e2e/react-client@workspace:e2e-tests/react-client"
   dependencies:
     "@playwright/test": "npm:^1.49.0"
     "@types/node": "npm:^22.10.1"
@@ -723,9 +723,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@fishjam-e2e/webrtc@workspace:e2e-tests/webrtc-client":
+"@fishjam-e2e/webrtc-client@workspace:e2e-tests/webrtc-client":
   version: 0.0.0-use.local
-  resolution: "@fishjam-e2e/webrtc@workspace:e2e-tests/webrtc-client"
+  resolution: "@fishjam-e2e/webrtc-client@workspace:e2e-tests/webrtc-client"
   dependencies:
     "@fishjam-cloud/ts-client": "workspace:*"
     "@playwright/test": "npm:^1.49.0"

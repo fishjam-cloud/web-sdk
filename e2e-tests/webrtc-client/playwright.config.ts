@@ -25,7 +25,7 @@ export default defineConfig({
     [
       "html",
       {
-        outputFolder: "../../../playwright-report/react-client-e2e",
+        outputFolder: "../../playwright-report/ts-client-e2e",
         open: "never",
       },
     ],
@@ -33,7 +33,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: "http://localhost:3007",
+    baseURL: "http://localhost:5173",
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
@@ -64,11 +64,10 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: {
     command: "yarn run dev",
-    url: "http://localhost:3007",
+    url: "http://localhost:5173",
     reuseExistingServer: !process.env.CI,
-    cwd: "../../../examples/react-client/minimal-react",
   },
 
-  globalSetup: "../setup/setupFishjam",
-  globalTeardown: "../setup/teardownFishjam",
+  globalSetup: "./setup/setupFishjam",
+  globalTeardown: "./setup/teardownFishjam",
 });

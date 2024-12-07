@@ -12,7 +12,7 @@ export default async function setupFishjam() {
     .map(({ address }) => address)[0];
 
   setupState.fishjamContainer = await new DockerComposeEnvironment(
-    "../.",
+    ".",
     "docker-compose-test.yaml",
   )
     .withEnvironment({ EXTERNAL_IP })

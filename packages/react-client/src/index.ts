@@ -37,5 +37,5 @@ export type {
   VadStatus,
   EncodingReason,
   AuthErrorReason,
-  Variant,
 } from "@fishjam-cloud/ts-client";
+export { Variant } from "@fishjam-cloud/ts-client";

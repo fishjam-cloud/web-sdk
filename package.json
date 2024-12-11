@@ -10,14 +10,14 @@
     "packages/webrtc-client",
     "examples/ts-client/*",
     "examples/react-client/*",
-    "e2e-tests/webrtc-client/app",
-    "e2e-tests/react-client/app"
+    "e2e-tests/webrtc-client",
+    "e2e-tests/react-client"
   ],
   "packageManager": "yarn@4.4.0",
   "scripts": {
     "build": "yarn workspaces foreach -Ap --topological-dev run build",
     "test:unit": "yarn workspace @fishjam-cloud/webrtc-client test",
-    "test:e2e": "yarn workspace @fishjam-e2e/webrtc-client-e2e e2e && yarn workspace @fishjam-e2e/react-client-e2e e2e",
+    "test:e2e": "yarn workspace @fishjam-e2e/webrtc-client e2e && yarn workspace @fishjam-e2e/react-client e2e",
     "gen:proto": "yarn workspace @fishjam-cloud/protobufs gen:proto",
     "tsc": "yarn workspaces foreach -Ap run tsc || echo '❌ Type errors! ❌' ",
     "format": "yarn workspaces foreach -A -p run format || echo '❌ Formatting issues! ❌'",
@@ -28,17 +28,17 @@
   },
   "devDependencies": {
     "@fishjam-cloud/protobufs": "workspace:^",
-    "@typescript-eslint/eslint-plugin": "^8.16.0",
-    "@typescript-eslint/parser": "^8.16.0",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-react-hooks": "^5.0.0",
-    "eslint-plugin-react-refresh": "^0.4.14",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.16",
     "eslint-plugin-simple-import-sort": "^12.1.1",
-    "prettier": "^3.4.1",
+    "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.9",
-    "typedoc": "^0.27.0",
+    "typedoc": "^0.27.4",
     "typedoc-material-theme": "^1.2.0",
     "typescript": "^5.7.2"
   }

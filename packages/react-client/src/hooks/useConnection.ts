@@ -20,7 +20,7 @@ export type JoinRoomConfig<PeerMetadata extends GenericMetadata = GenericMetadat
 };
 
 /**
- * XD
+ * Hook used for joining/leaving room. And to get current connection status
  * @category Connection
  * @returns
  */
@@ -43,5 +43,7 @@ export function useConnection() {
     client.disconnect();
   }, [client]);
 
-  return { joinRoom, leaveRoom, peerStatus: context.peerStatus, reconnectionStatus };
+  const peerStatus = context.peerStatus;
+
+  return { joinRoom, leaveRoom, peerStatus, reconnectionStatus };
 }

@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { useFishjamContext } from "./internal/useFishjamContext";
 import { useReconnection } from "./internal/useReconnection";
 
-export interface JoinRoomConfig<PeerMetadata extends GenericMetadata = GenericMetadata> {
+export type JoinRoomConfig<PeerMetadata extends GenericMetadata = GenericMetadata> = {
   /**
    * fishjam URL
    */
@@ -17,9 +17,10 @@ export interface JoinRoomConfig<PeerMetadata extends GenericMetadata = GenericMe
    * string indexed record with metadata, that will be available to all other peers
    */
   peerMetadata?: PeerMetadata;
-}
+};
 
 /**
+ * XD
  * @category Connection
  * @returns
  */

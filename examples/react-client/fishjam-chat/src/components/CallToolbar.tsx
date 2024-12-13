@@ -69,7 +69,7 @@ export const CallToolbar = () => {
 
       <Button
         className="gap-2 text-xs"
-        variant={!isCameraOn ? "default" : "outline"}
+        variant={isCameraOn ? "default" : "outline"}
         onClick={toggleCamera}
       >
         <CameraIcon size={20} strokeWidth={"1.5px"} />

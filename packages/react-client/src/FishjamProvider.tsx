@@ -22,7 +22,7 @@ interface FishjamProviderProps extends PropsWithChildren {
 }
 
 /**
- * @category Component
+ * @category Components
  */
 export function FishjamProvider({
   children,

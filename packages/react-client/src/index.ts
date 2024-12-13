@@ -33,6 +33,5 @@ export type {
   TrackContext,
   TrackContextEvents,
   VadStatus,
-  Variant,
 } from "@fishjam-cloud/ts-client";
 export { Variant } from "@fishjam-cloud/ts-client";

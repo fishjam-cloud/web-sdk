@@ -20,7 +20,7 @@ export interface JoinRoomConfig<PeerMetadata extends GenericMetadata = GenericMe
 }
 
 /**
- * Hook used for joining/leaving room. And to get current connection status
+ * Hook allows to to join or leave a room and check the current connection status.
  * @category Connection
  * @returns
  */

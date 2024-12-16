@@ -1,7 +1,7 @@
 {
   "name": "@fishjam-example/simple-app",
   "private": true,
-  "version": "0.10.1",
+  "version": "0.10.2",
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
@@ -15,11 +15,11 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.4.20",
-    "daisyui": "^4.12.14",
+    "daisyui": "^4.12.20",
     "postcss": "^8.4.49",
-    "tailwindcss": "^3.4.15",
+    "tailwindcss": "^3.4.16",
     "typescript": "^5.7.2",
-    "vite": "^6.0.1",
+    "vite": "^6.0.3",
     "vite-plugin-checker": "^0.8.0"
   },
   "dependencies": {

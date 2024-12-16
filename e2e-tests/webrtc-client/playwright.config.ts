@@ -10,7 +10,7 @@ import { defineConfig, devices } from "@playwright/test";
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  testDir: "../.",
+  testDir: ".",
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -25,7 +25,7 @@ export default defineConfig({
     [
       "html",
       {
-        outputFolder: "../../../playwright-report/ts-client-e2e",
+        outputFolder: "../../playwright-report/ts-client-e2e",
         open: "never",
       },
     ],
@@ -50,10 +50,7 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         launchOptions: {
-          args: [
-            "--use-fake-ui-for-media-stream",
-            "--use-fake-device-for-media-stream",
-          ],
+          args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream"],
           // default Google Chrome path on MacOS
           // executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
         },
@@ -68,6 +65,6 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
   },
 
-  globalSetup: "../setup/setupFishjam",
-  globalTeardown: "../setup/teardownFishjam",
+  globalSetup: "./setup/setupFishjam",
+  globalTeardown: "./setup/teardownFishjam",
 });

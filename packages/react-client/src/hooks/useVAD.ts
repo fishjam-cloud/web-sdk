@@ -5,6 +5,13 @@ import type { PeerId, TrackId } from "../types/internal";
 import { useFishjamClientState } from "./internal/useFishjamClientState";
 import { useFishjamContext } from "./internal/useFishjamContext";
 
+/**
+ *
+ * @param peerIds
+ * @category Connection
+ * @group Hooks
+ * @returns
+ */
 export const useVAD = (peerIds: PeerId[]): Record<PeerId, boolean> => {
   const { fishjamClientRef } = useFishjamContext();
   const { peers } = useFishjamClientState(fishjamClientRef.current);
@@ -22,9 +29,12 @@ export const useVAD = (peerIds: PeerId[]): Record<PeerId, boolean> => {
 
   const getDefaultVadStatuses = () =>
     micTracksWithSelectedPeerIds.reduce<Record<PeerId, Record<TrackId, VadStatus>>>(
-      (acc, peer) => ({
-        ...acc,
-        [peer.peerId]: peer.microphoneTracks.reduce((acc, track) => ({ ...acc, [track.trackId]: track.vadStatus }), {}),
+      (mappedTracks, peer) => ({
+        ...mappedTracks,
+        [peer.peerId]: peer.microphoneTracks.reduce(
+          (vadStatuses, track) => ({ ...vadStatuses, [track.trackId]: track.vadStatus }),
+          {},
+        ),
       }),
       {},
     );

@@ -9,7 +9,7 @@ import { FishjamContext } from "./hooks/internal/useFishjamContext";
 import { usePeerStatus } from "./hooks/internal/usePeerStatus";
 import { useTrackManager } from "./hooks/internal/useTrackManager";
 import { useScreenShareManager } from "./hooks/useScreenShare";
-import type { BandwidthLimits, PersistLastDeviceHandlers, StartStreamingProps } from "./types/public";
+import type { BandwidthLimits, PersistLastDeviceHandlers, StreamConfig } from "./types/public";
 import { mergeWithDefaultBandwitdthLimits } from "./utils/bandwidth";
 
 interface FishjamProviderProps extends PropsWithChildren {
@@ -17,8 +17,8 @@ interface FishjamProviderProps extends PropsWithChildren {
   constraints?: Pick<MediaStreamConstraints, "audio" | "video">;
   persistLastDevice?: boolean | PersistLastDeviceHandlers;
   bandwidthLimits?: Partial<BandwidthLimits>;
-  autoStreamCamera?: StartStreamingProps;
-  autoStreamMicrophone?: StartStreamingProps;
+  videoConfig?: StreamConfig;
+  audioConfig?: StreamConfig;
 }
 
 /**
@@ -30,8 +30,8 @@ export function FishjamProvider({
   constraints,
   persistLastDevice,
   bandwidthLimits,
-  autoStreamCamera,
-  autoStreamMicrophone,
+  videoConfig,
+  audioConfig,
 }: FishjamProviderProps) {
   const fishjamClientRef = useRef(new FishjamClient({ reconnect }));
 
@@ -65,7 +65,7 @@ export function FishjamProvider({
     tsClient: fishjamClientRef.current,
     getCurrentPeerStatus,
     bandwidthLimits: mergedBandwidthLimits,
-    autoStreamProps: autoStreamCamera,
+    streamConfig: videoConfig,
   });
 
   const audioTrackManager = useTrackManager({
@@ -73,7 +73,7 @@ export function FishjamProvider({
     tsClient: fishjamClientRef.current,
     getCurrentPeerStatus,
     bandwidthLimits: mergedBandwidthLimits,
-    autoStreamProps: autoStreamMicrophone,
+    streamConfig: audioConfig,
   });
 
   const screenShareManager = useScreenShareManager({ fishjamClient: fishjamClientRef.current, getCurrentPeerStatus });

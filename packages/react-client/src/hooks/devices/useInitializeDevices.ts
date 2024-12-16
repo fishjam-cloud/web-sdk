@@ -4,11 +4,15 @@ import { prepareConstraints } from "../../devices/constraints";
 import { getAvailableMedia, getCorrectedResult } from "../../devices/mediaInitializer";
 import { useFishjamContext } from "../internal/useFishjamContext";
 
+export type UseInitializeDevicesResult = {
+  initializeDevices: () => Promise<void>;
+};
+
 /**
  *
  * @category Devices
  */
-export const useInitializeDevices = () => {
+export const useInitializeDevices = (): UseInitializeDevicesResult => {
   const { videoDeviceManagerRef, audioDeviceManagerRef, hasDevicesBeenInitializedRef } = useFishjamContext();
 
   const initializeDevices = useCallback(async () => {

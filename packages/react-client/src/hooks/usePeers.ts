@@ -74,12 +74,19 @@ export type UsePeersResult<P, S> = {
  * @typeParam P Type of metadata set by peer while connecting to a room.
  * @typeParam S Type of metadata set by the server while creating a peer.
  */
-export function usePeers<P = Record<string, unknown>, S = Record<string, unknown>>(): UsePeersResult<P, S> {
+export function usePeers<
+  PeerMetadata = Record<string, unknown>,
+  ServerMetadata = Record<string, unknown>,
+>(): UsePeersResult<PeerMetadata, ServerMetadata> {
   const { clientState } = useFishjamContext();
 
-  const localPeer = clientState.localPeer ? getPeerWithDistinguishedTracks<P, S>(clientState.localPeer) : null;
+  const localPeer = clientState.localPeer
+    ? getPeerWithDistinguishedTracks<PeerMetadata, ServerMetadata>(clientState.localPeer)
+    : null;
 
-  const remotePeers = Object.values(clientState.peers).map((peer) => getPeerWithDistinguishedTracks<P, S>(peer));
+  const remotePeers = Object.values(clientState.peers).map((peer) =>
+    getPeerWithDistinguishedTracks<PeerMetadata, ServerMetadata>(peer),
+  );
 
   return { localPeer, remotePeers, peers: remotePeers };
 }

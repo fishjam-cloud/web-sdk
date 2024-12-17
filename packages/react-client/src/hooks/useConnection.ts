@@ -48,7 +48,7 @@ export interface UseConnectionResult {
  * @category Connection
  * @returns
  */
-export function useConnection() {
+export function useConnection(): UseConnectionResult {
   const context = useFishjamContext();
   const client = context.fishjamClientRef.current;
 

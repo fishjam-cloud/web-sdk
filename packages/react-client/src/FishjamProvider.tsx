@@ -7,8 +7,8 @@ import { useFishjamClientState } from "./hooks/internal/useFishjamClientState";
 import type { FishjamContextType } from "./hooks/internal/useFishjamContext";
 import { FishjamContext } from "./hooks/internal/useFishjamContext";
 import { usePeerStatus } from "./hooks/internal/usePeerStatus";
+import { useScreenShareManager } from "./hooks/internal/useScreenshareManager";
 import { useTrackManager } from "./hooks/internal/useTrackManager";
-import { useScreenShareManager } from "./hooks/useScreenShare";
 import type { BandwidthLimits, PersistLastDeviceHandlers, StreamConfig } from "./types/public";
 import { mergeWithDefaultBandwitdthLimits } from "./utils/bandwidth";
 

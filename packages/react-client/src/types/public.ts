@@ -47,21 +47,6 @@ export type PersistLastDeviceHandlers = {
   saveLastDevice: (info: MediaDeviceInfo) => void;
 };
 
-export type ScreenshareApi = {
-  startStreaming: (props?: {
-    audioConstraints?: boolean | MediaTrackConstraints;
-    videoConstraints?: boolean | MediaTrackConstraints;
-  }) => Promise<void>;
-  stopStreaming: () => Promise<void>;
-  stream: MediaStream | null;
-  videoTrack: MediaStreamTrack | null;
-  audioTrack: MediaStreamTrack | null;
-  videoBroadcast: Track | null;
-  audioBroadcast: Track | null;
-  setTracksMiddleware: (middleware: TracksMiddleware | null) => Promise<void>;
-  currentTracksMiddleware: TracksMiddleware | null;
-};
-
 export type SimulcastBandwidthLimits = {
   [Variant.VARIANT_LOW]: number;
   [Variant.VARIANT_MEDIUM]: number;

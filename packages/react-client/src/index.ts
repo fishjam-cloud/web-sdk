@@ -1,4 +1,4 @@
-export { FishjamProvider } from "./FishjamProvider";
+export { FishjamProvider, type FishjamProviderProps } from "./FishjamProvider";
 export { useCamera, type UseCameraResult } from "./hooks/devices/useCamera";
 export { useInitializeDevices, type UseInitializeDevicesResult } from "./hooks/devices/useInitializeDevices";
 export { useMicrophone, type UseMicrophoneResult } from "./hooks/devices/useMicrophone";

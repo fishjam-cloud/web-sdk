@@ -12,7 +12,7 @@ import { useTrackManager } from "./hooks/internal/useTrackManager";
 import type { BandwidthLimits, PersistLastDeviceHandlers, StreamConfig } from "./types/public";
 import { mergeWithDefaultBandwitdthLimits } from "./utils/bandwidth";
 
-interface FishjamProviderProps extends PropsWithChildren {
+export interface FishjamProviderProps extends PropsWithChildren {
   /**
    * Use {@link ReconnectConfig} to adjust reconnection policy to your needs or set false it.
    * Set to true by default.
@@ -44,7 +44,7 @@ interface FishjamProviderProps extends PropsWithChildren {
 /**
  * Provides the Fishjam Context
  * @category Components
- * @param props
+ * @param
  */
 export function FishjamProvider(props: FishjamProviderProps) {
   const fishjamClientRef = useRef(new FishjamClient({ reconnect: props.reconnect }));

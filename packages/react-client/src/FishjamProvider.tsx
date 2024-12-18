@@ -12,6 +12,9 @@ import { useTrackManager } from "./hooks/internal/useTrackManager";
 import type { BandwidthLimits, PersistLastDeviceHandlers, StreamConfig } from "./types/public";
 import { mergeWithDefaultBandwitdthLimits } from "./utils/bandwidth";
 
+/**
+ * @category Components
+ */
 export interface FishjamProviderProps extends PropsWithChildren {
   /**
    * Use {@link ReconnectConfig} to adjust reconnection policy to your needs or set false it.
@@ -33,11 +36,11 @@ export interface FishjamProviderProps extends PropsWithChildren {
    * Adjust max bandwidth limit for a single stream and simulcast.
    */
   bandwidthLimits?: Partial<BandwidthLimits>;
-  /*
+  /**
    * Configure whether to use video simulcast and which layers to send if so.
    */
   videoConfig?: StreamConfig;
-  /*
+  /**
    * Configure whether to use audio simulcast and which layers to send if so.
    */
   audioConfig?: StreamConfig;

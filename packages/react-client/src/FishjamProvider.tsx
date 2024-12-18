@@ -13,16 +13,37 @@ import type { BandwidthLimits, PersistLastDeviceHandlers, StreamConfig } from ".
 import { mergeWithDefaultBandwitdthLimits } from "./utils/bandwidth";
 
 interface FishjamProviderProps extends PropsWithChildren {
+  /**
+   * Use {@link ReconnectConfig} to adjust reconnection policy to your needs or set false it.
+   * Set to true by default.
+   */
   reconnect?: ReconnectConfig | boolean;
+  /**
+   * Set preferred {MediaStreamConstraints}.
+   */
   constraints?: Pick<MediaStreamConstraints, "audio" | "video">;
+  /**
+   * Decide if you want Fishjam SDK to persist last used device in the local storage.
+   * You can also provide your getter and setter by using the {@link PersistLastDeviceHandlers} interface.
+   */
   persistLastDevice?: boolean | PersistLastDeviceHandlers;
+  /**
+   * Adjust max bandwidth limit for a single stream and simulcast.
+   */
   bandwidthLimits?: Partial<BandwidthLimits>;
+  /*
+   * Configure whether to use video simulcast and which layers to send if so.
+   */
   videoConfig?: StreamConfig;
+  /*
+   * Configure whether to use audio simulcast and which layers to send if so.
+   */
   audioConfig?: StreamConfig;
 }
 
 /**
  * @category Components
+ * @param {FishjamProviderProps}
  */
 export function FishjamProvider({
   children,

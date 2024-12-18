@@ -4,12 +4,14 @@ import { prepareConstraints } from "../../devices/constraints";
 import { getAvailableMedia, getCorrectedResult } from "../../devices/mediaInitializer";
 import { useFishjamContext } from "../internal/useFishjamContext";
 
+/**
+ * @category Devices
+ */
 export type UseInitializeDevicesResult = {
   initializeDevices: () => Promise<void>;
 };
 
 /**
- *
  * @category Devices
  */
 export const useInitializeDevices = (): UseInitializeDevicesResult => {

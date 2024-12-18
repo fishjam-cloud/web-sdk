@@ -42,28 +42,21 @@ interface FishjamProviderProps extends PropsWithChildren {
 }
 
 /**
+ * Provides the Fishjam Context
  * @category Components
- * @param {FishjamProviderProps}
+ * @param props {FishjamProviderProps}
  */
-export function FishjamProvider({
-  children,
-  reconnect,
-  constraints,
-  persistLastDevice,
-  bandwidthLimits,
-  videoConfig,
-  audioConfig,
-}: FishjamProviderProps) {
-  const fishjamClientRef = useRef(new FishjamClient({ reconnect }));
+export function FishjamProvider(props: FishjamProviderProps) {
+  const fishjamClientRef = useRef(new FishjamClient({ reconnect: props.reconnect }));
 
   const hasDevicesBeenInitializedRef = useRef(false);
-  const storage = persistLastDevice;
+  const storage = props.persistLastDevice;
 
   const videoDeviceManagerRef = useRef(
     new DeviceManager({
       deviceType: "video",
       defaultConstraints: VIDEO_TRACK_CONSTRAINTS,
-      userConstraints: constraints?.video,
+      userConstraints: props.constraints?.video,
       storage,
     }),
   );
@@ -72,21 +65,21 @@ export function FishjamProvider({
     new DeviceManager({
       deviceType: "audio",
       defaultConstraints: AUDIO_TRACK_CONSTRAINTS,
-      userConstraints: constraints?.audio,
+      userConstraints: props.constraints?.audio,
       storage,
     }),
   );
 
   const { peerStatus, getCurrentPeerStatus } = usePeerStatus(fishjamClientRef.current);
 
-  const mergedBandwidthLimits = mergeWithDefaultBandwitdthLimits(bandwidthLimits);
+  const mergedBandwidthLimits = mergeWithDefaultBandwitdthLimits(props.bandwidthLimits);
 
   const videoTrackManager = useTrackManager({
     mediaManager: videoDeviceManagerRef.current,
     tsClient: fishjamClientRef.current,
     getCurrentPeerStatus,
     bandwidthLimits: mergedBandwidthLimits,
-    streamConfig: videoConfig,
+    streamConfig: props.videoConfig,
   });
 
   const audioTrackManager = useTrackManager({
@@ -94,7 +87,7 @@ export function FishjamProvider({
     tsClient: fishjamClientRef.current,
     getCurrentPeerStatus,
     bandwidthLimits: mergedBandwidthLimits,
-    streamConfig: audioConfig,
+    streamConfig: props.audioConfig,
   });
 
   const screenShareManager = useScreenShareManager({ fishjamClient: fishjamClientRef.current, getCurrentPeerStatus });
@@ -114,5 +107,5 @@ export function FishjamProvider({
     bandwidthLimits: mergedBandwidthLimits,
   };
 
-  return <FishjamContext.Provider value={context}>{children}</FishjamContext.Provider>;
+  return <FishjamContext.Provider value={context}>{props.children}</FishjamContext.Provider>;
 }

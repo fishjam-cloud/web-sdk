@@ -21,6 +21,12 @@ export type TrackMetadata = {
 
 export type GenericMetadata = Record<string, unknown> | undefined;
 
+/**
+ *
+ * @category Connection
+ * @typeParam PeerMetadata Type of metadata set by peer while connecting to a room.
+ * @typeParam ServerMetadata Type of metadata set by the server while creating a peer.
+ */
 export type Metadata<PeerMetadata = GenericMetadata, ServerMetadata = GenericMetadata> = {
   peer: PeerMetadata;
   server: ServerMetadata;

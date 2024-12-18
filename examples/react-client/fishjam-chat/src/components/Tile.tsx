@@ -1,4 +1,4 @@
-import { type Track,useVAD } from "@fishjam-cloud/react-client";
+import { type Track, useVAD } from "@fishjam-cloud/react-client";
 
 import AudioPlayer from "./AudioPlayer";
 import { Badge } from "./ui/badge";

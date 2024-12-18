@@ -20,6 +20,9 @@ export interface JoinRoomConfig<PeerMetadata extends GenericMetadata = GenericMe
   peerMetadata?: PeerMetadata;
 }
 
+/**
+ * @category Connection
+ */
 export interface UseConnectionResult {
   /**
    * Join room and start streaming camera and microphone
@@ -46,7 +49,7 @@ export interface UseConnectionResult {
 /**
  * Hook allows to to join or leave a room and check the current connection status.
  * @category Connection
- * @returns
+ * @returns {UseConnectionResult}
  */
 export function useConnection(): UseConnectionResult {
   const context = useFishjamContext();

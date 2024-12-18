@@ -44,7 +44,7 @@ function getPeerWithDistinguishedTracks<P, S>(peer: Peer<P, S> | Component | End
   };
 }
 
-/*
+/**
  *
  * @category Connection
  * @typeParam P Type of metadata set by peer while connecting to a room.

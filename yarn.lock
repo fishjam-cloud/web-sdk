@@ -650,10 +650,10 @@ __metadata:
     "@types/events": "npm:^3.0.3"
     "@types/lodash.isequal": "npm:^4.5.8"
     "@types/node": "npm:^22.10.2"
-    "@types/react": "npm:^18.3.13"
+    "@types/react": "npm:^19.0.1"
     events: "npm:3.3.0"
     lodash.isequal: "npm:4.5.0"
-    react: "npm:^18.2.0"
+    react: "npm:^19.0.0"
     typed-emitter: "npm:^2.1.0"
     typedoc: "npm:^0.27.5"
     typedoc-plugin-mdn-links: "npm:^4.0.5"
@@ -737,7 +737,7 @@ __metadata:
     "@fishjam-cloud/ts-client": "workspace:*"
     "@playwright/test": "npm:^1.49.1"
     "@types/node": "npm:^22.10.2"
-    "@types/react": "npm:^18.3.13"
+    "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^18.3.1"
     "@typescript-eslint/eslint-plugin": "npm:^8.18.1"
     "@typescript-eslint/parser": "npm:^8.18.1"
@@ -746,7 +746,7 @@ __metadata:
     eslint: "npm:^8.57.1"
     eslint-plugin-react-hooks: "npm:^5.1.0"
     eslint-plugin-react-refresh: "npm:^0.4.16"
-    react: "npm:^18.2.0"
+    react: "npm:^19.0.0"
     react-dom: "npm:^18.2.0"
     testcontainers: "npm:^10.16.0"
     typescript: "npm:^5.7.2"
@@ -761,14 +761,14 @@ __metadata:
   dependencies:
     "@fishjam-cloud/react-client": "workspace:*"
     "@tailwindcss/typography": "npm:^0.5.15"
-    "@types/react": "npm:^18.3.13"
+    "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^18.3.1"
     "@vitejs/plugin-react": "npm:^4.3.4"
     autoprefixer: "npm:^10.4.20"
     daisyui: "npm:^4.12.22"
     jotai: "npm:^2.10.3"
     postcss: "npm:^8.4.49"
-    react: "npm:^18.2.0"
+    react: "npm:^19.0.0"
     react-dom: "npm:^18.2.0"
     tailwindcss: "npm:^3.4.16"
     typescript: "npm:^5.7.2"
@@ -793,7 +793,7 @@ __metadata:
     "@radix-ui/react-slot": "npm:^1.1.0"
     "@radix-ui/react-switch": "npm:^1.1.1"
     "@types/node": "npm:^22.10.2"
-    "@types/react": "npm:^18.3.13"
+    "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^18.3.1"
     "@vitejs/plugin-react-swc": "npm:^3.7.2"
     autoprefixer: "npm:^10.4.20"
@@ -804,7 +804,7 @@ __metadata:
     lucide-react: "npm:^0.462.0"
     postcss: "npm:^8.4.49"
     prettier: "npm:^3.4.2"
-    react: "npm:^18.3.1"
+    react: "npm:^19.0.0"
     react-dom: "npm:^18.3.1"
     react-hook-form: "npm:^7.54.1"
     tailwind-merge: "npm:^2.5.5"
@@ -820,12 +820,12 @@ __metadata:
   resolution: "@fishjam-example/minimal-react-example@workspace:examples/react-client/minimal-react"
   dependencies:
     "@fishjam-cloud/react-client": "workspace:*"
-    "@types/react": "npm:^18.3.13"
+    "@types/react": "npm:^19.0.1"
     "@types/react-dom": "npm:^18.3.1"
     "@vitejs/plugin-react-swc": "npm:^3.7.2"
     autoprefixer: "npm:^10.4.20"
     postcss: "npm:^8.4.49"
-    react: "npm:^18.2.0"
+    react: "npm:^19.0.0"
     react-dom: "npm:^18.2.0"
     typescript: "npm:^5.7.2"
     vite: "npm:^6.0.3"
@@ -2273,13 +2273,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/prop-types@npm:*":
-  version: 15.7.13
-  resolution: "@types/prop-types@npm:15.7.13"
-  checksum: 10c0/1b20fc67281902c6743379960247bc161f3f0406ffc0df8e7058745a85ea1538612109db0406290512947f9632fe9e10e7337bf0ce6338a91d6c948df16a7c61
-  languageName: node
-  linkType: hard
-
 "@types/react-dom@npm:^18.3.1":
   version: 18.3.5
   resolution: "@types/react-dom@npm:18.3.5"
@@ -2289,13 +2282,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^18.3.13":
-  version: 18.3.16
-  resolution: "@types/react@npm:18.3.16"
+"@types/react@npm:^19.0.1":
+  version: 19.0.1
+  resolution: "@types/react@npm:19.0.1"
   dependencies:
-    "@types/prop-types": "npm:*"
     csstype: "npm:^3.0.2"
-  checksum: 10c0/9113d3003865eda07be0fb596f5bd8d7784b8900675090c56e75bdee45499f0b0de2481cbbeb5980c3b4ad18f234a49f39c9e62fd7b89a4e8530c74789f739bd
+  checksum: 10c0/25eb69114abb9a6d5fc4414ee584388275bbc9ac32976449cf58b95fe9880efe6b3f936c3842be9bed8c571546a9752e8d3e2095288381e9c809269f5f574f2e
   languageName: node
   linkType: hard
 
@@ -6726,12 +6718,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:^18.2.0, react@npm:^18.3.1":
-  version: 18.3.1
-  resolution: "react@npm:18.3.1"
-  dependencies:
-    loose-envify: "npm:^1.1.0"
-  checksum: 10c0/283e8c5efcf37802c9d1ce767f302dd569dd97a70d9bb8c7be79a789b9902451e0d16334b05d73299b20f048cbc3c7d288bbbde10b701fa194e2089c237dbea3
+"react@npm:^19.0.0":
+  version: 19.0.0
+  resolution: "react@npm:19.0.0"
+  checksum: 10c0/9cad8f103e8e3a16d15cb18a0d8115d8bd9f9e1ce3420310aea381eb42aa0a4f812cf047bb5441349257a05fba8a291515691e3cb51267279b2d2c3253f38471
   languageName: node
   linkType: hard
 

@@ -7,11 +7,25 @@ import type {
   TrackMetadata,
 } from "@fishjam-cloud/ts-client";
 
-import type { DistinguishedTracks, PeerState } from "../types/internal";
+import type { PeerId } from "../types/internal";
 import type { Track } from "../types/public";
 import { useFishjamContext } from "./internal/useFishjamContext";
 
-export type PeerWithTracks<P, S> = PeerState<P, S> & DistinguishedTracks;
+/**
+ *
+ * @category Connection
+ * @typeParam PeerMetadata Type of metadata set by peer while connecting to a room.
+ * @typeParam ServerMetadata Type of metadata set by the server while creating a peer.
+ */
+export type PeerWithTracks<PeerMetadata, ServerMetadata> = {
+  id: PeerId;
+  metadata?: Peer<PeerMetadata, ServerMetadata>["metadata"];
+  tracks: Track[];
+  cameraTrack?: Track;
+  microphoneTrack?: Track;
+  screenShareVideoTrack?: Track;
+  screenShareAudioTrack?: Track;
+};
 
 function trackContextToTrack(track: FishjamTrackContext | TrackContext): Track {
   return {
@@ -47,35 +61,35 @@ function getPeerWithDistinguishedTracks<P, S>(peer: Peer<P, S> | Component | End
 /**
  *
  * @category Connection
- * @typeParam P Type of metadata set by peer while connecting to a room.
- * @typeParam S Type of metadata set by the server while creating a peer.
+ * @typeParam PeerMetadata Type of metadata set by peer while connecting to a room.
+ * @typeParam ServerMetadata Type of metadata set by the server while creating a peer.
  */
-export type UsePeersResult<P, S> = {
+export type UsePeersResult<PeerMetadata, ServerMetadata> = {
   /**
    * The local peer with distinguished tracks (camera, microphone, screen share).
    * Will be null if the local peer is not found.
    */
-  localPeer: PeerWithTracks<P, S> | null;
+  localPeer: PeerWithTracks<PeerMetadata, ServerMetadata> | null;
 
   /**
    * Array of remote peers with distinguished tracks (camera, microphone, screen share).
    */
-  remotePeers: PeerWithTracks<P, S>[];
+  remotePeers: PeerWithTracks<PeerMetadata, ServerMetadata>[];
 
   /**
    * @deprecated Use remotePeers instead
    * Legacy array containing remote peers.
    * This property will be removed in future versions.
    */
-  peers: PeerWithTracks<P, S>[];
+  peers: PeerWithTracks<PeerMetadata, ServerMetadata>[];
 };
 
 /**
  *
  * @category Connection
  * @group Hooks
- * @typeParam P Type of metadata set by peer while connecting to a room.
- * @typeParam S Type of metadata set by the server while creating a peer.
+ * @typeParam PeerMetadata Type of metadata set by peer while connecting to a room.
+ * @typeParam ServerMetadata Type of metadata set by the server while creating a peer.
  */
 export function usePeers<
   PeerMetadata = Record<string, unknown>,

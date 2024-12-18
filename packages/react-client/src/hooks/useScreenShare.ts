@@ -1,6 +1,11 @@
 import type { Track, TracksMiddleware } from "../types/public";
 import { useFishjamContext } from "./internal/useFishjamContext";
 
+/**
+ *
+ * @category Devices
+ * @group Types
+ */
 export type UseScreenshareResult = {
   startStreaming: (props?: {
     audioConstraints?: boolean | MediaTrackConstraints;
@@ -18,7 +23,7 @@ export type UseScreenshareResult = {
 
 /**
  *
- * @category Connection
+ * @category Devices
  * @group Hooks
  */
 export const useScreenShare = () => {

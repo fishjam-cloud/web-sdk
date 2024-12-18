@@ -7,15 +7,15 @@ import { useReconnection } from "./internal/useReconnection";
 
 export interface JoinRoomConfig<PeerMetadata extends GenericMetadata = GenericMetadata> {
   /**
-   * fishjam URL
+   * Fishjam URL
    */
   url: string;
   /**
-   * token received from server (or Room Manager)
+   * Token received from server (or Room Manager)
    */
   peerToken: string;
   /**
-   * string indexed record with metadata, that will be available to all other peers
+   * String indexed record with metadata, that will be available to all other peers
    */
   peerMetadata?: PeerMetadata;
 }
@@ -27,7 +27,7 @@ export interface UseConnectionResult {
   /**
    * Join room and start streaming camera and microphone
    *
-   * See {@link JoinRoomConfig} for parameter list
+   * @param {JoinRoomConfig}
    */
   joinRoom: <PeerMetadata extends GenericMetadata = GenericMetadata>(
     config: JoinRoomConfig<PeerMetadata>,

@@ -44,7 +44,7 @@ interface FishjamProviderProps extends PropsWithChildren {
 /**
  * Provides the Fishjam Context
  * @category Components
- * @param props {FishjamProviderProps}
+ * @param props
  */
 export function FishjamProvider(props: FishjamProviderProps) {
   const fishjamClientRef = useRef(new FishjamClient({ reconnect: props.reconnect }));

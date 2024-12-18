@@ -44,8 +44,11 @@ function getPeerWithDistinguishedTracks<P, S>(peer: Peer<P, S> | Component | End
   };
 }
 
-/**
- * Result type for the usePeers hook.
+/*
+ *
+ * @category Connection
+ * @typeParam P Type of metadata set by peer while connecting to a room.
+ * @typeParam S Type of metadata set by the server while creating a peer.
  */
 export type UsePeersResult<P, S> = {
   /**

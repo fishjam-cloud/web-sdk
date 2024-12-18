@@ -2,6 +2,7 @@ import type {
   Component,
   Endpoint,
   FishjamTrackContext,
+  Metadata,
   Peer,
   TrackContext,
   TrackMetadata,
@@ -19,7 +20,7 @@ import { useFishjamContext } from "./internal/useFishjamContext";
  */
 export type PeerWithTracks<PeerMetadata, ServerMetadata> = {
   id: PeerId;
-  metadata?: Peer<PeerMetadata, ServerMetadata>["metadata"];
+  metadata?: Metadata<PeerMetadata, ServerMetadata>;
   tracks: Track[];
   cameraTrack?: Track;
   microphoneTrack?: Track;

@@ -21,9 +21,9 @@ export type TrackMetadata = {
 
 export type GenericMetadata = Record<string, unknown> | undefined;
 
-export type Metadata<P = GenericMetadata, S = GenericMetadata> = {
-  peer: P;
-  server: S;
+export type Metadata<PeerMetadata = GenericMetadata, ServerMetadata = GenericMetadata> = {
+  peer: PeerMetadata;
+  server: ServerMetadata;
 };
 
 type TrackContextEvents = {

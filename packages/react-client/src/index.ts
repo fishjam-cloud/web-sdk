@@ -18,6 +18,7 @@ export type {
 } from "./types/public";
 export type {
   AuthErrorReason,
+  Metadata,
   ReconnectConfig,
   ReconnectionStatus,
   SimulcastBandwidthLimit,

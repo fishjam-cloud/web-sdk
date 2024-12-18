@@ -19,7 +19,9 @@ export interface FishjamProviderProps extends PropsWithChildren {
    */
   reconnect?: ReconnectConfig | boolean;
   /**
-   * Set preferred {@link https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints|MediaStreamConstraints}.
+   * Set preferred constraints.
+   * @param {MediaStreamConstraints} constraints - The media stream constraints as defined by the Web API.
+   * @external {@link https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamConstraints MediaStreamConstraints}
    */
   constraints?: Pick<MediaStreamConstraints, "audio" | "video">;
   /**

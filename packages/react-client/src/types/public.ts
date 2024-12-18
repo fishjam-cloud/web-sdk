@@ -1,4 +1,4 @@
-import type { SimulcastConfig, TrackMetadata, VadStatus, Variant } from "@fishjam-cloud/ts-client";
+import type { SimulcastConfig, TrackMetadata, Variant } from "@fishjam-cloud/ts-client";
 
 import type { DeviceError, DeviceManagerStatus, TrackId } from "./internal";
 
@@ -8,7 +8,6 @@ export type Track = {
   trackId: TrackId;
   metadata?: TrackMetadata;
   simulcastConfig: SimulcastConfig | null;
-  vadStatus: VadStatus;
   track: MediaStreamTrack | null;
 };
 

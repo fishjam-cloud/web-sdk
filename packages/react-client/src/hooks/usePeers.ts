@@ -34,7 +34,6 @@ function trackContextToTrack(track: FishjamTrackContext | TrackContext): Track {
     stream: track.stream,
     simulcastConfig: track.simulcastConfig ?? null,
     encoding: track.encoding ?? null,
-    vadStatus: track.vadStatus,
     track: track.track,
   };
 }

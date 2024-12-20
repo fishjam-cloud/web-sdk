@@ -75,8 +75,9 @@ export class ReconnectManager<PeerMetadata, ServerMetadata> {
     this.client.on('connectionError', onConnectionError);
 
     const onSocketClose: MessageEvents<PeerMetadata, ServerMetadata>['socketClose'] = (event) => {
+      console.log(event);
       if (isAuthError(event.reason)) return;
-
+      console.log('reconnecting');
       this.reconnect();
     };
     this.client.on('socketClose', onSocketClose);
@@ -95,6 +96,7 @@ export class ReconnectManager<PeerMetadata, ServerMetadata> {
   }
 
   public isReconnecting(): boolean {
+    console.log('status is ', this.status);
     return this.status === 'reconnecting';
   }
 
@@ -113,6 +115,7 @@ export class ReconnectManager<PeerMetadata, ServerMetadata> {
     if (this.reconnectTimeoutId) return;
 
     if (this.reconnectAttempt >= this.reconnectConfig.maxAttempts) {
+      console.log('reconnection limit reached');
       if (this.status === 'reconnecting') {
         this.status = 'error';
 
@@ -123,7 +126,7 @@ export class ReconnectManager<PeerMetadata, ServerMetadata> {
 
     if (this.status !== 'reconnecting') {
       this.status = 'reconnecting';
-
+      console.log('setting status to reconnecting');
       this.client.emit('reconnectionStarted');
 
       this.lastLocalEndpoint = this.client.getLocalPeer() || null;
@@ -133,16 +136,18 @@ export class ReconnectManager<PeerMetadata, ServerMetadata> {
 
     this.reconnectAttempt += 1;
 
+    console.log('setting timeout');
     this.reconnectTimeoutId = setTimeout(() => {
       this.reconnectTimeoutId = null;
 
+      console.log('connecting again');
       this.connect(this.getLastPeerMetadata() ?? this.initialMetadata!);
     }, timeout);
   }
 
   public async handleReconnect() {
     if (this.status !== 'reconnecting') return;
-
+    console.log('readding tracks');
     if (this.lastLocalEndpoint && this.reconnectConfig.addTracksOnReconnect) {
       for await (const element of this.lastLocalEndpoint.tracks) {
         const [_, track] = element;

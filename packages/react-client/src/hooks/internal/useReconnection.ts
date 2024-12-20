@@ -18,6 +18,7 @@ export const useReconnection = (): ReconnectionStatus => {
       setReconnectionStatus("reconnecting");
     };
     const setIdle = () => {
+      console.log("RECONNECTED");
       setReconnectionStatus("idle");
     };
     const setError = () => {

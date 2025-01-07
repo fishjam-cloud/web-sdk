@@ -155,7 +155,6 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
     this.websocket = new WebSocket(websocketUrl);
     this.websocket.binaryType = 'arraybuffer';
 
-    (window as any).wsocket = this.websocket;
     const socketOpenHandler = (event: Event) => {
       this.emit('socketOpen', event);
 

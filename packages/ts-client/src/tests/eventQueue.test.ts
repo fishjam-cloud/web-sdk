@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
+
 import { EventQueue } from '../eventQueue';
 
 describe('Event queue tests', () => {

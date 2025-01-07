@@ -96,6 +96,8 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
       sendMediaEvent: (event: Uint8Array) => this.websocket?.send(event),
       checkIsReconnecting: () => this.reconnectManager.isReconnecting(),
     });
+
+    this.on('reconnected', () => this.eventQueue.attemptSendOut());
   }
 
   /**

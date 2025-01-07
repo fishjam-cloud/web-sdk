@@ -57,7 +57,7 @@ export class ReconnectManager<PeerMetadata, ServerMetadata> {
 
   constructor(
     client: FishjamClient<PeerMetadata, ServerMetadata>,
-    connect: (metadata: PeerMetadata) => void,
+    connect: (metadata: PeerMetadata) => Promise<void>,
     config?: ReconnectConfig | boolean,
   ) {
     this.client = client;

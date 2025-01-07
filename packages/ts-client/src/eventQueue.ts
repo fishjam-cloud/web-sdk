@@ -15,14 +15,10 @@ export class EventQueue {
 
   public enqueueEvent(mediaEvent: Uint8Array) {
     this.queuedEvents.push(mediaEvent);
-    this.attemptToSendEvent();
+    this.attemptSendOut();
   }
 
   public attemptSendOut() {
-    this.attemptToSendEvent();
-  }
-
-  private attemptToSendEvent() {
     const isReconnecting = this.checkIsReconnecting();
     if (isReconnecting) return;
 
@@ -33,6 +29,6 @@ export class EventQueue {
 
     if (this.queuedEvents.length === 0) return;
 
-    this.attemptToSendEvent();
+    this.attemptSendOut();
   }
 }

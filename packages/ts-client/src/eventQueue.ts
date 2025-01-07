@@ -18,7 +18,6 @@ export class EventQueue {
 
   public enqueueEvent(mediaEvent: Uint8Array) {
     this.queuedEvents.push(mediaEvent);
-    console.log('enqueuingEvent');
     if (this.currentTimeout) return;
     this.attemptToSendEvent();
   }
@@ -33,7 +32,6 @@ export class EventQueue {
       if (isReconnecting) {
         this.setupTimeout(currentAttempt + 1);
       } else {
-        console.log('reconnected, events in queue: ', this.enqueueEvent.length);
         this.attemptToSendEvent();
       }
     }, delay);

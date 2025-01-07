@@ -5,7 +5,6 @@ import {
   useScreenShare,
 } from "@fishjam-cloud/react-client";
 import {
-  LucideAirVent,
   Mic,
   MicOff,
   MonitorOff,
@@ -50,8 +49,6 @@ export const CallToolbar = () => {
     }
   };
 
-  const fuckupWebsocket = () => {};
-
   return (
     <footer className="flex h-24 items-center justify-center gap-8 border-t border-stone-200">
       <SettingsSheet>
@@ -80,10 +77,6 @@ export const CallToolbar = () => {
 
       <Button className="gap-2 text-xs" onClick={toggleScreenShare}>
         <ScreenshareIcon size={20} strokeWidth={"1.5px"} />
-      </Button>
-
-      <Button className="gap-2 text-xs" onClick={fuckupWebsocket}>
-        <LucideAirVent size={20} strokeWidth={"1.5px"} />
       </Button>
 
       <Button

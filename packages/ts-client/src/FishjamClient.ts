@@ -135,7 +135,6 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
 
     this.initWebsocket(peerMetadata);
     this.setupCallbacks();
-    console.log('CONNECTED!');
     this.status = 'initialized';
   }
 
@@ -160,8 +159,6 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
 
       const sdkVersion = `web-${packageVersion}`;
       const message = PeerMessage.encode({ authRequest: { token, sdkVersion } }).finish();
-      console.log('socket opened', this.websocket);
-      console.log('sending auth rewquest', { authRequest: { token, sdkVersion } });
       this.websocket?.send(message);
     };
 
@@ -187,14 +184,12 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
       try {
         const data = PeerMessage.decode(uint8Array);
         const serverMediaEvent = data.serverMediaEvent;
-
         if (data.authenticated) {
           this.emit('authSuccess');
           this.webrtc?.connect(peerMetadata);
         } else if (data.authRequest) {
           console.warn('Received unexpected control message: authRequest');
         } else if (serverMediaEvent) {
-          console.log('server event', serverMediaEvent);
           this.webrtc?.receiveMediaEvent(ServerMediaEvent.encode(serverMediaEvent).finish());
         }
       } catch (e) {
@@ -264,15 +259,23 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
     return this.webrtc?.getBandwidthEstimation();
   }
 
+  private isConnectingRelatedEvent(mediaEvent: PeerMediaEvent) {
+    return Boolean(mediaEvent.connect || mediaEvent.renegotiateTracks || mediaEvent.sdpOffer || mediaEvent.candidate);
+  }
+
   private setupCallbacks() {
     this.webrtc?.on('sendMediaEvent', (mediaEvent) => {
       const peerMediaEvent = PeerMediaEvent.decode(mediaEvent);
       const serializedEvent = PeerMessage.encode({ peerMediaEvent }).finish();
-      this.eventQueue.enqueueEvent(serializedEvent);
+
+      if (this.isConnectingRelatedEvent(peerMediaEvent)) {
+        this.websocket?.send(serializedEvent);
+      } else {
+        this.eventQueue.enqueueEvent(serializedEvent);
+      }
     });
 
     this.webrtc?.on('connected', async (peerId: string, endpointsInRoom: Endpoint[]) => {
-      console.log('webrtc connected');
       const peers = endpointsInRoom
         .filter((endpoint) => isPeer(endpoint))
         .map((peer) => peer as Peer<PeerMetadata, ServerMetadata>);

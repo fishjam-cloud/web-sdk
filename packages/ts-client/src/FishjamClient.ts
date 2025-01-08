@@ -15,8 +15,8 @@ import type TypedEmitter from 'typed-emitter';
 
 import { isAuthError } from './auth';
 import { connectEventsHandler } from './connectEventsHandler';
-import { EventQueue } from './eventQueue';
 import { isComponent, isPeer } from './guards';
+import { MessageQueue } from './messageQueue';
 import { ReconnectManager } from './reconnection';
 import type {
   Component,
@@ -80,7 +80,7 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
   private connectConfig: ConnectConfig<PeerMetadata> | null = null;
 
   private reconnectManager: ReconnectManager<PeerMetadata, ServerMetadata>;
-  private eventQueue: EventQueue;
+  private peerMessageQueue: MessageQueue;
 
   private sendStatisticsInterval: NodeJS.Timeout | undefined = undefined;
 
@@ -92,12 +92,12 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
       config?.reconnect ?? true,
     );
 
-    this.eventQueue = new EventQueue({
-      sendMediaEvent: (event: Uint8Array) => this.websocket?.send(event),
+    this.peerMessageQueue = new MessageQueue({
+      sendMessage: (event: Uint8Array) => this.websocket?.send(event),
       checkIsReconnecting: () => this.reconnectManager.isReconnecting(),
     });
 
-    this.on('reconnected', () => this.eventQueue.attemptSendOut());
+    this.on('reconnected', () => this.peerMessageQueue.attemptToSendAll());
   }
 
   /**
@@ -267,12 +267,12 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
   private setupCallbacks() {
     this.webrtc?.on('sendMediaEvent', (mediaEvent) => {
       const peerMediaEvent = PeerMediaEvent.decode(mediaEvent);
-      const serializedEvent = PeerMessage.encode({ peerMediaEvent }).finish();
+      const serializedMessage = PeerMessage.encode({ peerMediaEvent }).finish();
 
       if (this.isConnectingRelatedEvent(peerMediaEvent)) {
-        this.websocket?.send(serializedEvent);
+        this.websocket?.send(serializedMessage);
       } else {
-        this.eventQueue.enqueueEvent(serializedEvent);
+        this.peerMessageQueue.enqueueMessage(serializedMessage);
       }
     });
 
@@ -412,7 +412,7 @@ export class FishjamClient<PeerMetadata = GenericMetadata, ServerMetadata = Gene
       rtcStatsReport: { data: JSON.stringify(tracksStatistics) },
     }).finish();
 
-    this.eventQueue.enqueueEvent(message);
+    this.peerMessageQueue.enqueueMessage(message);
   }
 
   /**

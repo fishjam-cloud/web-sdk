@@ -21,7 +21,6 @@ export type ReconnectConfig = {
    * default: 500
    */
   delay?: number;
-
   /*
    * default: false
    */

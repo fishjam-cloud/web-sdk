@@ -6,11 +6,11 @@ type MessageQueueDeps = {
 export class MessageQueue {
   private queuedMessages: Uint8Array[] = [];
   private checkIsReconnecting: MessageQueueDeps['checkIsReconnecting'];
-  private sendMediaMessage: MessageQueueDeps['sendMessage'];
+  private sendMessage: MessageQueueDeps['sendMessage'];
 
   constructor(deps: MessageQueueDeps) {
     this.checkIsReconnecting = deps.checkIsReconnecting;
-    this.sendMediaMessage = deps.sendMessage;
+    this.sendMessage = deps.sendMessage;
   }
 
   public enqueueMessage(mediaEvent: Uint8Array) {
@@ -25,7 +25,7 @@ export class MessageQueue {
     const oldestMessage = this.queuedMessages.shift();
     if (!oldestMessage) return;
 
-    this.sendMediaMessage(oldestMessage);
+    this.sendMessage(oldestMessage);
 
     if (this.queuedMessages.length === 0) return;
 

@@ -1,16 +1,16 @@
-type MessageQueueDeps = {
+type MessageQueueParams = {
   checkIsReconnecting: () => boolean;
   sendMessage: (message: Uint8Array) => void;
 };
 
 export class MessageQueue {
   private queuedMessages: Uint8Array[] = [];
-  private checkIsReconnecting: MessageQueueDeps['checkIsReconnecting'];
-  private sendMessage: MessageQueueDeps['sendMessage'];
+  private checkIsReconnecting: MessageQueueParams['checkIsReconnecting'];
+  private sendMessage: MessageQueueParams['sendMessage'];
 
-  constructor(deps: MessageQueueDeps) {
-    this.checkIsReconnecting = deps.checkIsReconnecting;
-    this.sendMessage = deps.sendMessage;
+  constructor({ checkIsReconnecting, sendMessage }: MessageQueueParams) {
+    this.checkIsReconnecting = checkIsReconnecting;
+    this.sendMessage = sendMessage;
   }
 
   public enqueueMessage(mediaEvent: Uint8Array) {

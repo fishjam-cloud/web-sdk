@@ -22,13 +22,9 @@ export class MessageQueue {
     const isReconnecting = this.checkIsReconnecting();
     if (isReconnecting) return;
 
-    const oldestMessage = this.queuedMessages.shift();
-    if (!oldestMessage) return;
-
-    this.sendMessage(oldestMessage);
-
-    if (this.queuedMessages.length === 0) return;
-
-    this.attemptToSendAll();
+    while (this.queuedMessages.length > 0) {
+      const oldestMessage = this.queuedMessages.shift();
+      if (oldestMessage) this.sendMessage(oldestMessage);
+    }
   }
 }

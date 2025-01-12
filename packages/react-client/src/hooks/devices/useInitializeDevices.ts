@@ -26,60 +26,59 @@ export type UseInitializeDevicesResult = {
 export const useInitializeDevices = (): UseInitializeDevicesResult => {
   const { videoDeviceManagerRef, audioDeviceManagerRef, hasDevicesBeenInitializedRef } = useFishjamContext();
 
-  const initializeDevices = useCallback(async (params?: UseInitializeDevicesParams) => {
-    const { enableVideo = true, enableAudio = true } = params || {};
+  const initializeDevices = useCallback(
+    async (params?: UseInitializeDevicesParams) => {
+      const { enableVideo = true, enableAudio = true } = params || {};
 
-    if (hasDevicesBeenInitializedRef.current) return;
-    hasDevicesBeenInitializedRef.current = true;
+      if (hasDevicesBeenInitializedRef.current) return;
+      hasDevicesBeenInitializedRef.current = true;
 
-    const videoManager = videoDeviceManagerRef.current;
-    const audioManager = audioDeviceManagerRef.current;
+      const videoManager = videoDeviceManagerRef.current;
+      const audioManager = audioDeviceManagerRef.current;
 
-    const constraints = {
-      video: enableVideo ? videoManager.getConstraints() : false,
-      audio: enableAudio ? audioManager.getConstraints() : false,
-    };
+      const constraints = {
+        video: enableVideo ? videoManager.getConstraints() : false,
+        audio: enableAudio ? audioManager.getConstraints() : false,
+      };
 
-    const previousDevices = {
-      video: videoManager.getLastDevice(),
-      audio: audioManager.getLastDevice(),
-    };
+      const previousDevices = {
+        video: videoManager.getLastDevice(),
+        audio: audioManager.getLastDevice(),
+      };
 
-    // Attempt to start the last selected device to avoid an unnecessary restart.
-    // Without this, the first device will start, and `getCorrectedResult` will attempt to fix it.
-    let [stream, deviceErrors] = await getAvailableMedia({
-      video: enableVideo
-      ? prepareConstraints(previousDevices.video?.deviceId, constraints.video)
-      : false,
-      audio: enableAudio
-      ? prepareConstraints(previousDevices.audio?.deviceId, constraints.audio)
-      : false,
-    });
+      // Attempt to start the last selected device to avoid an unnecessary restart.
+      // Without this, the first device will start, and `getCorrectedResult` will attempt to fix it.
+      let [stream, deviceErrors] = await getAvailableMedia({
+        video: enableVideo ? prepareConstraints(previousDevices.video?.deviceId, constraints.video) : false,
+        audio: enableAudio ? prepareConstraints(previousDevices.audio?.deviceId, constraints.audio) : false,
+      });
 
-    const devices = await navigator.mediaDevices.enumerateDevices();
+      const devices = await navigator.mediaDevices.enumerateDevices();
 
-    const videoDevices = devices.filter(({ kind }) => kind === "videoinput");
-    const audioDevices = devices.filter(({ kind }) => kind === "audioinput");
+      const videoDevices = devices.filter(({ kind }) => kind === "videoinput");
+      const audioDevices = devices.filter(({ kind }) => kind === "audioinput");
 
-    if (stream) {
-      [stream, deviceErrors] = await getCorrectedResult(stream, deviceErrors, devices, constraints, previousDevices);
-    }
+      if (stream) {
+        [stream, deviceErrors] = await getCorrectedResult(stream, deviceErrors, devices, constraints, previousDevices);
+      }
 
-    videoManager.initialize(
-      stream,
-      stream?.getVideoTracks()?.[0] ?? null,
-      videoDevices,
-      !!constraints.video,
-      deviceErrors.video,
-    );
-    audioManager.initialize(
-      stream,
-      stream?.getAudioTracks()?.[0] ?? null,
-      audioDevices,
-      !!constraints.audio,
-      deviceErrors.audio,
-    );
-  }, [videoDeviceManagerRef, audioDeviceManagerRef, hasDevicesBeenInitializedRef]);
+      videoManager.initialize(
+        stream,
+        stream?.getVideoTracks()?.[0] ?? null,
+        videoDevices,
+        !!constraints.video,
+        deviceErrors.video,
+      );
+      audioManager.initialize(
+        stream,
+        stream?.getAudioTracks()?.[0] ?? null,
+        audioDevices,
+        !!constraints.audio,
+        deviceErrors.audio,
+      );
+    },
+    [videoDeviceManagerRef, audioDeviceManagerRef, hasDevicesBeenInitializedRef],
+  );
 
   return { initializeDevices };
 };

@@ -7,8 +7,16 @@ import { useFishjamContext } from "../internal/useFishjamContext";
 /**
  * @category Devices
  */
+export type UseInitializeDevicesParams = {
+  enableVideo?: boolean;
+  enableAudio?: boolean;
+};
+
+/**
+ * @category Devices
+ */
 export type UseInitializeDevicesResult = {
-  initializeDevices: () => Promise<void>;
+  initializeDevices: (params?: UseInitializeDevicesParams) => Promise<void>;
 };
 
 /**
@@ -18,7 +26,9 @@ export type UseInitializeDevicesResult = {
 export const useInitializeDevices = (): UseInitializeDevicesResult => {
   const { videoDeviceManagerRef, audioDeviceManagerRef, hasDevicesBeenInitializedRef } = useFishjamContext();
 
-  const initializeDevices = useCallback(async () => {
+  const initializeDevices = useCallback(async (params?: UseInitializeDevicesParams) => {
+    const { enableVideo = true, enableAudio = true } = params || {};
+
     if (hasDevicesBeenInitializedRef.current) return;
     hasDevicesBeenInitializedRef.current = true;
 
@@ -26,8 +36,8 @@ export const useInitializeDevices = (): UseInitializeDevicesResult => {
     const audioManager = audioDeviceManagerRef.current;
 
     const constraints = {
-      video: videoManager.getConstraints(),
-      audio: audioManager.getConstraints(),
+      video: enableVideo ? videoManager.getConstraints() : false,
+      audio: enableAudio ? audioManager.getConstraints() : false,
     };
 
     const previousDevices = {
@@ -38,8 +48,12 @@ export const useInitializeDevices = (): UseInitializeDevicesResult => {
     // Attempt to start the last selected device to avoid an unnecessary restart.
     // Without this, the first device will start, and `getCorrectedResult` will attempt to fix it.
     let [stream, deviceErrors] = await getAvailableMedia({
-      video: prepareConstraints(previousDevices.video?.deviceId, constraints.video),
-      audio: prepareConstraints(previousDevices.audio?.deviceId, constraints.audio),
+      video: enableVideo
+      ? prepareConstraints(previousDevices.video?.deviceId, constraints.video)
+      : false,
+      audio: enableAudio
+      ? prepareConstraints(previousDevices.audio?.deviceId, constraints.audio)
+      : false,
     });
 
     const devices = await navigator.mediaDevices.enumerateDevices();

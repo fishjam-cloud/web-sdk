@@ -4,7 +4,6 @@ import { useDeviceApi } from "../internal/device/useDeviceApi";
 import { useFishjamContext } from "../internal/useFishjamContext";
 
 /**
- * @category Devices
  */
 export type UseCameraResult = {
   /**

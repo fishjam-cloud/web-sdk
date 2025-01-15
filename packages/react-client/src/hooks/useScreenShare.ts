@@ -3,7 +3,6 @@ import { useFishjamContext } from "./internal/useFishjamContext";
 
 /**
  *
- * @category Devices
  * @group Types
  */
 export type UseScreenshareResult = {

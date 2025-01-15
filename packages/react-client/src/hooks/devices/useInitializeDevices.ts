@@ -5,7 +5,6 @@ import { getAvailableMedia, getCorrectedResult } from "../../devices/mediaInitia
 import { useFishjamContext } from "../internal/useFishjamContext";
 
 /**
- * @category Devices
  */
 export type UseInitializeDevicesParams = {
   enableVideo?: boolean;
@@ -13,7 +12,6 @@ export type UseInitializeDevicesParams = {
 };
 
 /**
- * @category Devices
  */
 export type UseInitializeDevicesResult = {
   initializeDevices: (params?: UseInitializeDevicesParams) => Promise<void>;

@@ -14,7 +14,6 @@ import { useFishjamContext } from "./internal/useFishjamContext";
 
 /**
  *
- * @category Connection
  * @typeParam PeerMetadata Type of metadata set by peer while connecting to a room.
  * @typeParam ServerMetadata Type of metadata set by the server while creating a peer.
  */
@@ -60,7 +59,6 @@ function getPeerWithDistinguishedTracks<P, S>(peer: Peer<P, S> | Component | End
 
 /**
  *
- * @category Connection
  * @typeParam PeerMetadata Type of metadata set by peer while connecting to a room.
  * @typeParam ServerMetadata Type of metadata set by the server while creating a peer.
  */

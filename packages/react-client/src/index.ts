@@ -8,11 +8,16 @@ export { useScreenShare } from "./hooks/useScreenShare";
 export { useUpdatePeerMetadata } from "./hooks/useUpdatePeerMetadata";
 export { useVAD } from "./hooks/useVAD";
 export type {
+  BandwidthLimits,
+  DeviceError,
   DeviceItem,
+  PeerId,
   PeerStatus,
   PersistLastDeviceHandlers,
+  SimulcastBandwidthLimits,
   StreamConfig,
   Track,
+  TrackId,
   TrackMiddleware,
   TracksMiddleware,
 } from "./types/public";

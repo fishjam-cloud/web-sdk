@@ -4,8 +4,6 @@ import { prepareConstraints } from "../../devices/constraints";
 import { getAvailableMedia, getCorrectedResult } from "../../devices/mediaInitializer";
 import { useFishjamContext } from "../internal/useFishjamContext";
 
-/**
- */
 export type UseInitializeDevicesParams = {
   enableVideo?: boolean;
   enableAudio?: boolean;

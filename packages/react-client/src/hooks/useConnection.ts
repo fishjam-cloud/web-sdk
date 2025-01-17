@@ -49,8 +49,6 @@ export function useConnection() {
   return {
     /**
      * Join room and start streaming camera and microphone
-     *
-     * @param {JoinRoomConfig}
      */
     joinRoom,
     /**

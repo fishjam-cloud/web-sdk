@@ -1,7 +1,7 @@
 import type { FishjamTrackContext, Metadata, Peer, TrackContext, TrackMetadata } from "@fishjam-cloud/ts-client";
 
 import type { BrandedPeer } from "../types/internal";
-import type { PeerId, Track } from "../types/public";
+import type { PeerId, Track, TrackId } from "../types/public";
 import { useFishjamContext } from "./internal/useFishjamContext";
 
 /**
@@ -23,7 +23,7 @@ export type PeerWithTracks<PeerMetadata, ServerMetadata> = {
 function trackContextToTrack(track: FishjamTrackContext | TrackContext): Track {
   return {
     metadata: track.metadata as TrackMetadata,
-    trackId: track.trackId,
+    trackId: track.trackId as TrackId,
     stream: track.stream,
     simulcastConfig: track.simulcastConfig ?? null,
     encoding: track.encoding ?? null,

@@ -2,7 +2,7 @@ import type { SimulcastConfig, TrackMetadata, Variant } from "@fishjam-cloud/ts-
 
 import type { DeviceManagerStatus } from "./internal";
 
-export type TrackId = string;
+export type TrackId = Brand<string, "TrackId">;;
 export type PeerId = Brand<string, "PeerId">;
 
 export type Track = {

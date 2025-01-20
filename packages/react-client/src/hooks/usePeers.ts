@@ -1,13 +1,6 @@
-import type {
-  Component,
-  Endpoint,
-  FishjamTrackContext,
-  Metadata,
-  Peer,
-  TrackContext,
-  TrackMetadata,
-} from "@fishjam-cloud/ts-client";
+import type { FishjamTrackContext, Metadata, Peer, TrackContext, TrackMetadata } from "@fishjam-cloud/ts-client";
 
+import type { BrandedPeer } from "../types/internal";
 import type { PeerId, Track } from "../types/public";
 import { useFishjamContext } from "./internal/useFishjamContext";
 
@@ -38,7 +31,7 @@ function trackContextToTrack(track: FishjamTrackContext | TrackContext): Track {
   };
 }
 
-function getPeerWithDistinguishedTracks<P, S>(peer: Peer<P, S> | Component | Endpoint): PeerWithTracks<P, S> {
+function getPeerWithDistinguishedTracks<P, S>(peer: BrandedPeer<P, S>): PeerWithTracks<P, S> {
   const tracks = [...peer.tracks.values()].map(trackContextToTrack);
 
   const cameraTrack = tracks.find(({ metadata }) => metadata?.type === "camera");
@@ -98,11 +91,13 @@ export function usePeers<
   const { clientState } = useFishjamContext();
 
   const localPeer = clientState.localPeer
-    ? getPeerWithDistinguishedTracks<PeerMetadata, ServerMetadata>(clientState.localPeer)
+    ? getPeerWithDistinguishedTracks<PeerMetadata, ServerMetadata>(
+        clientState.localPeer as BrandedPeer<PeerMetadata, ServerMetadata>,
+      )
     : null;
 
   const remotePeers = Object.values(clientState.peers).map((peer) =>
-    getPeerWithDistinguishedTracks<PeerMetadata, ServerMetadata>(peer),
+    getPeerWithDistinguishedTracks<PeerMetadata, ServerMetadata>(peer as BrandedPeer<PeerMetadata, ServerMetadata>),
   );
 
   return { localPeer, remotePeers, peers: remotePeers };
